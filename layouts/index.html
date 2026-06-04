@@ -11,12 +11,12 @@
 
   {{ $all := where .Site.Pages.ByDate.Reverse "Type" "post" }}
 
-  {{ $statusPosts := where $all "Params.categories" "intersect" (slice "Status") }}
+  {{ $statusPosts := (where $all "Params.categories" "intersect" (slice "Status")).ByDate.Reverse }}
 
-  {{ $bookPosts  := where $all "Params.categories" "intersect" (slice "Books") }}
-  {{ $moviePosts := where $all "Params.categories" "intersect" (slice "Movies") }}
+  {{ $bookPosts  := (where $all "Params.categories" "intersect" (slice "Books")).ByDate.Reverse }}
+  {{ $moviePosts := (where $all "Params.categories" "intersect" (slice "Movies")).ByDate.Reverse }}
 
-  {{ $highlights := where $all "Params.categories" "intersect" (slice "Highlights") }}
+  {{ $highlights := (where $all "Params.categories" "intersect" (slice "Highlights")).ByDate.Reverse }}
 
   {{/* ── 1. Latest status post ───────────────────────── */}}
   {{ with index $statusPosts 0 }}
