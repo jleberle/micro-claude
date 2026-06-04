@@ -106,9 +106,13 @@
               </h3>
             {{ end }}
             <div class="post-entry-meta">
-              <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time>
+              {{ if $page.Title }}
+                <time datetime="{{ $page.Date.Format "2006-01-02" }}">{{ $page.Date.Format "January 2, 2006" }}</time>
+              {{ else }}
+                <a href="{{ $page.Permalink }}"><time datetime="{{ $page.Date.Format "2006-01-02" }}">{{ $page.Date.Format "January 2, 2006" }}</time></a>
+              {{ end }}
             </div>
-            {{ with .Summary }}
+            {{ with $page.Summary }}
               <p class="post-entry-summary">{{ . | safeHTML }}</p>
             {{ end }}
           </li>
