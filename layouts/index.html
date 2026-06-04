@@ -16,7 +16,13 @@
   {{ $bookPosts  := where $all "Params.categories" "intersect" (slice "Books") }}
   {{ $moviePosts := where $all "Params.categories" "intersect" (slice "Movies") }}
 
-  {{ $otherPosts := complement $statusPosts $bookPosts $moviePosts $all }}
+  {{ $otherPosts := slice }}
+  {{ range $all }}
+    {{ $cats := .Params.categories }}
+    {{ if and (not (in $cats "Status")) (not (in $cats "Books")) (not (in $cats "Movies")) }}
+      {{ $otherPosts = $otherPosts | append . }}
+    {{ end }}
+  {{ end }}
 
   {{/* ── 1. Latest status post ───────────────────────── */}}
   {{ with index $statusPosts 0 }}
