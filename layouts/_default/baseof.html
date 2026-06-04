@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ .Site.Language.Lang | default "en" }}">
   <head>
-    {{ partial "head.html" . }}
+    {{ partialCached "head.html" . .RelPermalink }}
   </head>
   <body>
     {{ partial "header.html" . }}

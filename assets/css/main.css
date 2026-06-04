@@ -507,6 +507,14 @@ pre {
   margin-top: 0.5rem;
 }
 
+/* --- Read more link -------------------------------------- */
+.read-more {
+  display: inline-block;
+  font-size: 0.85rem;
+  color: var(--link);
+  margin-top: 0.25rem;
+}
+
 /* --- Responsive ------------------------------------------ */
 @media (max-width: 640px) {
   body { font-size: 16px; }
