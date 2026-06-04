@@ -75,6 +75,9 @@ h1, h2, h3, h4, h5, h6 { color: var(--primary); line-height: 1.2; }
 
 img { max-width: 100%; height: auto; display: block; }
 
+/* Don't override bookshelf plugin's own image layout */
+.bookshelf img, .bookshelf__cover { display: inline; width: auto; max-width: 100%; }
+
 hr {
   border: none;
   border-top: 1px solid var(--accent);
