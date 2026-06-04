@@ -1,16 +1,23 @@
 {{ $bio := .Site.Params.bio | default .Site.Params.itunes_description | default .Content }}
-{{ if or $bio .Site.Menus.social }}
+{{ $p := .Site.Params }}
+{{ $hasSocial := or $p.social_mastodon $p.social_bluesky $p.social_github $p.social_letterboxd $p.social_librarything $p.social_orcid $p.social_linkedin $p.social_custom_url }}
+{{ if or $bio $hasSocial }}
 <div class="intro">
-  <img class="intro-avatar" src="https://micro.blog/{{ .Site.Params.author.username }}/avatar.jpg" alt="{{ .Site.Params.author.name | default .Site.Title }}" width="80" height="80">
+  <img class="intro-avatar" src="https://micro.blog/{{ $p.author.username }}/avatar.jpg" alt="{{ $p.author.name | default .Site.Title }}" width="80" height="80">
   <div class="intro-body">
     {{ with $bio }}
       <p class="intro-bio">{{ . | safeHTML }}</p>
     {{ end }}
-    {{ with .Site.Menus.social }}
+    {{ if $hasSocial }}
       <nav class="intro-social" aria-label="Social links">
-        {{ range . }}
-          <a href="{{ .URL }}" {{ if .Params.rel }}rel="{{ .Params.rel }}"{{ end }}>{{ .Name }}</a>
-        {{ end }}
+        {{ with $p.social_mastodon }}<a href="{{ . }}" rel="me">Mastodon</a>{{ end }}
+        {{ with $p.social_bluesky }}<a href="{{ . }}">Bluesky</a>{{ end }}
+        {{ with $p.social_github }}<a href="{{ . }}">GitHub</a>{{ end }}
+        {{ with $p.social_letterboxd }}<a href="{{ . }}">Letterboxd</a>{{ end }}
+        {{ with $p.social_librarything }}<a href="{{ . }}">LibraryThing</a>{{ end }}
+        {{ with $p.social_orcid }}<a href="{{ . }}">ORCID</a>{{ end }}
+        {{ with $p.social_linkedin }}<a href="{{ . }}">LinkedIn</a>{{ end }}
+        {{ with $p.social_custom_url }}<a href="{{ . }}">{{ $p.social_custom_label | default "Link" }}</a>{{ end }}
       </nav>
     {{ end }}
   </div>
