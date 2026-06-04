@@ -4,6 +4,7 @@
     {{ partialCached "head.html" . .RelPermalink }}
   </head>
   <body>
+    <a class="skip-link" href="#main">Skip to content</a>
     {{ partial "header.html" . }}
     <main class="main" id="main">
       {{ block "main" . }}{{ end }}

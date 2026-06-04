@@ -18,9 +18,9 @@
           <p class="post-entry-summary">{{ . | safeHTML }}</p>
         {{ end }}
         {{ if $page.Truncated }}
-          <a class="read-more" href="{{ $page.Permalink }}">Read more &rarr;</a>
+          <a class="read-more" href="{{ $page.Permalink }}" aria-label="Read more: {{ $page.Title | default ($page.Date.Format "January 2, 2006") }}">Read more &rarr;</a>
         {{ else if not $page.Title }}
-          <a class="read-more" href="{{ $page.Permalink }}">Permalink &rarr;</a>
+          <a class="read-more" href="{{ $page.Permalink }}" aria-label="Permalink for post on {{ $page.Date.Format "January 2, 2006" }}">Permalink &rarr;</a>
         {{ end }}
       </li>
     {{ end }}
@@ -28,7 +28,7 @@
 
   {{ $p := $paginator }}
   {{ if gt $p.TotalPages 1 }}
-    <nav class="pagination">
+    <nav class="pagination" aria-label="Page navigation">
       {{ if $p.HasPrev }}
         <a href="{{ $p.Prev.URL }}">&larr; Newer</a>
       {{ else }}

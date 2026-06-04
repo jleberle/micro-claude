@@ -6,6 +6,29 @@
 /* --- Reset & base ---------------------------------------- */
 *, *::before, *::after { box-sizing: border-box; }
 
+/* --- Skip link ------------------------------------------- */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  background: var(--primary);
+  color: var(--bg);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  z-index: 1000;
+  text-decoration: none;
+}
+
+.skip-link:focus { top: 1rem; }
+
+/* --- Focus styles ---------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
 :root {
   --bg:        #fffcf2;
   --entry:     #FDF6E3;
