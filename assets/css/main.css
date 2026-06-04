@@ -75,6 +75,10 @@ h1, h2, h3, h4, h5, h6 { color: var(--primary); line-height: 1.2; }
 
 img { max-width: 100%; height: auto; display: block; }
 
+/* --- Bookgoals plugin (microdotblog/plugin-bookgoals) -------------- */
+.bookgoals { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.bookgoals img.cover { display: inline-block; width: 100px; height: 120px; object-fit: cover; }
+
 /* --- Bookshelf plugin (kottkrig/microdotblog-bookshelf-shortcode) --- */
 ul.bookshelf.bookshelf { padding: 0; margin: 0; list-style-type: none !important; }
 ul.bookshelf.bookshelf li { margin: 0; padding: 0; }
