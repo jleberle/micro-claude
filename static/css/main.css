@@ -279,13 +279,25 @@ pre {
   font-size: 0.9rem;
 }
 
-.archive-entry a { color: var(--primary); flex: 1; }
+.archive-entry a { color: var(--primary); }
+.archive-entry-title { flex: 1; }
 .archive-date {
   color: var(--secondary);
   font-size: 0.8rem;
   white-space: nowrap;
   flex-shrink: 0;
 }
+
+.archive-entry--short { align-items: flex-start; }
+
+.archive-entry-content {
+  flex: 1;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.archive-entry-content p { margin: 0 0 0.25rem; }
+.archive-entry-content p:last-child { margin-bottom: 0; }
 
 /* --- Home: status card ----------------------------------- */
 .home-status { margin-bottom: 2rem; }
