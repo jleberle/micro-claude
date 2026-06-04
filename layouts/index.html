@@ -59,7 +59,7 @@
                 <div class="media-entry-info">
                   <a href="{{ $p.Permalink }}">{{ $p.Title | default ($p.Date.Format "Jan 2, 2006") }}</a>
                   <time class="media-entry-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "Jan 2006" }}</time>
-                  <div class="media-entry-content">{{ $p.Content | safeHTML }}</div>
+                  <div class="media-entry-content">{{ $p.Summary | safeHTML }}</div>
                 </div>
               </li>
             {{ end }}
@@ -77,7 +77,7 @@
                 <div class="media-entry-info">
                   <a href="{{ $p.Permalink }}">{{ $p.Title | default ($p.Date.Format "Jan 2, 2006") }}</a>
                   <time class="media-entry-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "Jan 2006" }}</time>
-                  <div class="media-entry-content">{{ $p.Content | safeHTML }}</div>
+                  <div class="media-entry-content">{{ $p.Summary | safeHTML }}</div>
                 </div>
               </li>
             {{ end }}
