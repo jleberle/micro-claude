@@ -41,7 +41,7 @@
         <div class="media-col">
           <h2 class="media-col-heading">📚 Books</h2>
           <ul class="media-list">
-            {{ range first 6 $bookPosts }}
+            {{ range first 5 $bookPosts }}
               {{ $p := . }}
               <li class="media-entry">
                 <div class="media-entry-info">
@@ -52,7 +52,7 @@
               </li>
             {{ end }}
           </ul>
-          {{ if gt (len $bookPosts) 6 }}
+          {{ if gt (len $bookPosts) 5 }}
             <a class="media-col-more" href="{{ "/reading" | relURL }}">All books &rarr;</a>
           {{ end }}
         </div>
@@ -61,7 +61,7 @@
         <div class="media-col">
           <h2 class="media-col-heading">🍿 Movies</h2>
           <ul class="media-list">
-            {{ range first 6 $moviePosts }}
+            {{ range first 5 $moviePosts }}
               {{ $p := . }}
               <li class="media-entry media-entry--movie">
                 <div class="media-entry-info">
@@ -72,7 +72,7 @@
               </li>
             {{ end }}
           </ul>
-          {{ if gt (len $moviePosts) 6 }}
+          {{ if gt (len $moviePosts) 5 }}
             <a class="media-col-more" href="{{ "/categories/movies" | relURL }}">All movies &rarr;</a>
           {{ end }}
         </div>
