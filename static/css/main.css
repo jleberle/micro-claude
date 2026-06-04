@@ -389,12 +389,21 @@ pre {
 .media-entry-content p { margin: 0 0 0.25rem; }
 .media-entry-content p:last-child { margin-bottom: 0; }
 
+.media-entry-content img {
+  width: 80px;
+  height: auto;
+  border-radius: 3px;
+  float: left;
+  margin: 0 0.75rem 0.5rem 0;
+}
+
 .media-cover {
-  width: 42px;
-  height: 60px;
+  width: 80px;
+  height: auto;
   object-fit: cover;
   border-radius: 3px;
   flex-shrink: 0;
+  align-self: flex-start;
 }
 
 .media-entry-info {
@@ -402,6 +411,7 @@ pre {
   flex-direction: column;
   gap: 0.2rem;
   min-width: 0;
+  flex: 1;
 }
 
 .media-entry-info a {
