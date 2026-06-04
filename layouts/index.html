@@ -77,7 +77,7 @@
         <div class="media-col">
           <h2 class="media-col-heading">🍿 Movies</h2>
           <ul class="media-list">
-            {{ range first 6 $moviePosts }}
+            {{ range first 5 $moviePosts }}
               {{ $p := . }}
               <li class="media-entry media-entry--movie">
                 <div class="media-entry-info">
@@ -87,7 +87,7 @@
               </li>
             {{ end }}
           </ul>
-          {{ if gt (len $moviePosts) 6 }}
+          {{ if gt (len $moviePosts) 5 }}
             <a class="media-col-more" href="{{ "/categories/movies" | relURL }}">All movies &rarr;</a>
           {{ end }}
         </div>
