@@ -13,6 +13,11 @@
   {{ $moviePosts  := (where $all "Params.categories" "intersect" (slice "Movies")).ByDate.Reverse }}
   {{ $highlights  := (where $all "Params.categories" "intersect" (slice "Highlights")).ByDate.Reverse }}
 
+  {{ if not $statusPosts }}{{ warnf "micro-claude: no posts found in category 'Status' — check category name is exact/case-sensitive" }}{{ end }}
+  {{ if not $bookPosts   }}{{ warnf "micro-claude: no posts found in category 'Books' — check category name is exact/case-sensitive" }}{{ end }}
+  {{ if not $moviePosts  }}{{ warnf "micro-claude: no posts found in category 'Movies' — check category name is exact/case-sensitive" }}{{ end }}
+  {{ if not $highlights  }}{{ warnf "micro-claude: no posts found in category 'Highlights' — check category name is exact/case-sensitive" }}{{ end }}
+
   {{/* ── 1. Latest status post ───────────────────────── */}}
   {{ with index $statusPosts 0 }}
     <section class="home-status" aria-label="Latest status">
