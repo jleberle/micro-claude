@@ -1,5 +1,7 @@
 {{ define "main" }}
 
+  {{ partial "intro.html" . }}
+
   {{ if not .Site.Data.bookshelves }}
     {{ warnf "micro-claude: .Site.Data.bookshelves is empty — bookshelf plugin may not be active" }}
   {{ end }}
