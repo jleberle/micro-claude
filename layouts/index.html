@@ -16,13 +16,7 @@
   {{ $bookPosts  := where $all "Params.categories" "intersect" (slice "Books") }}
   {{ $moviePosts := where $all "Params.categories" "intersect" (slice "Movies") }}
 
-  {{ $excluded := slice "Status" "Books" "Movies" }}
-  {{ $otherPosts := slice }}
-  {{ range $all }}
-    {{ if eq 0 (len (intersect .Params.categories $excluded)) }}
-      {{ $otherPosts = $otherPosts | append . }}
-    {{ end }}
-  {{ end }}
+  {{ $highlights := where $all "Params.categories" "intersect" (slice "Highlights") }}
 
   {{/* ── 1. Latest status post ───────────────────────── */}}
   {{ with index $statusPosts 0 }}
@@ -87,12 +81,12 @@
     </section>
   {{ end }}
 
-  {{/* ── 3. All other posts, single column ─────────── */}}
-  {{ if $otherPosts }}
-    <section class="home-feed" aria-label="Recent posts">
-      <h2 class="home-feed-heading">Recent posts</h2>
+  {{/* ── 3. Highlights ─────────────────────────────── */}}
+  {{ if $highlights }}
+    <section class="home-feed" aria-label="Highlights">
+      <h2 class="home-feed-heading">Highlights</h2>
       <ul class="post-list">
-        {{ range first 10 $otherPosts }}
+        {{ range first 10 $highlights }}
           {{ $page := . }}
           <li class="post-entry{{ if not $page.Title }} short{{ end }}">
             {{ if $page.Title }}
@@ -113,8 +107,8 @@
           </li>
         {{ end }}
       </ul>
-      {{ if gt (len $otherPosts) 10 }}
-        <a class="home-feed-more" href="{{ "/archive" | relURL }}">All posts &rarr;</a>
+      {{ if gt (len $highlights) 10 }}
+        <a class="home-feed-more" href="{{ "/categories/highlights" | relURL }}">All highlights &rarr;</a>
       {{ end }}
     </section>
   {{ end }}
