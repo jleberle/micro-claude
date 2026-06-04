@@ -8,6 +8,7 @@ A micro.blog theme that mirrors the style of [jaredeberle.org](https://jaredeber
 2. Connect this repo via the GitHub integration.
 3. Set the theme as active.
 4. Set Hugo version to **0.158** in micro.blog settings.
+5. In micro.blog go to **Design → Edit Navigation**, add a menu named **`social`** with your social profile links — these appear in the homepage intro section.
 
 ## File structure
 
@@ -17,14 +18,15 @@ assets/
     main.css                      — All styles (minified + fingerprinted at build time)
 layouts/
   _default/
-    baseof.html                   — Base HTML shell
+    baseof.html                   — Base HTML shell (includes skip-to-content link)
     list.html                     — Category / taxonomy list pages
     single.html                   — Individual post
   index.html                      — Homepage
   partials/
     head.html                     — <head> tag, CSS pipeline, lite-youtube hook
-    header.html                   — Site nav bar
-    footer.html                   — Site footer
+    header.html                   — Site nav bar (text-only title, no avatar)
+    footer.html                   — Site footer with RSS, Micro.blog, and theme links
+    intro.html                    — Homepage bio/social section
     custom_footer.html            — Empty hook (used by plugin-cc and others)
     microblog_head.html           — Overrides micro.blog default; provides feed links,
                                     canonical URL, fediverse creator meta
@@ -35,7 +37,23 @@ layouts/
 
 Colors are all CSS custom properties in `assets/css/main.css` under `:root`. Swap them to adjust the palette without touching layout code.
 
-The header shows your micro.blog avatar automatically via `https://micro.blog/{username}/avatar.jpg`.
+### Homepage intro
+
+The intro section at the top of the homepage pulls from:
+- **Avatar** — `https://micro.blog/{username}/avatar.jpg` (automatic)
+- **Bio** — `.Site.Params.bio` → `.Site.Params.itunes_description` → page `.Content` (first non-empty wins)
+- **Social links** — `social` menu in **Design → Edit Navigation**
+
+The section only renders if at least one of bio or social links is present.
+
+### Homepage sections
+
+The homepage displays in order:
+1. **Intro** — bio and social links
+2. **Status** — latest post from the `Status` category
+3. **Currently Reading** — from bookshelf plugin data (`Site.Data.bookshelves.currentlyreading`)
+4. **Books | Movies** — two columns; books shows 5 most recent `Books` category posts with cover thumbnail and truncated summary; movies shows 6 most recent `Movies` category posts with date and review snippet
+5. **Highlights** — up to 10 most recent posts from the `Highlights` category
 
 ---
 
@@ -53,16 +71,28 @@ These plugins must be installed and active for full functionality:
 
 These plugins are installed and work with the theme without any changes:
 
-- **plugin-opengraph-basics** — injects via `microblog_head.html`
-- **plugin-cc** — injects via `custom_footer.html`
-- **plugin-barefoot** — self-contained footnote JS
-- **plugin-osm-embeds** — shortcode only
-- **micro-blog-lite-youtube** — loaded via conditional `partial "lite-youtube.html"` in `head.html`
-- **plugin-archive-months** — provides `list.archivehtml.html`; theme intentionally has no competing version
-- **plugin-photos-months** — provides `list.photoshtml.html`; theme intentionally has no competing version
-- **plugin-search-page** — self-contained
-- **plugin-nocgpt** — adds `robots.txt` only
-- **wayback-link-preserver** — injects via `microblog_head.html`
+- **[plugin-opengraph-basics](https://github.com/microdotblog/plugin-opengraph-basics)** — injects via `microblog_head.html`
+- **[plugin-cc](https://github.com/microdotblog/plugin-cc)** — injects via `custom_footer.html`
+- **[plugin-barefoot](https://github.com/microdotblog/plugin-barefoot)** — self-contained footnote JS
+- **[plugin-osm-embeds](https://github.com/flschr/mbplugin-osm-embeds)** — shortcode only
+- **[micro-blog-lite-youtube](https://github.com/rknightuk/micro-blog-lite-youtube)** — loaded via conditional `partial "lite-youtube.html"` in `head.html`; targets `.post-content` class which this theme uses
+- **[plugin-archive-months](https://github.com/microdotblog/plugin-archive-months)** — provides `list.archivehtml.html`; theme intentionally has no competing version
+- **[plugin-photos-months](https://github.com/microdotblog/plugin-photos-months)** — provides `list.photoshtml.html`; theme intentionally has no competing version
+- **[plugin-search-page](https://github.com/microdotblog/plugin-search-page)** — self-contained
+- **[plugin-nocgpt](https://github.com/jmillerv/plugin-nocgpt)** — adds `robots.txt` only
+- **[wayback-link-preserver](https://github.com/gunnarr/wayback-link-preserver)** — injects via `microblog_head.html`
+- **[plugin-bookgoals](https://github.com/microdotblog/plugin-bookgoals)** — shortcode only; CSS for `.bookgoals` layout is embedded in `main.css`
+
+### Embedded plugin CSS
+
+The following plugin stylesheets are embedded directly in `main.css` to guarantee they load regardless of micro.blog's static file serving:
+
+| Plugin | Classes | Note |
+|---|---|---|
+| microdotblog-bookshelf-shortcode | `.bookshelf`, `.bookshelf__cover`, etc. | Both list and grid variants; list variant forced to grid layout |
+| plugin-bookgoals | `.bookgoals`, `.cover` | Fixed 100×120px covers in flex-wrap grid |
+
+If either plugin updates its CSS, `main.css` should be updated to match.
 
 ---
 
@@ -72,35 +102,40 @@ These plugins are installed and work with the theme without any changes:
 
 The theme targets **Hugo 0.158** and uses features not available in older versions:
 
-- `resources.Get | minify | fingerprint` (Hugo Pipes) — requires Hugo 0.33+, but minify requires a reasonably modern version. If micro.blog drops Hugo Pipes support or changes asset handling, revert `head.html` to a plain `<link>` tag and move CSS back to `static/css/main.css`.
-- `partialCached` — safe across all modern Hugo versions.
-- `.Truncated` — available since Hugo 0.45.
+- `resources.Get | minify | fingerprint` (Hugo Pipes) — if micro.blog drops Hugo Pipes support, revert `head.html` to a plain `<link>` tag and move `assets/css/main.css` back to `static/css/main.css`
+- `partialCached` — safe across all modern Hugo versions
+- `.Truncated` — available since Hugo 0.45
+- `warnf` — available since Hugo 0.62
 
 ### CSS pipeline
 
-`assets/css/main.css` is processed through Hugo Pipes at build time. If micro.blog's build system stops supporting `resources.Get`, the site will fail to build. The fallback is:
+`assets/css/main.css` is processed through Hugo Pipes at build time. If `resources.Get` stops working, the site will fail to build. Fallback:
 
 ```html
 <link rel="stylesheet" href="{{ "css/main.css" | relURL }}?{{ .Site.Params.theme_seconds }}">
 ```
 
-and moving `assets/css/main.css` back to `static/css/main.css`.
+Move `assets/css/main.css` to `static/css/main.css` alongside this change.
 
 ### Homepage category filtering
 
 The homepage filters posts by category name (exact string match): `"Status"`, `"Books"`, `"Movies"`, `"Highlights"`. If any of these category names change in micro.blog, the corresponding section will silently show no posts. Category names are case-sensitive.
 
+### Homepage intro bio
+
+The bio text is pulled from `.Site.Params.bio` first, then `.Site.Params.itunes_description`, then page `.Content`. micro.blog's exact param name for the About Me field is not publicly documented and may change. If the intro disappears, check which param micro.blog is currently using for the user bio.
+
 ### Books section — bookshelf data
 
-The currently reading section reads from `.Site.Data.bookshelves.currentlyreading`. This data file is generated by micro.blog when the bookshelf plugin is active. If the plugin is deactivated, the section disappears. If a book is added to the shelf but the site hasn't rebuilt since, it won't appear — publishing any post triggers a rebuild.
+The currently reading section reads from `.Site.Data.bookshelves.currentlyreading`. This data file is generated by micro.blog when the bookshelf plugin is active. If the plugin is deactivated, the section disappears. If a book is added to the shelf but the site hasn't rebuilt, it won't appear — publishing any post triggers a rebuild.
 
 ### Books section — cover thumbnails
 
-Cover images in the books column are extracted from post content using `findRE` to pull the first `<img>` tag. If micro.blog changes how the bookshelf plugin formats post content (e.g. stops embedding a cover image in the post body), thumbnails will disappear but the rest of the entry will continue to work.
+Cover images in the books column are extracted from post content using `findRE` to pull the first `<img>` tag. If micro.blog changes how the Watched/bookshelf plugin formats post content (e.g. stops embedding a cover image in the post body), thumbnails will disappear but the rest of the entry will continue to work.
 
 ### Movie entry formatting
 
-Movie post content is run through `plainify | htmlUnescape` to strip HTML and decode entities. This works because micro.blog's Watched plugin generates plain-text-style content. If the plugin changes its output format (e.g. switches to structured HTML), the movie entries may display incorrectly.
+Movie post content is run through `plainify | htmlUnescape` to strip HTML and decode entities. This works because micro.blog's Watched plugin generates plain-text-style content. If the plugin changes its output format, the movie entries may display incorrectly.
 
 ### `microblog_head.html` override
 
@@ -115,3 +150,11 @@ If micro.blog adds new required tags to their default `microblog_head.html` in t
 ### Plugin injection points
 
 Plugins that inject into the `<head>` via `microblog_head.html` (e.g. opengraph-basics, wayback-link-preserver) rely on micro.blog's plugin merging system. Since the theme overrides `microblog_head.html`, those plugins must be compatible with micro.blog's multi-source partial resolution. If a plugin stops working in the head, check whether it depends on overriding `microblog_head.html` directly.
+
+### Accessibility
+
+- Skip-to-content link is present but visually hidden until focused — test with keyboard navigation if modifying the header
+- `aria-label` attributes on all `<nav>` elements — update if nav structure changes
+- `aria-label` on "Read more" and "Permalink" links includes post title/date for screen reader context
+- `:focus-visible` outline uses `var(--link)` color — verify contrast if changing the color palette
+- Solarized Light secondary text (`#6c6c6c` on `#fffcf2`) is borderline at WCAG 2.1 AA for small text sizes
