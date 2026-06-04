@@ -81,8 +81,7 @@
               {{ $p := . }}
               <li class="media-entry media-entry--movie">
                 <div class="media-entry-info">
-                  <a href="{{ $p.Permalink }}">{{ $p.Title | default ($p.Date.Format "Jan 2, 2006") }}</a>
-                  <div class="media-entry-content">{{ $p.Summary | safeHTML }}</div>
+                  <a href="{{ $p.Permalink }}">{{ $p.Content | plainify | truncate 80 }}</a>
                 </div>
               </li>
             {{ end }}
