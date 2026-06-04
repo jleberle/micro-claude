@@ -16,18 +16,7 @@
   {{ $bookPosts  := where $all "Params.categories" "intersect" (slice "Books") }}
   {{ $moviePosts := where $all "Params.categories" "intersect" (slice "Movies") }}
 
-  {{/* Collect permalinks already shown so we can exclude them below */}}
-  {{ $shownIDs := slice }}
-  {{ range $statusPosts }}{{ $shownIDs = $shownIDs | append .RelPermalink }}{{ end }}
-  {{ range $bookPosts   }}{{ $shownIDs = $shownIDs | append .RelPermalink }}{{ end }}
-  {{ range $moviePosts  }}{{ $shownIDs = $shownIDs | append .RelPermalink }}{{ end }}
-
-  {{ $otherPosts := slice }}
-  {{ range $all }}
-    {{ if not (in $shownIDs .RelPermalink) }}
-      {{ $otherPosts = $otherPosts | append . }}
-    {{ end }}
-  {{ end }}
+  {{ $otherPosts := complement $statusPosts $bookPosts $moviePosts $all }}
 
   {{/* ── 1. Latest status post ───────────────────────── */}}
   {{ with index $statusPosts 0 }}
