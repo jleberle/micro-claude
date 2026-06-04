@@ -8,7 +8,6 @@ A micro.blog theme that mirrors the style of [jaredeberle.org](https://jaredeber
 2. Connect this repo via the GitHub integration.
 3. Set the theme as active.
 4. Set Hugo version to **0.158** in micro.blog settings.
-5. In micro.blog go to **Design → Edit Navigation**, add a menu named **`social`** with your social profile links — these appear in the homepage intro section.
 
 ## File structure
 
