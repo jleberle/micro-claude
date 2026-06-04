@@ -12,17 +12,15 @@
           </h2>
         {{ end }}
         <div class="post-entry-meta">
-          {{ if $page.Title }}
-            <time datetime="{{ $page.Date.Format "2006-01-02" }}">{{ $page.Date.Format "January 2, 2006" }}</time>
-          {{ else }}
-            <a href="{{ $page.Permalink }}"><time datetime="{{ $page.Date.Format "2006-01-02" }}">{{ $page.Date.Format "January 2, 2006" }}</time></a>
-          {{ end }}
+          <time datetime="{{ $page.Date.Format "2006-01-02" }}">{{ $page.Date.Format "January 2, 2006" }}</time>
         </div>
         {{ with $page.Summary }}
           <p class="post-entry-summary">{{ . | safeHTML }}</p>
-          {{ if $page.Truncated }}
-            <a class="read-more" href="{{ $page.Permalink }}">Read more &rarr;</a>
-          {{ end }}
+        {{ end }}
+        {{ if $page.Truncated }}
+          <a class="read-more" href="{{ $page.Permalink }}">Read more &rarr;</a>
+        {{ else if not $page.Title }}
+          <a class="read-more" href="{{ $page.Permalink }}">Permalink &rarr;</a>
         {{ end }}
       </li>
     {{ end }}
