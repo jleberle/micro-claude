@@ -1,8 +1,9 @@
 {{ define "main" }}
   {{ if .Title }}<h1 class="page-title">{{ .Title }}</h1>{{ end }}
 
+  {{ $paginator := .Paginate (.Pages.ByDate.Reverse) }}
   <ul class="post-list">
-    {{ range .Paginator.Pages }}
+    {{ range $paginator.Pages }}
       {{ $page := . }}
       <li class="post-entry{{ if not $page.Title }} short{{ end }}">
         {{ if $page.Title }}
@@ -24,7 +25,7 @@
     {{ end }}
   </ul>
 
-  {{ $p := .Paginator }}
+  {{ $p := $paginator }}
   {{ if gt $p.TotalPages 1 }}
     <nav class="pagination">
       {{ if $p.HasPrev }}
