@@ -3,10 +3,11 @@
 
   <ul class="post-list">
     {{ range .Paginator.Pages }}
-      <li class="post-entry{{ if not .Title }} short{{ end }}">
-        {{ with .Title }}
+      {{ $page := . }}
+      <li class="post-entry{{ if not $page.Title }} short{{ end }}">
+        {{ if $page.Title }}
           <h2 class="post-entry-title">
-            <a href="{{ $.Permalink }}">{{ . }}</a>
+            <a href="{{ $page.Permalink }}">{{ $page.Title }}</a>
           </h2>
         {{ end }}
         <div class="post-entry-meta">
