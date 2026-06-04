@@ -9,7 +9,7 @@
       Other posts   — everything else
   */}}
 
-  {{ $all := .Site.RegularPages }}
+  {{ $all := where .Site.RegularPages "Kind" "!=" "page" }}
 
   {{ $statusPosts := where $all "Params.categories" "intersect" (slice "Status") }}
 
