@@ -427,6 +427,10 @@ pre {
   color: var(--primary);
   margin-top: 0.25rem;
   line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .media-entry-content p { margin: 0 0 0.25rem; }
