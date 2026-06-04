@@ -4,3 +4,4 @@
 <title>{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} &middot; {{ .Site.Title }}{{ end }}</title>
 {{ with .Site.Params.description }}<meta name="description" content="{{ . }}">{{ end }}
 <link rel="stylesheet" href="{{ "css/main.css" | relURL }}?{{ .Site.Params.theme_seconds }}">
+{{ if templates.Exists "partials/lite-youtube.html" }}{{ partial "lite-youtube.html" . }}{{ end }}
