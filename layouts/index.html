@@ -1,21 +1,11 @@
 {{ define "main" }}
-  {{/*
-    Post detection:
-      Status posts  — have "Status" in .Params.categories
-      Book posts    — have .Params.isbn set (micro.blog bookshelf plugin)
-                      OR have "Books" in .Params.categories
-      Movie posts   — have .Params.tmdb_id set (micro.blog Watched plugin)
-                      OR have "Movies" in .Params.categories
-      Other posts   — everything else
-  */}}
 
   {{ $all := where .Site.Pages.ByDate.Reverse "Type" "post" }}
 
   {{ $statusPosts := (where $all "Params.categories" "intersect" (slice "Status")).ByDate.Reverse }}
-
-{{ $moviePosts := (where $all "Params.categories" "intersect" (slice "Movies")).ByDate.Reverse }}
-
-  {{ $highlights := (where $all "Params.categories" "intersect" (slice "Highlights")).ByDate.Reverse }}
+  {{ $bookPosts   := (where $all "Params.categories" "intersect" (slice "Books")).ByDate.Reverse }}
+  {{ $moviePosts  := (where $all "Params.categories" "intersect" (slice "Movies")).ByDate.Reverse }}
+  {{ $highlights  := (where $all "Params.categories" "intersect" (slice "Highlights")).ByDate.Reverse }}
 
   {{/* ── 1. Latest status post ───────────────────────── */}}
   {{ with index $statusPosts 0 }}
@@ -31,50 +21,49 @@
     </section>
   {{ end }}
 
-  {{/* ── 2. Books | Movies two-column ───────────────── */}}
-  {{ if or .Site.Data.bookshelves $moviePosts }}
+  {{/* ── 2. Currently reading (full width) ──────────── */}}
+  {{ with .Site.Data.bookshelves }}
+    {{ $reading := index . "currentlyreading" }}
+    {{ if $reading }}
+      <section class="home-reading" aria-label="Currently reading">
+        <h2 class="home-section-heading">📚 Currently Reading</h2>
+        <ul class="media-list media-list--reading">
+          {{ range $reading }}
+            <li class="media-entry">
+              <a href="https://micro.blog/books/{{ .isbn }}">
+                <img class="media-cover" src="{{ .cover_url }}" alt="{{ .title }}">
+              </a>
+              <div class="media-entry-info">
+                <a href="https://micro.blog/books/{{ .isbn }}">{{ .title }}</a>
+                <span class="media-entry-sub">by {{ .author }}</span>
+              </div>
+            </li>
+          {{ end }}
+        </ul>
+      </section>
+    {{ end }}
+  {{ end }}
+
+  {{/* ── 3. Books | Movies two-column ───────────────── */}}
+  {{ if or $bookPosts $moviePosts }}
     <section class="home-media" aria-label="Books and movies">
       <div class="media-columns">
 
-        {{/* Books — from bookshelf plugin data */}}
+        {{/* Books — recent posts */}}
         <div class="media-col">
           <h2 class="media-col-heading">📚 Books</h2>
-          {{ with .Site.Data.bookshelves }}
-            {{ $reading  := index . "currentlyreading" }}
-            {{ $finished := index . "finishedreading" }}
-            {{ if $reading }}
-              <p class="media-shelf-label">Currently reading</p>
-              <ul class="media-list">
-                {{ range $reading }}
-                  <li class="media-entry">
-                    <a href="https://micro.blog/books/{{ .isbn }}">
-                      <img class="media-cover" src="{{ .cover_url }}" alt="{{ .title }}">
-                    </a>
-                    <div class="media-entry-info">
-                      <a href="https://micro.blog/books/{{ .isbn }}">{{ .title }}</a>
-                      <span class="media-entry-sub">by {{ .author }}</span>
-                    </div>
-                  </li>
-                {{ end }}
-              </ul>
+          <ul class="media-list">
+            {{ range first 5 $bookPosts }}
+              {{ $p := . }}
+              <li class="media-entry">
+                <div class="media-entry-info">
+                  <a href="{{ $p.Permalink }}">{{ $p.Title | default ($p.Date.Format "Jan 2, 2006") }}</a>
+                  <time class="media-entry-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "Jan 2006" }}</time>
+                  <div class="media-entry-content">{{ $p.Content | safeHTML }}</div>
+                </div>
+              </li>
             {{ end }}
-            {{ if $finished }}
-              <p class="media-shelf-label">Recently finished</p>
-              <ul class="media-list">
-                {{ range first 5 $finished }}
-                  <li class="media-entry">
-                    <a href="https://micro.blog/books/{{ .isbn }}">
-                      <img class="media-cover" src="{{ .cover_url }}" alt="{{ .title }}">
-                    </a>
-                    <div class="media-entry-info">
-                      <a href="https://micro.blog/books/{{ .isbn }}">{{ .title }}</a>
-                      <span class="media-entry-sub">by {{ .author }}</span>
-                    </div>
-                  </li>
-                {{ end }}
-              </ul>
-            {{ end }}
-          {{ end }}
+          </ul>
           <a class="media-col-more" href="{{ "/categories/books" | relURL }}">All books &rarr;</a>
         </div>
 
@@ -102,7 +91,7 @@
     </section>
   {{ end }}
 
-  {{/* ── 3. Highlights ─────────────────────────────── */}}
+  {{/* ── 4. Highlights ─────────────────────────────── */}}
   {{ if $highlights }}
     <section class="home-feed" aria-label="Highlights">
       <h2 class="home-feed-heading">Highlights</h2>

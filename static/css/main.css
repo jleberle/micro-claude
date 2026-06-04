@@ -350,6 +350,35 @@ pre {
   color: var(--secondary);
 }
 
+/* --- Home: currently reading (full width) ---------------- */
+.home-reading { margin-bottom: 2rem; }
+
+.home-section-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.4rem;
+  margin: 0 0 0.75rem;
+}
+
+.media-list--reading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.media-list--reading .media-entry {
+  width: calc(50% - 0.5rem);
+  border-bottom: none;
+  background: var(--entry);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .media-list--reading .media-entry { width: 100%; }
+}
+
 /* --- Home: books / movies two-column --------------------- */
 .home-media { margin-bottom: 2rem; }
 
