@@ -359,6 +359,16 @@ pre {
 
 .media-entry:last-child { border-bottom: none; }
 
+.media-entry-content {
+  font-size: 0.85rem;
+  color: var(--primary);
+  margin-top: 0.25rem;
+  line-height: 1.5;
+}
+
+.media-entry-content p { margin: 0 0 0.25rem; }
+.media-entry-content p:last-child { margin-bottom: 0; }
+
 .media-cover {
   width: 42px;
   height: 60px;
