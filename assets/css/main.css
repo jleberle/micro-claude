@@ -141,12 +141,6 @@ pre {
   min-width: 0;
 }
 
-.intro-title {
-  font-size: 1.3rem;
-  font-weight: 700;
-  margin: 0 0 0.5rem;
-  line-height: 1.2;
-}
 
 .intro-bio {
   font-size: 0.95rem;
@@ -205,12 +199,6 @@ pre {
   gap: 0.5rem;
 }
 
-.site-title img {
-  border-radius: 50%;
-  width: 35px;
-  height: 35px;
-  object-fit: cover;
-}
 
 .site-nav {
   display: flex;
