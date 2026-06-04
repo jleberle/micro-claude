@@ -309,6 +309,13 @@ pre {
 
 .post-content p { margin: 0 0 1rem; }
 
+.post-content a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 0.3rem;
+}
+.post-content a:hover { opacity: 0.75; }
+
 .post-content h1, .post-content h2, .post-content h3 {
   margin: 1.5rem 0 0.5rem;
 }
