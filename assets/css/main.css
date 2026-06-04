@@ -475,6 +475,12 @@ pre {
   color: var(--secondary);
 }
 
+.media-entry-review {
+  font-size: 0.8rem;
+  color: var(--secondary);
+  line-height: 1.4;
+}
+
 .media-entry-date {
   font-size: 0.75rem;
   color: var(--secondary);
