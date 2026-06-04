@@ -13,8 +13,7 @@
 
   {{ $statusPosts := (where $all "Params.categories" "intersect" (slice "Status")).ByDate.Reverse }}
 
-  {{ $bookPosts  := (where $all "Params.categories" "intersect" (slice "Books")).ByDate.Reverse }}
-  {{ $moviePosts := (where $all "Params.categories" "intersect" (slice "Movies")).ByDate.Reverse }}
+{{ $moviePosts := (where $all "Params.categories" "intersect" (slice "Movies")).ByDate.Reverse }}
 
   {{ $highlights := (where $all "Params.categories" "intersect" (slice "Highlights")).ByDate.Reverse }}
 
@@ -33,28 +32,50 @@
   {{ end }}
 
   {{/* ── 2. Books | Movies two-column ───────────────── */}}
-  {{ if or $bookPosts $moviePosts }}
+  {{ if or .Site.Data.bookshelves $moviePosts }}
     <section class="home-media" aria-label="Books and movies">
       <div class="media-columns">
 
-        {{/* Books */}}
+        {{/* Books — from bookshelf plugin data */}}
         <div class="media-col">
           <h2 class="media-col-heading">📚 Books</h2>
-          <ul class="media-list">
-            {{ range first 5 $bookPosts }}
-              {{ $p := . }}
-              <li class="media-entry">
-                <div class="media-entry-info">
-                  <a href="{{ $p.Permalink }}">{{ $p.Title | default ($p.Date.Format "Jan 2, 2006") }}</a>
-                  <time class="media-entry-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "Jan 2006" }}</time>
-                  <div class="media-entry-content">{{ $p.Content | safeHTML }}</div>
-                </div>
-              </li>
+          {{ with .Site.Data.bookshelves }}
+            {{ $reading  := index . "currentlyreading" }}
+            {{ $finished := index . "finishedreading" }}
+            {{ if $reading }}
+              <p class="media-shelf-label">Currently reading</p>
+              <ul class="media-list">
+                {{ range $reading }}
+                  <li class="media-entry">
+                    <a href="https://micro.blog/books/{{ .isbn }}">
+                      <img class="media-cover" src="{{ .cover_url }}" alt="{{ .title }}">
+                    </a>
+                    <div class="media-entry-info">
+                      <a href="https://micro.blog/books/{{ .isbn }}">{{ .title }}</a>
+                      <span class="media-entry-sub">by {{ .author }}</span>
+                    </div>
+                  </li>
+                {{ end }}
+              </ul>
             {{ end }}
-          </ul>
-          {{ if gt (len $bookPosts) 5 }}
-            <a class="media-col-more" href="{{ "/reading" | relURL }}">All books &rarr;</a>
+            {{ if $finished }}
+              <p class="media-shelf-label">Recently finished</p>
+              <ul class="media-list">
+                {{ range first 5 $finished }}
+                  <li class="media-entry">
+                    <a href="https://micro.blog/books/{{ .isbn }}">
+                      <img class="media-cover" src="{{ .cover_url }}" alt="{{ .title }}">
+                    </a>
+                    <div class="media-entry-info">
+                      <a href="https://micro.blog/books/{{ .isbn }}">{{ .title }}</a>
+                      <span class="media-entry-sub">by {{ .author }}</span>
+                    </div>
+                  </li>
+                {{ end }}
+              </ul>
+            {{ end }}
           {{ end }}
+          <a class="media-col-more" href="{{ "/categories/books" | relURL }}">All books &rarr;</a>
         </div>
 
         {{/* Movies */}}

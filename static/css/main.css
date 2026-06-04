@@ -354,6 +354,15 @@ pre {
   gap: 2rem;
 }
 
+.media-shelf-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--secondary);
+  margin: 0.75rem 0 0.4rem;
+}
+
 .media-col-heading {
   font-size: 1rem;
   font-weight: 700;
