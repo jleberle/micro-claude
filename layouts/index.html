@@ -1,0 +1,142 @@
+{{ define "main" }}
+  {{/*
+    Post detection:
+      Status posts  — have "Status" in .Params.categories
+      Book posts    — have .Params.isbn set (micro.blog bookshelf plugin)
+                      OR have "Books" in .Params.categories
+      Movie posts   — have .Params.tmdb_id set (micro.blog Watched plugin)
+                      OR have "Movies" in .Params.categories
+      Other posts   — everything else
+  */}}
+
+  {{ $all := .Site.RegularPages }}
+
+  {{ $statusPosts := where $all "Params.categories" "intersect" (slice "Status") }}
+
+  {{ $booksByParam    := where $all "Params.isbn" "!=" nil }}
+  {{ $booksByCategory := where $all "Params.categories" "intersect" (slice "Books") }}
+  {{ $bookPosts       := ($booksByParam | append $booksByCategory) | uniq }}
+
+  {{ $moviesByParam    := where $all "Params.tmdb_id" "!=" nil }}
+  {{ $moviesByCategory := where $all "Params.categories" "intersect" (slice "Movies") }}
+  {{ $moviePosts       := ($moviesByParam | append $moviesByCategory) | uniq }}
+
+  {{/* Collect permalinks already shown so we can exclude them below */}}
+  {{ $shownIDs := slice }}
+  {{ range $statusPosts }}{{ $shownIDs = $shownIDs | append .RelPermalink }}{{ end }}
+  {{ range $bookPosts   }}{{ $shownIDs = $shownIDs | append .RelPermalink }}{{ end }}
+  {{ range $moviePosts  }}{{ $shownIDs = $shownIDs | append .RelPermalink }}{{ end }}
+
+  {{ $otherPosts := slice }}
+  {{ range $all }}
+    {{ if not (in $shownIDs .RelPermalink) }}
+      {{ $otherPosts = $otherPosts | append . }}
+    {{ end }}
+  {{ end }}
+
+  {{/* ── 1. Latest status post ───────────────────────── */}}
+  {{ with index $statusPosts 0 }}
+    <section class="home-status" aria-label="Latest status">
+      <div class="status-card">
+        <div class="status-card-meta">
+          <span class="status-label">Status</span>
+          <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time>
+        </div>
+        <div class="status-card-body">{{ .Content | safeHTML }}</div>
+        <a class="status-card-more" href="{{ "/categories/status" | relURL }}">All status posts &rarr;</a>
+      </div>
+    </section>
+  {{ end }}
+
+  {{/* ── 2. Books | Movies two-column ───────────────── */}}
+  {{ if or $bookPosts $moviePosts }}
+    <section class="home-media" aria-label="Books and movies">
+      <div class="media-columns">
+
+        {{/* Books */}}
+        <div class="media-col">
+          <h2 class="media-col-heading">📚 Books</h2>
+          <ul class="media-list">
+            {{ range first 6 $bookPosts }}
+              <li class="media-entry">
+                {{ with .Params.book_cover }}
+                  <img src="{{ . }}" alt="Cover of {{ $.Title }}" class="media-cover" loading="lazy">
+                {{ end }}
+                <div class="media-entry-info">
+                  <a href="{{ .Permalink }}">
+                    {{ .Params.book_title | default .Title | default (.Date.Format "Jan 2") }}
+                  </a>
+                  {{ with .Params.book_author }}
+                    <span class="media-entry-sub">{{ . }}</span>
+                  {{ end }}
+                  <time class="media-entry-date" datetime="{{ .Date.Format "2006-01-02" }}">
+                    {{ .Date.Format "Jan 2006" }}
+                  </time>
+                </div>
+              </li>
+            {{ end }}
+          </ul>
+          {{ if gt (len $bookPosts) 6 }}
+            <a class="media-col-more" href="{{ "/reading" | relURL }}">All books &rarr;</a>
+          {{ end }}
+        </div>
+
+        {{/* Movies */}}
+        <div class="media-col">
+          <h2 class="media-col-heading">🍿 Movies</h2>
+          <ul class="media-list">
+            {{ range first 6 $moviePosts }}
+              <li class="media-entry media-entry--movie">
+                {{ with .Params.movie_poster }}
+                  <img src="{{ . }}" alt="Poster for {{ $.Title }}" class="media-cover" loading="lazy">
+                {{ end }}
+                <div class="media-entry-info">
+                  <a href="{{ .Permalink }}">
+                    {{ .Params.movie_title | default .Title | default (.Date.Format "Jan 2") }}
+                  </a>
+                  {{ with .Params.movie_year }}
+                    <span class="media-entry-sub">{{ . }}</span>
+                  {{ end }}
+                  <time class="media-entry-date" datetime="{{ .Date.Format "2006-01-02" }}">
+                    {{ .Date.Format "Jan 2006" }}
+                  </time>
+                </div>
+              </li>
+            {{ end }}
+          </ul>
+          {{ if gt (len $moviePosts) 6 }}
+            <a class="media-col-more" href="{{ "/categories/movies" | relURL }}">All movies &rarr;</a>
+          {{ end }}
+        </div>
+
+      </div>
+    </section>
+  {{ end }}
+
+  {{/* ── 3. All other posts, single column ─────────── */}}
+  {{ if $otherPosts }}
+    <section class="home-feed" aria-label="Recent posts">
+      <h2 class="home-feed-heading">Recent posts</h2>
+      <ul class="post-list">
+        {{ range first 10 $otherPosts }}
+          <li class="post-entry{{ if not .Title }} short{{ end }}">
+            {{ with .Title }}
+              <h3 class="post-entry-title">
+                <a href="{{ .Permalink }}">{{ . }}</a>
+              </h3>
+            {{ end }}
+            <div class="post-entry-meta">
+              <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time>
+            </div>
+            {{ with .Summary }}
+              <p class="post-entry-summary">{{ . | safeHTML }}</p>
+            {{ end }}
+          </li>
+        {{ end }}
+      </ul>
+      {{ if gt (len $otherPosts) 10 }}
+        <a class="home-feed-more" href="{{ "/archive" | relURL }}">All posts &rarr;</a>
+      {{ end }}
+    </section>
+  {{ end }}
+{{ end }}

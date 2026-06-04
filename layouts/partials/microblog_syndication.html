@@ -1,0 +1,7 @@
+{{ with .Params.syndication }}
+  <div class="syndication">
+    {{ range . }}
+      <a href="{{ . }}" rel="syndication">{{ . }}</a>
+    {{ end }}
+  </div>
+{{ end }}

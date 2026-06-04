@@ -1,0 +1,28 @@
+{{ define "main" }}
+  {{ if .Title }}<h1 class="page-title">{{ .Title }}</h1>{{ end }}
+
+  <ul class="post-list">
+    {{ range .Paginator.Pages }}
+      <li class="post-entry{{ if not .Title }} short{{ end }}">
+        {{ with .Title }}
+          <h2 class="post-entry-title">
+            <a href="{{ .Permalink }}">{{ . }}</a>
+          </h2>
+        {{ end }}
+        <div class="post-entry-meta">
+          <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time>
+        </div>
+        {{ with .Summary }}
+          <p class="post-entry-summary">{{ . | safeHTML }}</p>
+        {{ end }}
+        {{ if not .Title }}
+          <div class="post-entry-meta" style="margin-top:0.5rem">
+            <a href="{{ .Permalink }}">{{ .Date.Format "January 2, 2006" }}</a>
+          </div>
+        {{ end }}
+      </li>
+    {{ end }}
+  </ul>
+
+  {{ template "_internal/pagination.html" . }}
+{{ end }}
