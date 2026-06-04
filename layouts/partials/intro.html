@@ -1,9 +1,10 @@
-{{ if or .Site.Params.bio .Site.Menus.social }}
+{{ $bio := .Site.Params.bio | default .Site.Params.itunes_description | default .Content }}
+{{ if or $bio .Site.Menus.social }}
 <div class="intro">
   <img class="intro-avatar" src="https://micro.blog/{{ .Site.Params.author.username }}/avatar.jpg" alt="{{ .Site.Params.author.name | default .Site.Title }}" width="80" height="80">
   <div class="intro-body">
-    {{ with .Site.Params.bio }}
-      <p class="intro-bio">{{ . }}</p>
+    {{ with $bio }}
+      <p class="intro-bio">{{ . | safeHTML }}</p>
     {{ end }}
     {{ with .Site.Menus.social }}
       <nav class="intro-social" aria-label="Social links">
