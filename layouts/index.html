@@ -119,10 +119,11 @@
       <h2 class="home-feed-heading">Recent posts</h2>
       <ul class="post-list">
         {{ range first 10 $otherPosts }}
-          <li class="post-entry{{ if not .Title }} short{{ end }}">
-            {{ with .Title }}
+          {{ $page := . }}
+          <li class="post-entry{{ if not $page.Title }} short{{ end }}">
+            {{ if $page.Title }}
               <h3 class="post-entry-title">
-                <a href="{{ .Permalink }}">{{ . }}</a>
+                <a href="{{ $page.Permalink }}">{{ $page.Title }}</a>
               </h3>
             {{ end }}
             <div class="post-entry-meta">
