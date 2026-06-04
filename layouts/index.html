@@ -9,7 +9,7 @@
       Other posts   — everything else
   */}}
 
-  {{ $all := where .Site.RegularPages "Section" "!=" "pages" }}
+  {{ $all := where .Site.Pages.ByDate.Reverse "Type" "post" }}
 
   {{ $statusPosts := where $all "Params.categories" "intersect" (slice "Status") }}
 
