@@ -16,10 +16,10 @@
   {{ $bookPosts  := where $all "Params.categories" "intersect" (slice "Books") }}
   {{ $moviePosts := where $all "Params.categories" "intersect" (slice "Movies") }}
 
+  {{ $excluded := slice "Status" "Books" "Movies" }}
   {{ $otherPosts := slice }}
   {{ range $all }}
-    {{ $cats := .Params.categories }}
-    {{ if and (not (in $cats "Status")) (not (in $cats "Books")) (not (in $cats "Movies")) }}
+    {{ if eq 0 (len (intersect .Params.categories $excluded)) }}
       {{ $otherPosts = $otherPosts | append . }}
     {{ end }}
   {{ end }}
