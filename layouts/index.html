@@ -59,10 +59,13 @@
           <ul class="media-list">
             {{ range first 5 $bookPosts }}
               {{ $p := . }}
+              {{ $img := index (findRE `<img[^>]+>` $p.Content) 0 }}
+              {{ $text := $p.Summary | replaceRE `<img[^>]*>` "" }}
               <li class="media-entry">
+                {{ if $img }}{{ $img | safeHTML }}{{ end }}
                 <div class="media-entry-info">
                   <a href="{{ $p.Permalink }}">{{ $p.Title | default ($p.Date.Format "Jan 2, 2006") }}</a>
-                  <div class="media-entry-content">{{ $p.Summary | safeHTML }}</div>
+                  <div class="media-entry-content">{{ $text | safeHTML }}</div>
                 </div>
               </li>
             {{ end }}
