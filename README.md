@@ -42,9 +42,11 @@ Colors are all CSS custom properties in `assets/css/main.css` under `:root`. Swa
 The intro section at the top of the homepage pulls from:
 - **Avatar** — `https://micro.blog/{username}/avatar.jpg` (automatic)
 - **Bio** — `.Site.Params.bio` → `.Site.Params.itunes_description` → page `.Content` (first non-empty wins)
-- **Social links** — `social` menu in **Design → Edit Navigation**
+- **Social links** — **hardcoded** in `layouts/partials/intro.html`
 
-The section only renders if at least one of bio or social links is present.
+> ⚠️ If you fork or reuse this theme, update the social links in `layouts/partials/intro.html` — they are set to Jared Eberle's personal accounts and will not update automatically.
+
+The section only renders if a bio is present.
 
 ### Homepage sections
 
