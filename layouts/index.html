@@ -116,12 +116,10 @@
               <time datetime="{{ $page.Date.Format "2006-01-02" }}">{{ $page.Date.Format "January 2, 2006" }}</time>
             </div>
             {{ with $page.Summary }}
-              <div class="post-entry-summary">{{ . | safeHTML }}</div>
+              <p class="post-entry-summary">{{ . | safeHTML }}</p>
             {{ end }}
             {{ if $page.Truncated }}
               <a class="read-more" href="{{ $page.Permalink }}">Read more &rarr;</a>
-            {{ else }}
-              <a class="read-more" href="{{ $page.Permalink }}">Permalink &rarr;</a>
             {{ end }}
           </li>
         {{ end }}
