@@ -1,5 +1,8 @@
 {
   "paginate": 20,
+  "outputs": {
+    "home": ["html", "rss", "json"]
+  },
   "minify": {
     "minifyOutput": true
   },
