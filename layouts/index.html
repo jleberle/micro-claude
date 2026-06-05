@@ -78,11 +78,12 @@
             {{ range first 6 $moviePosts }}
               {{ $p := . }}
               {{ $movieText := $p.Content | plainify | htmlUnescape }}
+              {{ $titleLine := $movieText | replaceRE `\n.*` "" }}
+              {{ $review := $movieText | replaceRE `^Watched:[^\n]*\n?` "" | strings.TrimLeft " \n" }}
               <li class="media-entry media-entry--movie">
                 <div class="media-entry-info">
                   <time class="media-entry-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "January 2, 2006" }}</time>
-                  <a href="{{ $p.Permalink }}">{{ $movieText | truncate 60 }}</a>
-                  {{ $review := $movieText | replaceRE `^Watched:[^\n]*\n?` "" | strings.TrimLeft " \n" }}
+                  <a href="{{ $p.Permalink }}">{{ $titleLine }}</a>
                   {{ if gt (len $review) 0 }}
                     <span class="media-entry-review">{{ $review | truncate 80 }}</span>
                   {{ end }}
