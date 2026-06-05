@@ -427,45 +427,74 @@ pre {
   border-radius: var(--radius);
 }
 
-/* --- Archive (plugin-archive-months) --------------------- */
-.archive_categories { margin-bottom: 1.5rem; }
-.archive_categories h2 { font-size: 1rem; font-weight: 700; margin: 0 0 0.4rem; }
-.archive_categories a { color: var(--primary); }
-
-.archive_years { margin-bottom: 1.5rem; }
-.archive_years select {
-  font-size: 0.9rem;
-  padding: 4px 8px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--entry);
-  color: var(--primary);
+/* --- Archive ------------------------------------------------ */
+.archive-cats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
 }
 
-.archive_posts h2 {
+.archive-cats-label {
+  font-size: 0.8rem;
+  color: var(--secondary);
+}
+
+.archive-month {
   font-size: 1rem;
   font-weight: 700;
   border-bottom: 1px solid var(--border);
   padding-bottom: 0.3rem;
-  margin: 1.25rem 0 0.5rem;
+  margin: 1.5rem 0 0.5rem;
 }
 
-.archive_posts .h-entry {
-  font-size: 0.9rem;
-  padding: 0.3rem 0;
+.archive-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
   border-bottom: 1px solid var(--border);
-  margin: 0;
+  font-size: 0.9rem;
   line-height: 1.5;
 }
 
-.archive_posts .h-entry a {
+.archive-entry-date {
+  color: var(--secondary);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+  width: 4.5rem;
+  text-decoration: none;
+}
+
+.archive-entry-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.archive-entry-title {
+  font-weight: 600;
   color: var(--primary);
   text-decoration: underline;
   text-underline-offset: 0.3rem;
+  display: block;
+  margin-bottom: 0.1rem;
 }
-.archive_posts .dt-published { color: var(--secondary); font-size: 0.8rem; }
-.archive_posts img { height: 60px !important; width: auto !important; }
-.archive_posts .p-photo { display: inline; object-fit: cover; vertical-align: middle; border-radius: 3px; margin-left: 0.5rem; }
+
+.archive-entry-summary {
+  color: var(--secondary);
+  font-size: 0.85rem;
+}
+
+.archive-entry-thumb {
+  width: auto;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 3px;
+  flex-shrink: 0;
+  display: block;
+}
 
 /* --- Home: status card ----------------------------------- */
 .home-status { margin-bottom: 2rem; }
