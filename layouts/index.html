@@ -115,7 +115,7 @@
             <div class="post-entry-meta">
               <time datetime="{{ $page.Date.Format "2006-01-02" }}">{{ $page.Date.Format "January 2, 2006" }}</time>
             </div>
-            <p class="post-entry-summary">{{ $page.Summary | plainify | truncate 200 }}</p>
+            <p class="post-entry-summary">{{ $page.Summary | plainify | htmlUnescape | truncate 200 }}</p>
             <a class="read-more" href="{{ $page.Permalink }}">{{ if $page.Title }}Read more{{ else }}Permalink{{ end }} &rarr;</a>
           </li>
         {{ end }}
