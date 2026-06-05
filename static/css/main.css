@@ -131,9 +131,12 @@ pre {
   padding: 0 var(--gap);
 }
 
-/* Content area uses narrower max-width */
-.page-content > .wrapper {
+/* Content area uses narrower max-width.
+   Targets both micro.blog's default #main and our custom .page-content wrapper. */
+.page-content > .wrapper,
+#main {
   max-width: calc(var(--max-width) + var(--gap) * 2);
+  margin: 0 auto;
   padding: var(--gap);
   min-height: calc(100vh - 120px);
 }
@@ -205,18 +208,23 @@ pre {
 }
 
 /* --- Header / nav ---------------------------------------- */
-body > .site-header {
+body > .site-header,
+#site-header {
   border-bottom: 1px solid var(--border);
   height: 60px;
   display: flex;
   align-items: center;
 }
 
-body > .site-header .wrapper {
+body > .site-header .wrapper,
+#site-header .wrapper {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  max-width: calc(var(--nav-width) + var(--gap) * 2);
+  margin: 0 auto;
+  padding: 0 var(--gap);
 }
 
 .site-title {
@@ -402,7 +410,8 @@ body:has(.intro) .site-header .site-title img {
 }
 
 /* --- Footer --------------------------------------------- */
-body > .site-footer {
+body > .site-footer,
+#site-footer {
   border-top: 1px solid var(--border);
   height: 60px;
   display: flex;
@@ -411,13 +420,15 @@ body > .site-footer {
   color: var(--secondary);
 }
 
-body > .site-footer .wrapper {
+body > .site-footer .wrapper,
+#site-footer .wrapper {
   display: flex;
   justify-content: center;
   width: 100%;
 }
 
-body > .site-footer a { color: var(--secondary); text-decoration: underline; }
+body > .site-footer a,
+#site-footer a { color: var(--secondary); text-decoration: underline; }
 
 /* --- Photos grid ----------------------------------------- */
 .photos-grid {
