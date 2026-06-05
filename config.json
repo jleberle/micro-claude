@@ -1,8 +1,5 @@
 {
   "paginate": 20,
-  "minify": {
-    "minifyOutput": true
-  },
   "params": {
     "archive_months_photos": true,
     "social_website_url":      "https://jaredeberle.org",
