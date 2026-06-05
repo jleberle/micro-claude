@@ -205,14 +205,14 @@ pre {
 }
 
 /* --- Header / nav ---------------------------------------- */
-.site-header {
+body > .site-header {
   border-bottom: 1px solid var(--border);
   height: 60px;
   display: flex;
   align-items: center;
 }
 
-.site-header .wrapper {
+body > .site-header .wrapper {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -395,7 +395,7 @@ pre {
 }
 
 /* --- Footer --------------------------------------------- */
-.site-footer {
+body > .site-footer {
   border-top: 1px solid var(--border);
   height: 60px;
   display: flex;
@@ -404,13 +404,13 @@ pre {
   color: var(--secondary);
 }
 
-.site-footer .wrapper {
+body > .site-footer .wrapper {
   display: flex;
   justify-content: center;
   width: 100%;
 }
 
-.site-footer a { color: var(--secondary); text-decoration: underline; }
+body > .site-footer a { color: var(--secondary); text-decoration: underline; }
 
 /* --- Photos grid ----------------------------------------- */
 .photos-grid {
