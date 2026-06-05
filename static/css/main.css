@@ -320,6 +320,35 @@ pre {
   margin: 1.5rem 0 0.5rem;
 }
 
+/* --- Post categories ------------------------------------- */
+.post-categories {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.post-categories-label {
+  font-size: 0.8rem;
+  color: var(--secondary);
+}
+
+.post-category {
+  font-size: 0.85rem;
+  color: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2px 10px;
+  text-decoration: none;
+}
+
+.post-category:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  text-decoration: none;
+}
+
 /* --- Post nav (prev/next) -------------------------------- */
 .post-nav {
   display: flex;

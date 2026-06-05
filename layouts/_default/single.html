@@ -16,6 +16,15 @@
       {{ .Content }}
     </div>
 
+    {{ with .Params.categories }}
+      <div class="post-categories">
+        <span class="post-categories-label">Filed under:</span>
+        {{ range . }}
+          <a href="{{ "/categories/" | relURL }}{{ . | urlize }}" class="post-category">{{ . }}</a>
+        {{ end }}
+      </div>
+    {{ end }}
+
     <nav class="post-nav" aria-label="Post navigation">
       {{ with .PrevInSection }}
         <a href="{{ .Permalink }}">&larr; {{ .Title | default "Previous" }}</a>
