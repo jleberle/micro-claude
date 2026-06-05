@@ -2,7 +2,7 @@
   <div class="wrapper">
     <a class="site-title" href="{{ "/" | relURL }}">
       {{ if not .IsHome }}
-        {{ with .Site.Author.avatar }}<img src="{{ . }}" alt="{{ $.Site.Title }} avatar" class="u-photo" width="35" height="35" loading="lazy">{{ end }}
+        {{ with .Site.Params.author.avatar }}<img src="{{ . }}" alt="{{ $.Site.Title }} avatar" class="u-photo" width="35" height="35" loading="lazy">{{ end }}
       {{ end }}
       {{ .Site.Title }}
     </a>
