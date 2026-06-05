@@ -16,11 +16,12 @@
       {{ .Content }}
     </div>
 
-    {{ with .Params.categories }}
+    {{ $cats := .GetTerms "categories" }}
+    {{ if $cats }}
       <div class="post-categories">
         <span class="post-categories-label">Filed under:</span>
-        {{ range . }}
-          <a href="{{ "/categories/" | relURL }}{{ . | urlize }}" class="post-category">{{ . }}</a>
+        {{ range $cats }}
+          <a href="{{ .Permalink }}" class="post-category">{{ .LinkTitle }}</a>
         {{ end }}
       </div>
     {{ end }}
