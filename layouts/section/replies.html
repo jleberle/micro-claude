@@ -1,0 +1,25 @@
+{{ define "main" }}
+  <h1 class="page-title">Replies</h1>
+  <ul class="post-list h-feed">
+    {{ range first 25 (where .Data.Pages.ByDate.Reverse "Type" "reply") }}
+      <li class="post-entry short h-entry">
+        <div class="post-entry-meta">
+          <a href="{{ .Permalink }}" class="u-url">
+            <time class="dt-published" datetime="{{ .Date.Format "2006-01-02T15:04:05-07:00" }}">{{ .Date.Format "January 2, 2006" }}</time>
+          </a>
+          {{ if .Params.reply_to_url }}
+            &nbsp;&middot;&nbsp;
+            {{ if eq .Params.reply_to_hostname "micro.blog" }}
+              <a href="{{ .Params.reply_to_url }}" class="u-in-reply-to">@{{ .Params.reply_to_username }}</a>
+            {{ else }}
+              <a href="{{ .Params.reply_to_url }}" class="u-in-reply-to">{{ .Params.reply_to_hostname }}</a>
+            {{ end }}
+          {{ end }}
+        </div>
+        <div class="post-content e-content">
+          {{ .Content }}
+        </div>
+      </li>
+    {{ end }}
+  </ul>
+{{ end }}
