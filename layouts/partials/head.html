@@ -4,12 +4,5 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} &middot; {{ .Site.Title }}{{ end }}</title>
 {{ with .Site.Params.description }}<meta name="description" content="{{ . }}">{{ end }}
-{{ $css := resources.Get "css/main.css" }}
-{{ if $css }}
-  {{ $css = $css | minify | fingerprint }}
-  <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}" crossorigin="anonymous">
-{{ else }}
-  {{ warnf "micro-claude: resources.Get could not find assets/css/main.css — falling back to static/css/main.css" }}
-  <link rel="stylesheet" href="{{ "css/main.css" | relURL }}?{{ .Site.Params.theme_seconds }}">
-{{ end }}
+<link rel="stylesheet" href="{{ "css/main.css" | relURL }}?{{ .Site.Params.theme_seconds }}">
 {{ if templates.Exists "partials/lite-youtube.html" }}{{ partial "lite-youtube.html" . }}{{ end }}
