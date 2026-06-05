@@ -1,0 +1,717 @@
+/* =========================================================
+   Jared Eberle micro.blog theme — mirrors jaredeberle.org
+   Solarized Light palette, PaperMod-inspired layout
+   ========================================================= */
+
+/* --- Reset & base ---------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+/* --- Skip link ------------------------------------------- */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  background: var(--primary);
+  color: var(--bg);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  z-index: 1000;
+  text-decoration: none;
+}
+
+.skip-link:focus { top: 1rem; }
+
+/* --- Focus styles ---------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+:root {
+  --bg:        #fffcf2;
+  --entry:     #FDF6E3;
+  --primary:   #2d3c42;
+  --secondary: #6c6c6c;
+  --border:    #d0c9bc;
+  --accent:    #b0a89a;
+  --link:      #268bd2;
+  --max-width: 740px;
+  --nav-width: 1024px;
+  --gap:       24px;
+  --radius:    8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:        rgb(29, 30, 32);
+    --entry:     rgb(46, 46, 51);
+    --primary:   rgb(218, 218, 219);
+    --secondary: rgb(155, 156, 157);
+    --border:    rgb(51, 51, 51);
+    --accent:    rgb(65, 66, 68);
+    --link:      #6ab0e0;
+  }
+}
+
+html { -webkit-text-size-adjust: 100%; overflow-y: scroll; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+               Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--primary);
+  background: var(--bg);
+  margin: 0;
+  word-break: break-word;
+}
+
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+h1, h2, h3, h4, h5, h6 { color: var(--primary); line-height: 1.2; }
+
+img { max-width: 100%; height: auto; display: block; }
+
+/* --- Bookgoals plugin (microdotblog/plugin-bookgoals) -------------- */
+/* Sourced from: https://github.com/microdotblog/plugin-bookgoals
+   If layout breaks, compare .bookgoals HTML output against this CSS.  */
+.bookgoals { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.bookgoals img.cover { display: inline-block; width: 100px; height: auto; }
+
+/* --- Bookshelf plugin (kottkrig/microdotblog-bookshelf-shortcode) --- */
+/* Sourced from: https://github.com/kottkrig/microdotblog-bookshelf-shortcode
+   List variant overridden to display as grid (matches variant="grid" layout).
+   If layout breaks, compare .bookshelf HTML output against this CSS.        */
+ul.bookshelf.bookshelf { padding: 0; margin: 0; list-style-type: none !important; }
+ul.bookshelf.bookshelf li { margin: 0; padding: 0; }
+ul.bookshelf.bookshelf li img.bookshelf__cover { margin: 0; padding: 0; aspect-ratio: 4/6; display: block; }
+h3.bookshelf__title { margin: 0; padding: 0; }
+
+.bookshelf.bookshelf--variant-list { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(5rem, 8rem)); }
+.bookshelf--variant-list .bookshelf__item { display: flex; flex-direction: column; gap: 0.25rem; }
+.bookshelf--variant-list img.bookshelf__cover.bookshelf__cover { width: 100%; aspect-ratio: 4/6; margin: 0; padding: 0; }
+
+.bookshelf.bookshelf--variant-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(5rem, 8rem)); }
+.bookshelf--variant-grid .bookshelf__meta { display: none; }
+.bookshelf--variant-grid .bookshelf__cover { width: 100%; }
+
+hr {
+  border: none;
+  border-top: 1px solid var(--accent);
+  margin: 1.5rem 0;
+}
+
+blockquote {
+  margin: 1rem 0;
+  padding: 0.5rem 0 0.5rem 1rem;
+  border-left: 2px solid var(--accent);
+  color: var(--secondary);
+}
+
+code, pre, kbd {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
+               'Liberation Mono', monospace;
+  font-size: 0.88em;
+}
+
+pre {
+  background: var(--entry);
+  padding: 1rem;
+  border-radius: var(--radius);
+  overflow-x: auto;
+}
+
+/* --- Layout wrappers ------------------------------------- */
+.wrapper {
+  max-width: calc(var(--nav-width) + var(--gap) * 2);
+  margin: 0 auto;
+  padding: 0 var(--gap);
+}
+
+/* Content area uses narrower max-width */
+.page-content > .wrapper {
+  max-width: calc(var(--max-width) + var(--gap) * 2);
+  padding: var(--gap);
+  min-height: calc(100vh - 120px);
+}
+
+/* --- Intro / bio ----------------------------------------- */
+.intro {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--entry);
+  border-radius: var(--radius);
+}
+
+.intro-avatar {
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.intro-body {
+  min-width: 0;
+}
+
+
+.intro-bio {
+  font-size: 0.95rem;
+  color: var(--primary);
+  line-height: 1.6;
+  margin: 0 0 0.75rem;
+}
+
+.intro-social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.intro-social a {
+  font-size: 0.85rem;
+  color: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2px 10px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.intro-social a:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  text-decoration: none;
+}
+
+.intro-social svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .intro { flex-direction: column; align-items: center; text-align: center; }
+  .intro-social { justify-content: center; }
+}
+
+/* --- Header / nav ---------------------------------------- */
+body > .site-header {
+  border-bottom: 1px solid var(--border);
+  height: 60px;
+  display: flex;
+  align-items: center;
+}
+
+body > .site-header .wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.site-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.site-title img {
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  object-fit: cover;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.site-nav a {
+  color: var(--primary);
+  font-size: 0.9rem;
+  padding: 4px 10px;
+  border-radius: var(--radius);
+}
+
+.site-nav a:hover {
+  background: var(--entry);
+  text-decoration: none;
+}
+
+/* --- Post list ------------------------------------------- */
+.post-list { list-style: none; padding: 0; margin: 0; }
+
+.post-entry {
+  background: var(--entry);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.post-entry-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 0.4rem;
+}
+
+.post-entry-title a { color: var(--primary); }
+.post-entry-title a:hover { color: var(--link); text-decoration: none; }
+
+.post-entry-meta {
+  font-size: 0.8rem;
+  color: var(--secondary);
+  margin-bottom: 0.6rem;
+}
+
+.post-entry-summary { font-size: 0.95rem; margin: 0; }
+
+/* Short microblog posts (no title) */
+.post-entry.short .post-entry-summary { font-size: 1rem; }
+
+/* --- Single post ----------------------------------------- */
+.post-header { margin-bottom: 1.5rem; }
+
+.post-title {
+  font-size: 2rem;
+  margin: 0 0 0.5rem;
+}
+
+.post-meta {
+  font-size: 0.85rem;
+  color: var(--secondary);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.post-content {
+  margin-top: 1.5rem;
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.post-content p { margin: 0 0 1rem; }
+
+.post-content a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 0.3rem;
+}
+.post-content a:hover { opacity: 0.75; }
+
+.post-content h1, .post-content h2, .post-content h3 {
+  margin: 1.5rem 0 0.5rem;
+}
+
+/* --- Post categories ------------------------------------- */
+.post-categories {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.post-categories-label {
+  font-size: 0.8rem;
+  color: var(--secondary);
+}
+
+.post-category {
+  font-size: 0.85rem;
+  color: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2px 10px;
+  text-decoration: none;
+}
+
+.post-category:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  text-decoration: none;
+}
+
+/* --- Post nav (prev/next) -------------------------------- */
+.post-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.post-nav a { color: var(--primary); }
+
+/* --- Pagination ------------------------------------------ */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+  font-size: 0.9rem;
+}
+
+.pagination a {
+  color: var(--entry);
+  background: #2d3c42;
+  border-radius: 18px;
+  padding: 4px 16px;
+  line-height: 1.8;
+}
+
+@media (prefers-color-scheme: dark) {
+  .pagination a {
+    color: rgb(218, 218, 219);
+    background: rgb(46, 46, 51);
+    border: 1px solid rgb(65, 66, 68);
+  }
+}
+
+.pagination a:hover { text-decoration: none; opacity: 0.85; }
+
+.pagination-info {
+  font-size: 0.85rem;
+  color: var(--secondary);
+}
+
+/* --- Footer --------------------------------------------- */
+body > .site-footer {
+  border-top: 1px solid var(--border);
+  height: 60px;
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--secondary);
+}
+
+body > .site-footer .wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+body > .site-footer a { color: var(--secondary); text-decoration: underline; }
+
+/* --- Photos grid ----------------------------------------- */
+.photos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 1rem;
+}
+
+.photos-grid a img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
+/* --- Archive ------------------------------------------------ */
+.archive-cats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.archive-cats-label {
+  font-size: 0.8rem;
+  color: var(--secondary);
+}
+
+.archive-month {
+  font-size: 1rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.3rem;
+  margin: 1.5rem 0 0.5rem;
+}
+
+.archive-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.archive-entry-date {
+  color: var(--secondary);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+  width: 4.5rem;
+  text-decoration: none;
+}
+
+.archive-entry-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.archive-entry-title {
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 0.3rem;
+  display: block;
+  margin-bottom: 0.1rem;
+}
+
+.archive-entry-summary {
+  color: var(--secondary);
+  font-size: 0.85rem;
+}
+
+.archive-entry-thumb {
+  width: auto;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 3px;
+  flex-shrink: 0;
+  display: block;
+}
+
+/* --- Home: status card ----------------------------------- */
+.home-status { margin-bottom: 2rem; }
+
+.status-card {
+  background: var(--entry);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  border-left: 3px solid var(--accent);
+}
+
+.status-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--secondary);
+}
+
+.status-label {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.7rem;
+  color: var(--secondary);
+}
+
+.status-card-body { font-size: 0.95rem; line-height: 1.65; }
+.status-card-body p { margin: 0 0 0.6rem; }
+.status-card-body p:last-child { margin-bottom: 0; }
+
+.status-card-more {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--secondary);
+}
+
+/* --- Home: currently reading (full width) ---------------- */
+.home-reading { margin-bottom: 2rem; }
+
+.home-section-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.4rem;
+  margin: 0 0 0.75rem;
+}
+
+.media-list--reading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.media-list--reading .media-entry {
+  width: calc(50% - 0.5rem);
+  border-bottom: none;
+  background: var(--entry);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .media-list--reading .media-entry { width: 100%; }
+}
+
+/* --- Home: books / movies two-column --------------------- */
+.home-media { margin-bottom: 2rem; }
+
+.media-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.media-shelf-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--secondary);
+  margin: 0.75rem 0 0.4rem;
+}
+
+.media-col-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.4rem;
+  margin: 0 0 0.75rem;
+}
+
+.media-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.media-entry {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+
+.media-entry:last-child { border-bottom: none; }
+
+.media-entry-content {
+  font-size: 0.85rem;
+  color: var(--primary);
+  margin-top: 0.25rem;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.media-entry-content p { margin: 0 0 0.25rem; }
+.media-entry-content p:last-child { margin-bottom: 0; }
+
+.media-entry-content img {
+  width: 80px;
+  height: auto;
+  border-radius: 3px;
+  float: left;
+  margin: 0 0.75rem 0.5rem 0;
+}
+
+.media-cover {
+  width: 80px;
+  height: auto;
+  object-fit: cover;
+  border-radius: 3px;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.media-entry-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.media-entry-info a {
+  color: var(--primary);
+  font-weight: 500;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.media-entry-sub {
+  font-size: 0.8rem;
+  color: var(--secondary);
+}
+
+.media-entry-review {
+  font-size: 0.8rem;
+  color: var(--secondary);
+  line-height: 1.4;
+}
+
+.media-entry-date {
+  font-size: 0.75rem;
+  color: var(--secondary);
+}
+
+.media-col-more {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--secondary);
+  text-align: right;
+  margin-top: 0.5rem;
+}
+
+/* --- Home: feed section ---------------------------------- */
+.home-feed { margin-bottom: 2rem; }
+
+.home-feed-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.4rem;
+  margin: 0 0 1rem;
+}
+
+.home-feed-more {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--secondary);
+  text-align: right;
+  margin-top: 0.5rem;
+}
+
+/* --- Read more link -------------------------------------- */
+.read-more {
+  display: inline-block;
+  font-size: 0.85rem;
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 0.3rem;
+  margin-top: 0.25rem;
+}
+
+/* --- Responsive ------------------------------------------ */
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+  .post-title { font-size: 1.5rem; }
+  .photos-grid { grid-template-columns: repeat(2, 1fr); }
+  .site-nav { gap: 0; }
+  .media-columns { grid-template-columns: 1fr; gap: 1.5rem; }
+}
