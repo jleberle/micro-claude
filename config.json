@@ -4,6 +4,7 @@
     "minifyOutput": true
   },
   "params": {
+    "archive_months_photos": true,
     "social_website_url":      "https://jaredeberle.org",
     "social_bluesky_url":      "https://bsky.app/profile/jaredeberle.org",
     "social_letterboxd_url":   "https://letterboxd.com/eberle/",

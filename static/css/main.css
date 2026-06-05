@@ -464,7 +464,8 @@ pre {
   text-underline-offset: 0.3rem;
 }
 .archive_posts .dt-published { color: var(--secondary); font-size: 0.8rem; }
-.archive_posts .p-photo { display: inline; width: 50px; height: 50px; object-fit: cover; vertical-align: middle; border-radius: 3px; margin-left: 0.5rem; }
+.archive_posts img { height: 60px !important; width: auto !important; }
+.archive_posts .p-photo { display: inline; object-fit: cover; vertical-align: middle; border-radius: 3px; margin-left: 0.5rem; }
 
 /* --- Home: status card ----------------------------------- */
 .home-status { margin-bottom: 2rem; }
