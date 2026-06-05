@@ -20,7 +20,7 @@
 
     <li class="archive-entry">
       <time class="archive-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2" }}</time>
-      <a href="{{ .Permalink }}">{{ .Title | default .Date.Format "January 2, 2006" }}</a>
+      <a href="{{ .Permalink }}">{{ if .Title }}{{ .Title }}{{ else }}{{ .Date.Format "January 2, 2006" }}{{ end }}</a>
     </li>
   {{ end }}
 
