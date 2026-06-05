@@ -7,7 +7,7 @@ A micro.blog theme that mirrors the style of [jaredeberle.org](https://jaredeber
 1. In micro.blog go to **Posts → Design → Edit Custom Themes → New Theme**.
 2. Connect this repo via the GitHub integration.
 3. Set the theme as active.
-4. Set Hugo version to **0.117** in micro.blog settings. (0.158 causes a Not Found on EU-hosted sites.)
+4. Set Hugo version to **0.158** in micro.blog settings.
 
 ## File structure
 
