@@ -1,7 +1,7 @@
 <header id="site-header">
   <div class="wrapper">
     <a class="site-title" href="{{ "/" | relURL }}">
-      {{ if not .IsHome }}<img src="https://micro.blog/{{ .Site.Params.author.username }}/avatar.jpg" alt="{{ .Site.Title }} avatar" width="35" height="35" loading="lazy">{{ end }}
+      {{ if ne .RelPermalink "/" }}<img src="https://micro.blog/{{ .Site.Params.author.username }}/avatar.jpg" alt="{{ .Site.Title }} avatar" width="35" height="35" loading="lazy">{{ end }}
       {{ .Site.Title }}
     </a>
     <nav class="site-nav" aria-label="Main navigation">

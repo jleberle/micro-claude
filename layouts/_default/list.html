@@ -1,5 +1,4 @@
 {{ define "main" }}
-  <p style="color:red">DEBUG: _default/list.html — Kind: {{ .Kind }} — Type: {{ .Type }}</p>
   {{ if .Title }}<h1 class="page-title p-name">{{ .Title }}</h1>{{ end }}
 
   {{ $paginator := .Paginate (.Data.Pages.ByDate.Reverse) }}
