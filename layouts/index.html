@@ -118,6 +118,9 @@
             {{ with $page.Summary }}
               <p class="post-entry-summary">{{ . | safeHTML }}</p>
             {{ end }}
+            {{ if $page.Truncated }}
+              <a class="read-more" href="{{ $page.Permalink }}">Read more &rarr;</a>
+            {{ end }}
           </li>
         {{ end }}
       </ul>
