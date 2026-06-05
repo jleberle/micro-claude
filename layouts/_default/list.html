@@ -1,20 +1,22 @@
 {{ define "main" }}
-  {{ if .Title }}<h1 class="page-title">{{ .Title }}</h1>{{ end }}
+  {{ if .Title }}<h1 class="page-title p-name">{{ .Title }}</h1>{{ end }}
 
   {{ $paginator := .Paginate (.Data.Pages.ByDate.Reverse) }}
-  <ul class="post-list">
+  <ul class="post-list h-feed">
     {{ range $paginator.Pages }}
       {{ $page := . }}
-      <li class="post-entry{{ if not $page.Title }} short{{ end }}">
+      <li class="post-entry h-entry{{ if not $page.Title }} short{{ end }}">
         {{ if $page.Title }}
-          <h2 class="post-entry-title">
+          <h2 class="post-entry-title p-name">
             <a href="{{ $page.Permalink }}">{{ $page.Title }}</a>
           </h2>
         {{ end }}
         <div class="post-entry-meta">
-          <time datetime="{{ $page.Date.Format "2006-01-02" }}">{{ $page.Date.Format "January 2, 2006" }}</time>
+          <a href="{{ $page.Permalink }}" class="u-url">
+            <time class="dt-published" datetime="{{ $page.Date.Format "2006-01-02T15:04:05-07:00" }}">{{ $page.Date.Format "January 2, 2006" }}</time>
+          </a>
         </div>
-        <p class="post-entry-summary">{{ $page.Summary | plainify | htmlUnescape | truncate 200 }}</p>
+        <p class="post-entry-summary p-summary">{{ $page.Summary | plainify | htmlUnescape | truncate 200 }}</p>
         <a class="read-more" href="{{ $page.Permalink }}">{{ if $page.Title }}Read more{{ else }}Permalink{{ end }} &rarr;</a>
       </li>
     {{ end }}
