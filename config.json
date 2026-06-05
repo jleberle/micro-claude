@@ -1,3 +1,11 @@
 {
-  "paginate": 20
+  "paginate": 20,
+  "params": {
+    "archive_months_photos": true,
+    "social_website_url":      "https://jaredeberle.org",
+    "social_bluesky_url":      "https://bsky.app/profile/jaredeberle.org",
+    "social_letterboxd_url":   "https://letterboxd.com/eberle/",
+    "social_librarything_url": "https://www.librarything.com/profile/jaredeberle",
+    "social_discogs_url":      "https://www.discogs.com/user/IrateBeagle"
+  }
 }
