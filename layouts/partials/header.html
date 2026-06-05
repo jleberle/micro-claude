@@ -1,0 +1,19 @@
+<header class="site-header">
+  <div class="wrapper">
+    <a class="site-title" href="{{ "/" | relURL }}">
+      {{ if not .IsHome }}
+        <img src="{{ .Site.Author.avatar }}" alt="{{ .Site.Title }} avatar" class="u-photo" width="35" height="35" loading="lazy">
+      {{ end }}
+      {{ .Site.Title }}
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      {{ range .Site.Menus.main }}
+        {{ if .Page.Params.redirect_url }}
+          <a href="{{ .Page.Params.redirect_url }}">{{ .Name }}</a>
+        {{ else }}
+          <a href="{{ .URL | relLangURL | safeURL }}">{{ .Name }}</a>
+        {{ end }}
+      {{ end }}
+    </nav>
+  </div>
+</header>
