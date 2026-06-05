@@ -2,21 +2,12 @@
 
   {{ partial "intro.html" . }}
 
-  {{ if not .Site.Data.bookshelves }}
-    {{ warnf "micro-claude: .Site.Data.bookshelves is empty — bookshelf plugin may not be active" }}
-  {{ end }}
-
   {{ $all := where .Site.Pages.ByDate.Reverse "Type" "post" }}
 
   {{ $statusPosts := (where $all "Params.categories" "intersect" (slice "Status")).ByDate.Reverse }}
   {{ $bookPosts   := (where $all "Params.categories" "intersect" (slice "Books")).ByDate.Reverse }}
   {{ $moviePosts  := (where $all "Params.categories" "intersect" (slice "Movies")).ByDate.Reverse }}
   {{ $highlights  := (where $all "Params.categories" "intersect" (slice "Highlights")).ByDate.Reverse }}
-
-  {{ if not $statusPosts }}{{ warnf "micro-claude: no posts found in category 'Status' — check category name is exact/case-sensitive" }}{{ end }}
-  {{ if not $bookPosts   }}{{ warnf "micro-claude: no posts found in category 'Books' — check category name is exact/case-sensitive" }}{{ end }}
-  {{ if not $moviePosts  }}{{ warnf "micro-claude: no posts found in category 'Movies' — check category name is exact/case-sensitive" }}{{ end }}
-  {{ if not $highlights  }}{{ warnf "micro-claude: no posts found in category 'Highlights' — check category name is exact/case-sensitive" }}{{ end }}
 
   {{/* ── 1. Latest status post ───────────────────────── */}}
   {{ with index $statusPosts 0 }}
@@ -126,11 +117,6 @@
             </div>
             {{ with $page.Summary }}
               <p class="post-entry-summary">{{ . | safeHTML }}</p>
-            {{ end }}
-            {{ if $page.Truncated }}
-              <a class="read-more" href="{{ $page.Permalink }}" aria-label="Read more: {{ $page.Title | default ($page.Date.Format "January 2, 2006") }}">Read more &rarr;</a>
-            {{ else if not $page.Title }}
-              <a class="read-more" href="{{ $page.Permalink }}" aria-label="Permalink for post on {{ $page.Date.Format "January 2, 2006" }}">Permalink &rarr;</a>
             {{ end }}
           </li>
         {{ end }}

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ .Site.Language.Lang | default "en" }}">
   <head>
-    {{ partialCached "head.html" . .RelPermalink }}
+    {{ partial "head.html" . }}
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
