@@ -68,7 +68,7 @@ body {
   word-break: break-word;
 }
 
-a { color: var(--link); text-decoration: none; }
+a { color: var(--primary); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 h1, h2, h3, h4, h5, h6 { color: var(--primary); line-height: 1.2; }
