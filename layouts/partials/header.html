@@ -1,7 +1,7 @@
 <header class="site-header">
   <div class="wrapper">
     <a class="site-title" href="{{ "/" | relURL }}">
-      {{ if not .IsHome }}
+      {{ if and (ne .Kind "home") (ne .RelPermalink "/") }}
         {{ with .Site.Params.author.avatar }}<img src="{{ . }}" alt="{{ $.Site.Title }} avatar" class="u-photo" width="35" height="35" loading="lazy">{{ end }}
       {{ end }}
       {{ .Site.Title }}
