@@ -642,7 +642,9 @@ pre {
 .read-more {
   display: inline-block;
   font-size: 0.85rem;
-  color: var(--link);
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 0.3rem;
   margin-top: 0.25rem;
 }
 
