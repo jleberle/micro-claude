@@ -16,14 +16,15 @@
       {{ .Content }}
     </div>
 
-    {{ $cats := .GetTerms "categories" }}
-    {{ if $cats }}
-      <div class="post-categories">
-        <span class="post-categories-label">Filed under:</span>
-        {{ range $cats }}
-          <a href="{{ .Permalink }}" class="post-category">{{ .LinkTitle }}</a>
-        {{ end }}
-      </div>
+    {{ if .Params.categories }}
+      {{ with .GetTerms "categories" }}
+        <div class="post-categories">
+          <span class="post-categories-label">Filed under:</span>
+          {{ range . }}
+            <a href="{{ .Permalink }}" class="post-category">{{ .LinkTitle }}</a>
+          {{ end }}
+        </div>
+      {{ end }}
     {{ end }}
 
     <nav class="post-nav" aria-label="Post navigation">
@@ -35,4 +36,8 @@
       {{ end }}
     </nav>
   </article>
+
+  {{ if .Site.Params.include_conversation }}
+    <script type="text/javascript" src="https://micro.blog/conversation.js?url={{ .Permalink }}"></script>
+  {{ end }}
 {{ end }}
