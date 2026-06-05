@@ -1,7 +1,4 @@
 {{ define "main" }}
-  {{/* Hide avatar in site header on homepage only — this style tag is only
-       injected on the homepage, so the avatar still shows on all other pages. */}}
-  <style>#site-header .site-title img, .site-header .site-title img { display: none; }</style>
 
   {{ partial "intro.html" . }}
 

@@ -235,6 +235,13 @@ body > .site-header .wrapper {
   object-fit: cover;
 }
 
+/* Hide header avatar on the homepage — .intro only renders on the homepage,
+   so this selector targets that page without needing a body class or JS. */
+body:has(.intro) #site-header .site-title img,
+body:has(.intro) .site-header .site-title img {
+  display: none;
+}
+
 .site-nav {
   display: flex;
   align-items: center;
