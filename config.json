@@ -1,5 +1,12 @@
 {
   "paginate": 20,
+  "outputs": {
+    "home":     ["HTML", "RSS", "JSON"],
+    "page":     ["HTML"],
+    "section":  ["HTML"],
+    "taxonomy": ["HTML", "RSS", "JSON"],
+    "term":     ["HTML", "RSS", "JSON"]
+  },
   "params": {
     "archive_months_photos": true,
     "author": {
