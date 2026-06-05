@@ -1,5 +1,52 @@
 {
 	"version": "1.0.0",
 	"title": "Eberle Theme",
-	"description": "A clean Solarized Light theme for micro.blog."
+	"description": "A clean Solarized Light theme for micro.blog.",
+	"fields": [
+		{
+			"field": "params.social_mastodon",
+			"label": "Mastodon URL",
+			"placeholder": "https://mastodon.social/@username"
+		},
+		{
+			"field": "params.social_bluesky",
+			"label": "Bluesky URL",
+			"placeholder": "https://bsky.app/profile/username"
+		},
+		{
+			"field": "params.social_github",
+			"label": "GitHub URL",
+			"placeholder": "https://github.com/username"
+		},
+		{
+			"field": "params.social_letterboxd",
+			"label": "Letterboxd URL",
+			"placeholder": "https://letterboxd.com/username"
+		},
+		{
+			"field": "params.social_librarything",
+			"label": "LibraryThing URL",
+			"placeholder": "https://www.librarything.com/profile/username"
+		},
+		{
+			"field": "params.social_orcid",
+			"label": "ORCID URL",
+			"placeholder": "https://orcid.org/0000-0000-0000-0000"
+		},
+		{
+			"field": "params.social_linkedin",
+			"label": "LinkedIn URL",
+			"placeholder": "https://linkedin.com/in/username"
+		},
+		{
+			"field": "params.social_custom_label",
+			"label": "Custom link label",
+			"placeholder": "e.g. Portfolio"
+		},
+		{
+			"field": "params.social_custom_url",
+			"label": "Custom link URL",
+			"placeholder": "https://example.com"
+		}
+	]
 }
