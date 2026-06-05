@@ -1,134 +1,84 @@
 {{ define "main" }}
+{{ if templates.Exists "partials/microhook-post-list.html" }}
+{{ partial "microhook-post-list.html" . }}
+{{ else }}
 
-  {{ partial "intro.html" . }}
-
-  {{ $all := where .Site.Pages.ByDate.Reverse "Type" "post" }}
-
-  {{ $statusPosts := (where $all "Params.categories" "intersect" (slice "Status")).ByDate.Reverse }}
-  {{ $bookPosts   := (where $all "Params.categories" "intersect" (slice "Books")).ByDate.Reverse }}
-  {{ $moviePosts  := (where $all "Params.categories" "intersect" (slice "Movies")).ByDate.Reverse }}
-  {{ $highlights  := (where $all "Params.categories" "intersect" (slice "Highlights")).ByDate.Reverse }}
-
-  {{/* ── 1. Latest status post ───────────────────────── */}}
-  {{ with index $statusPosts 0 }}
-    <section class="home-status" aria-label="Latest status">
-      <div class="status-card">
-        <div class="status-card-meta">
-          <span class="status-label">Status</span>
-          <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time>
-        </div>
-        <div class="status-card-body">{{ .Content | safeHTML }}</div>
-        <a class="status-card-more" href="{{ "/categories/status" | relURL }}">All status posts &rarr;</a>
-      </div>
-    </section>
-  {{ end }}
-
-  {{/* ── 2. Currently reading (full width) ──────────── */}}
-  {{ with .Site.Data.bookshelves }}
-    {{ $reading := index . "currentlyreading" }}
-    {{ if $reading }}
-      <section class="home-reading" aria-label="Currently reading">
-        <h2 class="home-section-heading">📚 Currently Reading</h2>
-        <ul class="media-list media-list--reading">
-          {{ range $reading }}
-            <li class="media-entry">
-              <a href="https://micro.blog/books/{{ .isbn }}">
-                <img class="media-cover" src="{{ .cover_url }}" alt="{{ .title }}">
-              </a>
-              <div class="media-entry-info">
-                <a href="https://micro.blog/books/{{ .isbn }}">{{ .title }}</a>
-                <span class="media-entry-sub">by {{ .author }}</span>
-              </div>
-            </li>
-          {{ end }}
-        </ul>
-      </section>
-    {{ end }}
-  {{ end }}
-
-  {{/* ── 3. Books | Movies two-column ───────────────── */}}
-  {{ if or $bookPosts $moviePosts }}
-    <section class="home-media" aria-label="Books and movies">
-      <div class="media-columns">
-
-        {{/* Books — recent posts */}}
-        <div class="media-col">
-          <h2 class="media-col-heading">📚 Books</h2>
-          <ul class="media-list">
-            {{ range first 5 $bookPosts }}
-              {{ $p := . }}
-              {{ $img := index (findRE `<img[^>]+>` $p.Content) 0 }}
-              {{ $bookText := $p.Content | plainify | htmlUnescape }}
-              {{ $titleLine := $bookText | replaceRE `\n.*` "" }}
-              {{ $review := $bookText | replaceRE `^[^\n]*\n?` "" | strings.TrimLeft " \n" }}
-              <li class="media-entry">
-                {{ if $img }}{{ $img | safeHTML }}{{ end }}
-                <div class="media-entry-info">
-                  <time class="media-entry-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "January 2, 2006" }}</time>
-                  <a href="{{ $p.Permalink }}">{{ $titleLine }}</a>
-                  {{ if gt (len $review) 0 }}
-                    <span class="media-entry-review">{{ $review | truncate 80 }}</span>
-                  {{ end }}
-                </div>
-              </li>
-            {{ end }}
-          </ul>
-          <a class="media-col-more" href="{{ "/categories/books" | relURL }}">All books &rarr;</a>
-        </div>
-
-        {{/* Movies */}}
-        <div class="media-col">
-          <h2 class="media-col-heading">🍿 Movies</h2>
-          <ul class="media-list">
-            {{ range first 6 $moviePosts }}
-              {{ $p := . }}
-              {{ $movieText := $p.Content | plainify | htmlUnescape }}
-              {{ $titleLine := $movieText | replaceRE `\n.*` "" }}
-              {{ $review := $movieText | replaceRE `^Watched:[^\n]*\n?` "" | strings.TrimLeft " \n" }}
-              <li class="media-entry media-entry--movie">
-                <div class="media-entry-info">
-                  <time class="media-entry-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "January 2, 2006" }}</time>
-                  <a href="{{ $p.Permalink }}">{{ $titleLine }}</a>
-                  {{ if gt (len $review) 0 }}
-                    <span class="media-entry-review">{{ $review | truncate 80 }}</span>
-                  {{ end }}
-                </div>
-              </li>
-            {{ end }}
-          </ul>
-          {{ if gt (len $moviePosts) 6 }}
-            <a class="media-col-more" href="{{ "/categories/movies" | relURL }}">All movies &rarr;</a>
-          {{ end }}
-        </div>
-
-      </div>
-    </section>
-  {{ end }}
-
-  {{/* ── 4. Highlights ─────────────────────────────── */}}
-  {{ if $highlights }}
-    <section class="home-feed" aria-label="Highlights">
-      <h2 class="home-feed-heading">Highlights</h2>
-      <ul class="post-list">
-        {{ range first 10 $highlights }}
-          {{ $page := . }}
-          <li class="post-entry{{ if not $page.Title }} short{{ end }}">
-            {{ if $page.Title }}
-              <h3 class="post-entry-title">
-                <a href="{{ $page.Permalink }}">{{ $page.Title }}</a>
-              </h3>
-            {{ end }}
-            <div class="post-entry-meta">
-              <time datetime="{{ $page.Date.Format "2006-01-02" }}">{{ $page.Date.Format "January 2, 2006" }}</time>
+{{ if templates.Exists "partials/microhook-before-post-list.html" }}
+{{ partial "microhook-before-post-list.html" . }}
+{{ end }}
+<div class="posts h-feed">
+    <div class="post_list" role="main">
+        {{ $paginator := .Paginate (where .Site.Pages.ByDate.Reverse "Type" "post") }}
+        {{ range .Paginator.Pages }}
+        <div class="post-preview h-entry {{ range .Params.categories }} {{ . | urlize | lower }}{{ end }}">
+            {{ if templates.Exists "partials/microhook-post-list-byline.html" }}
+            {{ partial "microhook-post-list-byline.html" . }}
+            {{ else }}
+            <div class="post-date-wrapper">
+            <a href="{{ .Permalink }}" class="post-date u-url">
+                <time class="dt-published" datetime="{{ .Date.Format "2006-01-02T15:04:05-07:00" }}">
+                    {{ partial "dateformat/long" . }}
+                </time>
+            </a>
             </div>
-            <p class="post-entry-summary">{{ $page.Summary | plainify | htmlUnescape | truncate 200 }}</p>
-            <a class="read-more" href="{{ $page.Permalink }}">{{ if $page.Title }}Read more{{ else }}Permalink{{ end }} &rarr;</a>
-          </li>
+            {{ end }}
+            {{ if .Title }}
+                <h2 class="post-title p-name"><a href="{{ .Permalink }}">{{ .Title }}</a></h2>
+                    {{ if in .RawContent "<!--more-->" }}
+                        <div class="p-summary">
+                            {{ $splitContents := split .RawContent "<!--more-->" }}
+                            {{ $summary := index $splitContents 0 }}
+                            {{ $summary := replaceRE "\\[\\^.*?\\]" "" $summary }}
+                            {{ $summary := replaceRE "\\n\\[\\^.*?\\]:.*" "" $summary }}
+                            <p>{{ $summary | markdownify }}</p>
+                            <p><a class="button read-more" href="{{ .Permalink }}">
+                                {{ if templates.Exists "partials/microhook-read-more-text.html" }}
+                                {{ partial "microhook-read-more-text.html" . }}
+                                {{ else }}
+                                {{ T "Read more" }} →
+                                {{ end }}
+                            </a></p>
+                        </div>
+                    {{ else if .Params.custom_summary }}
+                        <div class="p-summary">
+                            <p>{{ .Summary | safeHTML }}</p>
+                        </div>
+                    {{ else }}
+                        <div class="e-content with-title">
+                            {{ .Content }}
+                        </div>
+                    {{ end }}
+            {{ else }}
+                <div class="e-content without-title">
+                    {{ .Content }}
+                </div>
+            {{ end }}
+            {{ if templates.Exists "partials/microhook-below-post-in-list.html" }}
+            {{ partial "microhook-below-post-in-list.html" . }}
+            {{ end }}
+        </div>
+        <hr class="article-break">
         {{ end }}
-      </ul>
-      {{ if gt (len $highlights) 10 }}
-        <a class="home-feed-more" href="{{ "/categories/highlights" | relURL }}">All highlights &rarr;</a>
-      {{ end }}
-    </section>
-  {{ end }}
+    </div>
+</div>
+{{ if templates.Exists "partials/microhook-after-post-list.html" }}
+{{ partial "microhook-after-post-list.html" . }}
+{{ end }}
+{{ if templates.Exists "partials/microhook-pagination.html" }}
+{{ partial "microhook-pagination.html" . }}
+{{ else }}
+<div class="post-nav">
+    {{ if $paginator.HasPrev }}
+    <span class="prev">
+        <a class="button" href="{{ $paginator.Prev.URL }}" title="Previous Page">← {{ T "Newer" }}</a>
+    </span>
+    {{ end }}
+    {{ if $paginator.HasNext }}
+    <span class="next">
+        <a class="button" href="{{ $paginator.Next.URL }}">{{ T "Older" }} →</a>
+    </span>
+    {{ end }}
+</div>
+{{ end }}
+{{ end }}
 {{ end }}
