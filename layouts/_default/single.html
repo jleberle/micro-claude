@@ -16,15 +16,15 @@
       {{ .Content }}
     </div>
 
-    {{ $cats := .GetTerms "categories" }}
-    {{ if $cats }}
-      <div class="post-categories">
-        <span class="post-categories-label">Filed under:</span>
-        {{ range $cats }}
-          <a href="{{ .Permalink }}" class="post-category">{{ .LinkTitle }}</a>
-        {{ end }}
-      </div>
-    {{ end }}
+    <div class="post-categories">
+      <span class="post-categories-label">Filed under:</span>
+      {{ range .GetTerms "categories" }}
+        <a href="{{ .Permalink }}" class="post-category">{{ .LinkTitle }}</a>
+      {{ end }}
+      {{ range .Params.categories }}
+        <a href="{{ "/categories/" | relURL }}{{ . | urlize }}" class="post-category">{{ . }}</a>
+      {{ end }}
+    </div>
 
     <nav class="post-nav" aria-label="Post navigation">
       {{ with .PrevInSection }}
