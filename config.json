@@ -1,5 +1,8 @@
 {
   "paginate": 20,
+  "outputs": {
+    "home": ["HTML", "RSS"]
+  },
   "params": {
     "archive_months_photos": true,
     "author": {
