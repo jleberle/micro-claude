@@ -31,10 +31,10 @@
 
     <nav class="post-nav" aria-label="Post navigation">
       {{ with .PrevInSection }}
-        <a href="{{ .Permalink }}">&larr; {{ .Title | default "Previous" }}</a>
+        <a href="{{ .Permalink }}" aria-label="Previous post: {{ .Title | default "Previous" }}">&larr; {{ .Title | default "Previous" }}</a>
       {{ end }}
       {{ with .NextInSection }}
-        <a href="{{ .Permalink }}" style="margin-left:auto">{{ .Title | default "Next" }} &rarr;</a>
+        <a href="{{ .Permalink }}" class="post-nav-next" aria-label="Next post: {{ .Title | default "Next" }}">{{ .Title | default "Next" }} &rarr;</a>
       {{ end }}
     </nav>
   </article>
