@@ -1,5 +1,6 @@
 {
   "paginate": 20,
+  "minify": true,
   "outputs": {
     "home": ["HTML", "RSS"]
   },
@@ -10,7 +11,6 @@
       "username": "eberle",
       "avatar":   "https://micro.blog/eberle/avatar.jpg"
     },
-    "itunes_description": "Historian of modern Indigenous activism. My cat largely dictates what I write here.",
     "social_website_url":      "https://jaredeberle.org",
     "social_bluesky_url":      "https://bsky.app/profile/jaredeberle.org",
     "social_letterboxd_url":   "https://letterboxd.com/eberle/",
