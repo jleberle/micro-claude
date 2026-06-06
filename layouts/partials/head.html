@@ -35,6 +35,7 @@
     {{- end -}}
   {{- end -}}
 
+  <meta name="author" content="{{ .Site.Params.author.name | default .Site.Title }}">
   <title>{{ if .IsHome }}{{ .Site.Title }}{{ else if .Title }}{{ .Title }} | {{ .Site.Title }}{{ else }}{{ .Site.Title }}{{ end }}</title>
 
   <meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}">
