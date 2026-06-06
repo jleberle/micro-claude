@@ -15,7 +15,7 @@
       <div class="status-card">
         <div class="status-card-meta">
           <span class="status-label">Status</span>
-          <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time>
+          <a href="{{ .Permalink }}"><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time></a>
         </div>
         <div class="status-card-body">{{ .Content | safeHTML }}</div>
         <a class="status-card-more" href="{{ "/categories/status" | relURL }}">All status posts &rarr;</a>
