@@ -19,9 +19,9 @@
       <meta name="twitter:title" content="{{ $.Site.Title }}">
       <meta property="og:title" content="{{ $.Site.Title }}">
     {{- end -}}
-    <meta name="twitter:description" content="{{ .Summary | truncate 125 }}">
-    <meta property="og:description" content="{{ .Summary | truncate 160 }}">
-    <meta name="description" content="{{ .Summary }}">
+    <meta name="twitter:description" content="{{ .Summary | plainify | truncate 125 }}">
+    <meta property="og:description" content="{{ .Summary | plainify | truncate 160 }}">
+    <meta name="description" content="{{ .Summary | plainify }}">
     {{- if .Params.photos -}}
       {{- range .Params.photos -}}
         <meta name="twitter:image" content="{{ . }}">
