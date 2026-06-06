@@ -1,6 +1,8 @@
 {
   "paginate": 20,
-  "minify": true,
+  "minify": {
+    "minifyOutput": true
+  },
   "outputs": {
     "home": ["HTML", "RSS"]
   },
