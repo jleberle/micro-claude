@@ -4,7 +4,7 @@ Last updated: 2026-06-06
 ## What this repo is
 A custom Hugo theme for Jared Eberle's micro.blog at **eberle.blog**.
 - GitHub: `github.com/jleberle/micro-claude`
-- micro.blog pulls from the **master** branch (not main — always push to both)
+- micro.blog pulls from the **master** branch (only branch — push to master)
 - Local dev: `hugo server` from `/Users/jaredeberle/git/microblog-theme/`
 - Hugo locally: 0.162 | micro.blog production: **0.158**
 
@@ -12,7 +12,7 @@ A custom Hugo theme for Jared Eberle's micro.blog at **eberle.blog**.
 - micro.blog username: **eberle** (hosts eberle.blog, avatar URL uses this)
 - Personal site / Bluesky / LibraryThing handle: **jaredeberle**
 - Avatar: `https://micro.blog/eberle/avatar.jpg` (jaredeberle/avatar.jpg is 404)
-- Always push: `git push origin main && git push origin main:master`
+- Always push: `git push origin master`
 
 ## How micro.blog renders this theme
 micro.blog uses **its own base template** for the page skeleton:
