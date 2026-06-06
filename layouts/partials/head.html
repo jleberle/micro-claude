@@ -61,6 +61,7 @@
   {{- end }}
 
   <link rel="canonical" href="{{ .Permalink | absURL }}">
+  <link rel="author" href="{{ .Site.Params.social_website_url | default .Site.BaseURL }}">
   <link rel="stylesheet" href="{{ "css/main.css" | relURL }}?{{ .Site.Params.theme_seconds }}">
 
   {{- with .Site.Params.author.activitypub.username }}
