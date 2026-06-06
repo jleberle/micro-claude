@@ -1,4 +1,4 @@
-{{ $bio := .Site.Params.bio | default .Site.Params.itunes_description | default .Content }}
+{{ $bio := .Site.Params.about_me }}
 {{ if $bio }}
 <div class="intro">
   <img class="intro-avatar" src="https://micro.blog/{{ .Site.Params.author.username }}/avatar.jpg" alt="{{ .Site.Params.author.name | default .Site.Title }}" width="80" height="80">
