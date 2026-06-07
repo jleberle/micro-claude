@@ -100,6 +100,25 @@ plugin.json                  # micro.blog theme metadata + settings fields
 5. **Highlights** — up to 10 recent posts in "Highlights" category
 
 ## Hugo version compatibility notes
+### The 0.91-vs-0.158 tension (root of the full-rebuild class of bugs)
+- micro.blog tells theme/plugin authors to target **Hugo 0.91** as the
+  compatibility floor, but **runs 0.158 in production**. So 0.91-era APIs that
+  Hugo has since REMOVED are latent landmines: valid by the recommended baseline,
+  but they fault on the real engine — and only on a **full rebuild** (fastpublish
+  serves cached output). That's exactly how `.Site.Author.avatar` in
+  plugin-search-page took down the home node (see "Manual full rebuild").
+- Prefer APIs that work on BOTH 0.91 and 0.158. `.Site.Params.author.avatar` is
+  the canonical example — valid on 0.91 AND 0.158, unlike the removed
+  `.Site.Author.avatar`. Everything changed in the June 2026 session is
+  0.91-compatible.
+- **Future landmines** (deprecated on 0.158, not yet removed — will break the same
+  way when micro.blog next bumps Hugo): `.Site.LanguageCode` (→ `.Site.Language.Locale`),
+  `.Site.Data` (→ `hugo.Data`), config keys `languageCode` (→ `locale`) and `paginate`.
+- **Early-warning tool:** the pinned `hugo-0.158` + full-plugin local repro (see
+  "Faithful local 0.158 reproduction"). Re-run it against a newer pinned binary
+  whenever micro.blog upgrades Hugo to catch the next round of removals before they
+  ship. Watch installed PLUGINS too, not just this theme — they carry the same risk.
+
 - `hugo.Data` introduced ~0.155 — **use `.Site.Data` instead** for 0.117 compat
   (generates a deprecation WARN on 0.158 but not an error)
 - `.Site.Author.*` **removed in Hugo 0.156** (deprecated 0.124) — use
