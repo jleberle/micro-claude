@@ -36,7 +36,9 @@ inputs in the micro.blog backend (Plugins → this plugin). Real micro.blog sche
 - Key is `"field"` (dotted `params.<name>`), NOT `name`. Types: `string` / `boolean`.
 - There is NO `default` mechanism — `placeholder` is only a hint. To ship working
   values, keep them in `config.json` `params` (low-precedence defaults); a value
-  typed in the backend overrides the config.json default.
+  typed in the backend overrides the config.json default. **VERIFIED in production
+  (2026-06-06):** edited a `social_*_url` field in the micro.blog backend and the
+  live link updated accordingly, confirming backend > config.json precedence.
 - Currently exposed: the 5 `social_*_url` links. Templates read `.Site.Params.
   social_*_url` and guard with `{{ with }}`, so an empty field just hides that link.
 - Editing flow: leave a field blank → config.json default applies; type a URL →
