@@ -172,6 +172,13 @@ plugin.json                  # micro.blog theme metadata + settings fields
   with a `| default` fallback in the template. So a category rename or count change is a
   one-line config edit, and a missing param can't break the build (a nil count would make
   `first` fatal — the defaults prevent that).
+- **De-duplicated across sections:** a `$seen` slice of permalinks is built in section
+  order (Status → Books → Movies → Highlights); each section filters with
+  `where ... "Permalink" "not in" $seen` so a post in multiple categories appears only
+  once (e.g. a Books+Status post shows in Status, not again in Books/Highlights).
+- **Status card body is capped** with `.Summary` (HTML-safe, word-bounded by
+  summaryLength) instead of full `.Content` — never truncate raw `.Content`, it can sever
+  tags. When `.Truncated`, the card's link becomes "Read more →" to the post.
 
 ## Hugo version compatibility notes
 ### The 0.91-vs-0.158 tension (root of the full-rebuild class of bugs)

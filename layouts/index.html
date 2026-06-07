@@ -15,16 +15,37 @@
   {{ $moviesCount     := .Site.Params.home_movies_count     | default 6 }}
   {{ $highlightsCount := .Site.Params.home_highlights_count | default 10 }}
 
+  {{/* De-duplicate across sections so a post never appears twice on the homepage.
+       Order Status → Books → Movies → Highlights; each excludes posts shown above
+       it (tracked by permalink). `where ... "not in"` over an empty slice keeps all. */}}
+  {{ $seen := slice }}
+  {{ $status := index $statusPosts 0 }}
+  {{ with $status }}{{ $seen = $seen | append .Permalink }}{{ end }}
+
+  {{ $books := first $booksCount (where $bookPosts "Permalink" "not in" $seen) }}
+  {{ range $books }}{{ $seen = $seen | append .Permalink }}{{ end }}
+
+  {{ $movies := first $moviesCount (where $moviePosts "Permalink" "not in" $seen) }}
+  {{ range $movies }}{{ $seen = $seen | append .Permalink }}{{ end }}
+
+  {{ $highlightsShown := first $highlightsCount (where $highlights "Permalink" "not in" $seen) }}
+
   {{/* ── 1. Latest status post ───────────────────────── */}}
-  {{ with index $statusPosts 0 }}
+  {{ with $status }}
     <section class="home-status" aria-label="Latest status">
       <div class="status-card">
         <div class="status-card-meta">
           <span class="status-label">Status</span>
           <a href="{{ .Permalink }}"><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time></a>
         </div>
-        <div class="status-card-body">{{ .Content | safeHTML }}</div>
-        <a class="status-card-more" href="{{ "/categories/status" | relURL }}">All status posts &rarr;</a>
+        {{/* Cap the card body: .Summary is HTML-safe and word-bounded (summaryLength),
+             unlike truncating raw .Content which can sever tags. */}}
+        <div class="status-card-body">{{ .Summary | safeHTML }}</div>
+        {{ if .Truncated }}
+          <a class="status-card-more" href="{{ .Permalink }}">Read more &rarr;</a>
+        {{ else }}
+          <a class="status-card-more" href="{{ "/categories/status" | relURL }}">All status posts &rarr;</a>
+        {{ end }}
       </div>
     </section>
   {{ end }}
@@ -53,7 +74,7 @@
   {{ end }}
 
   {{/* ── 3. Books | Movies two-column ───────────────── */}}
-  {{ if or $bookPosts $moviePosts }}
+  {{ if or $books $movies }}
     <section class="home-media" aria-label="Books and movies">
       <div class="media-columns">
 
@@ -61,7 +82,7 @@
         <div class="media-col">
           <h2 class="media-col-heading">📚 Books</h2>
           <ul class="media-list">
-            {{ range first $booksCount $bookPosts }}
+            {{ range $books }}
               {{ $p := . }}
               {{ $img := index (findRE `<img[^>]+>` $p.Content) 0 }}
               {{ $bookText := $p.Content | plainify | htmlUnescape }}
@@ -86,7 +107,7 @@
         <div class="media-col">
           <h2 class="media-col-heading">🍿 Movies</h2>
           <ul class="media-list">
-            {{ range first $moviesCount $moviePosts }}
+            {{ range $movies }}
               {{ $p := . }}
               {{ $movieText := $p.Content | plainify | htmlUnescape }}
               {{ $titleLine := $movieText | replaceRE `\n.*` "" }}
@@ -112,11 +133,11 @@
   {{ end }}
 
   {{/* ── 4. Highlights ─────────────────────────────── */}}
-  {{ if $highlights }}
+  {{ if $highlightsShown }}
     <section class="home-feed" aria-label="Highlights">
       <h2 class="home-feed-heading">Highlights</h2>
       <ul class="post-list">
-        {{ range first $highlightsCount $highlights }}
+        {{ range $highlightsShown }}
           {{ $page := . }}
           <li class="post-entry{{ if not $page.Title }} short{{ end }}">
             {{ if $page.Title }}
