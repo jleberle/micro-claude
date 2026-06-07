@@ -12,6 +12,13 @@
     }
   },
   "params": {
-    "archive_months_photos": true
+    "archive_months_photos": true,
+    "home_cat_status": "Status",
+    "home_cat_books": "Books",
+    "home_cat_movies": "Movies",
+    "home_cat_highlights": "Highlights",
+    "home_books_count": 5,
+    "home_movies_count": 6,
+    "home_highlights_count": 10
   }
 }

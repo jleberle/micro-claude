@@ -2,12 +2,18 @@
 
   {{ partial "intro.html" . }}
 
-  {{ $all := where .Site.Pages.ByDate.Reverse "Type" "post" }}
+  {{/* Single source, sorted once; `where` preserves order so derived slices need no re-sort.
+       Category names + counts live in config.json params so renames/tweaks are one-line. */}}
+  {{ $all := (where .Site.RegularPages "Type" "post").ByDate.Reverse }}
 
-  {{ $statusPosts := (where $all "Params.categories" "intersect" (slice "Status")).ByDate.Reverse }}
-  {{ $bookPosts   := (where $all "Params.categories" "intersect" (slice "Books")).ByDate.Reverse }}
-  {{ $moviePosts  := (where $all "Params.categories" "intersect" (slice "Movies")).ByDate.Reverse }}
-  {{ $highlights  := (where $all "Params.categories" "intersect" (slice "Highlights")).ByDate.Reverse }}
+  {{ $statusPosts := where $all "Params.categories" "intersect" (slice (.Site.Params.home_cat_status     | default "Status")) }}
+  {{ $bookPosts   := where $all "Params.categories" "intersect" (slice (.Site.Params.home_cat_books      | default "Books")) }}
+  {{ $moviePosts  := where $all "Params.categories" "intersect" (slice (.Site.Params.home_cat_movies     | default "Movies")) }}
+  {{ $highlights  := where $all "Params.categories" "intersect" (slice (.Site.Params.home_cat_highlights | default "Highlights")) }}
+
+  {{ $booksCount      := .Site.Params.home_books_count      | default 5 }}
+  {{ $moviesCount     := .Site.Params.home_movies_count     | default 6 }}
+  {{ $highlightsCount := .Site.Params.home_highlights_count | default 10 }}
 
   {{/* ── 1. Latest status post ───────────────────────── */}}
   {{ with index $statusPosts 0 }}
@@ -55,7 +61,7 @@
         <div class="media-col">
           <h2 class="media-col-heading">📚 Books</h2>
           <ul class="media-list">
-            {{ range first 5 $bookPosts }}
+            {{ range first $booksCount $bookPosts }}
               {{ $p := . }}
               {{ $img := index (findRE `<img[^>]+>` $p.Content) 0 }}
               {{ $bookText := $p.Content | plainify | htmlUnescape }}
@@ -80,7 +86,7 @@
         <div class="media-col">
           <h2 class="media-col-heading">🍿 Movies</h2>
           <ul class="media-list">
-            {{ range first 6 $moviePosts }}
+            {{ range first $moviesCount $moviePosts }}
               {{ $p := . }}
               {{ $movieText := $p.Content | plainify | htmlUnescape }}
               {{ $titleLine := $movieText | replaceRE `\n.*` "" }}
@@ -96,7 +102,7 @@
               </li>
             {{ end }}
           </ul>
-          {{ if gt (len $moviePosts) 6 }}
+          {{ if gt (len $moviePosts) $moviesCount }}
             <a class="media-col-more" href="{{ "/categories/movies" | relURL }}">All movies &rarr;</a>
           {{ end }}
         </div>
@@ -110,7 +116,7 @@
     <section class="home-feed" aria-label="Highlights">
       <h2 class="home-feed-heading">Highlights</h2>
       <ul class="post-list">
-        {{ range first 10 $highlights }}
+        {{ range first $highlightsCount $highlights }}
           {{ $page := . }}
           <li class="post-entry{{ if not $page.Title }} short{{ end }}">
             {{ if $page.Title }}
@@ -126,7 +132,7 @@
           </li>
         {{ end }}
       </ul>
-      {{ if gt (len $highlights) 10 }}
+      {{ if gt (len $highlights) $highlightsCount }}
         <a class="home-feed-more" href="{{ "/categories/highlights" | relURL }}">All highlights &rarr;</a>
       {{ end }}
     </section>

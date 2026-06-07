@@ -162,7 +162,16 @@ plugin.json                  # micro.blog theme metadata + settings fields
 2. **Status card** — most recent post in "Status" category
 3. **Currently Reading** — from `hugo.Data` bookshelves
 4. **Books | Movies** — two-column, recent posts in Books/Movies categories
-5. **Highlights** — up to 10 recent posts in "Highlights" category
+5. **Highlights** — recent posts in "Highlights" category
+
+- **Sourcing:** one base slice — `(where .Site.RegularPages "Type" "post").ByDate.Reverse`
+  — then per-section `where ... "Params.categories" "intersect" (slice <name>)`. `where`
+  preserves order, so derived slices are NOT re-sorted.
+- **Category names + counts are config.json params** (`home_cat_status/books/movies/
+  highlights`, `home_books_count`/`home_movies_count`/`home_highlights_count`), each read
+  with a `| default` fallback in the template. So a category rename or count change is a
+  one-line config edit, and a missing param can't break the build (a nil count would make
+  `first` fatal — the defaults prevent that).
 
 ## Hugo version compatibility notes
 ### The 0.91-vs-0.158 tension (root of the full-rebuild class of bugs)
