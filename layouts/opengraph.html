@@ -1,4 +1,4 @@
-<div style="background-color:#FDF6E3;color:#2d3c42;padding:24px 40px 24px 0;line-height:1.4;" data-content-background="#FDF6E3" data-avatar-background="#2d3c42"{{ with .Site.Params.author.username }} data-avatar-url="https://micro.blog/{{ . }}/avatar.jpg"{{ end }}>
+<div style="background-color:#FDF6E3;color:#2d3c42;padding:24px 40px 24px 0;line-height:1.4;" data-content-background="#FDF6E3" data-avatar-background="#2d3c42" data-avatar-url="{{ .Site.Author.avatar }}">
   <h1 style="font-size:22px;font-weight:bold;color:#2d3c42;line-height:1.2;margin:0 0 10px 0;">{{ or .Title .Site.Title }}</h1>
   <p style="font-size:14px;color:#6c6c6c;margin:0;line-height:1.5;">{{ or .Summary .Content }}</p>
 </div>

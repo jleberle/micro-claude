@@ -127,8 +127,19 @@ plugin.json                  # micro.blog theme metadata + settings fields
 - `{{ .Title | default .Date.Format "January 2, 2006" }}` invalid in 0.158
   — use `{{ if .Title }}{{ .Title }}{{ else }}{{ .Date.Format "..." }}{{ end }}`
 - `opengraph.html` in layouts/ is FINE on 0.158 (Mythos theme proves it) — earlier
-  belief that it broke the feed was wrong. Just keep it free of removed APIs
-  (it now uses `.Site.Params.author.username`, not the removed `.Site.Author`).
+  belief that it broke the feed was wrong. **Hugo never renders it**: it's not a
+  recognized layout name for any output format, so it's an unused template at build
+  time (that's why its contents can't break a full rebuild). It is instead consumed
+  by micro.blog's **separate, non-Hugo OG card renderer** (600×315 card, "older web
+  renderer ~2010 web standards; uses simple logic similar to Hugo but is NOT Hugo"
+  per help.micro.blog/t/open-graph-templates/4011). **Consequence:** the Hugo-0.156
+  removal of `.Site.Author.*` does NOT apply here — `.Site.Author.avatar` is the
+  DOCUMENTED, correct variable for this file (contrast `list.archivejson.json`,
+  which Hugo DOES render, where `.Site.Author.avatar` is fatal). So we use the
+  documented `data-avatar-url="{{ .Site.Author.avatar }}"`. Documented OG vars:
+  `.Site.Author.avatar/.name/.header`, `.Site.Title/.BaseURL/.Hostname/.Params`,
+  and post `.Title/.Content/.Plain/.Summary/.Permalink/.Date/.Params.photos`.
+  Put colors in BOTH the inline `style` and the matching `data-*` attribute.
 
 ## CSS: avatar hiding on homepage
 ```css
