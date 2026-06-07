@@ -86,8 +86,9 @@ to handle both micro.blog's default structure and our custom partials.
   correct `.Site.Params.author.avatar` (keeps the plugin's full-text `.Plain`
   search index). Theme out-ranks plugins in template lookup, so ours shadows the
   broken copy. Full rebuilds should now be safe.
-- **TODO:** report upstream to github.com/microdotblog/plugin-search-page (line 4
-  should be `.Site.Params.author.avatar`); once fixed there, our override can go.
+- **Reported upstream** (2026-06-07) to github.com/microdotblog/plugin-search-page
+  (line 4 should be `.Site.Params.author.avatar`). Our override stays until the fix
+  lands there; once it does, the override can go.
 
 ### micro.blog strips `<style>` tags from theme template output
 - Cannot inject page-scoped CSS via `<style>` tags in layout files
