@@ -1,5 +1,6 @@
 {
   "pluralizeListTitles": false,
+  "ignoreLogs": ["warning-goldmark-raw-html"],
   "minify": {
     "minifyOutput": true
   },
