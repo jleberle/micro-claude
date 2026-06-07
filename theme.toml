@@ -1,6 +1,6 @@
 name = "Eberle"
 license = "MIT"
-licenselink = "https://github.com/jleberle/micro-claude/blob/main/LICENSE"
+licenselink = "https://github.com/jleberle/micro-claude/blob/master/LICENSE"
 description = "A Solarized Light micro.blog theme mirroring jaredeberle.org"
 homepage = "https://github.com/jleberle/micro-claude"
 tags = ["solarized", "dark-mode", "clean"]
