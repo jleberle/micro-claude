@@ -22,12 +22,13 @@
     <meta name="twitter:image" content="{{ .Site.Params.author.avatar }}">
     <meta property="og:image" content="{{ .Site.Params.author.avatar }}">
   {{- else -}}
-    {{- with .Title -}}
-      <meta name="twitter:title" content="{{ . }}">
-      <meta property="og:title" content="{{ . }}">
+    {{- if .Title -}}
+      <meta name="twitter:title" content="{{ .Title }}">
+      <meta property="og:title" content="{{ .Title }}">
     {{- else -}}
-      <meta name="twitter:title" content="{{ $.Site.Title }}">
-      <meta property="og:title" content="{{ $.Site.Title }}">
+      {{- $fallbackTitle := .Summary | plainify | truncate 70 -}}
+      <meta name="twitter:title" content="{{ $fallbackTitle | default $.Site.Title }}">
+      <meta property="og:title" content="{{ $fallbackTitle | default $.Site.Title }}">
     {{- end -}}
     <meta name="twitter:description" content="{{ .Summary | plainify | truncate 125 }}">
     <meta property="og:description" content="{{ .Summary | plainify | truncate 160 }}">
