@@ -114,6 +114,9 @@ plugin.json                  # micro.blog theme metadata + settings fields
 - **Future landmines** (deprecated on 0.158, not yet removed — will break the same
   way when micro.blog next bumps Hugo): `.Site.LanguageCode` (→ `.Site.Language.Locale`),
   `.Site.Data` (→ `hugo.Data`), config keys `languageCode` (→ `locale`) and `paginate`.
+  NOTE: `.Site.LanguageCode` already misbehaves on micro.blog's 0.158 — it returns
+  the literal `-`, which is why `og:locale` was rendering `content="-"`. Fixed by
+  hardcoding `og:locale` to `en_US` in head.html (single-locale English blog).
 - **Early-warning tool:** the pinned `hugo-0.158` + full-plugin local repro (see
   "Faithful local 0.158 reproduction"). Re-run it against a newer pinned binary
   whenever micro.blog upgrades Hugo to catch the next round of removals before they
@@ -140,6 +143,18 @@ plugin.json                  # micro.blog theme metadata + settings fields
   `.Site.Author.avatar/.name/.header`, `.Site.Title/.BaseURL/.Hostname/.Params`,
   and post `.Title/.Content/.Plain/.Summary/.Permalink/.Date/.Params.photos`.
   Put colors in BOTH the inline `style` and the matching `data-*` attribute.
+- **micro.blog OVERRIDES `og:image` on POST pages** with the generated card. Even
+  though head.html falls back to the avatar for text posts, the live post HTML
+  shows `og:image`/`twitter:image` = `https://s3.amazonaws.com/micro.blog/opengraph/
+  YYYY/MM/DD/<id>.png` (the rendered opengraph.html card). The HOME page is NOT a
+  post, gets no card, so its og:image stays the avatar (by design). So the theme's
+  avatar fallback only actually shows for non-post pages.
+- **OG cards not appearing on Bluesky/X = scraper cache, not markup.** Verify with
+  `curl "https://cardyb.bsky.app/v1/extract?url=<POST_URL>"` (Bluesky's card
+  service) — if it returns the right image, the markup is fine. Bluesky snapshots
+  the card into the post at posting time and never refreshes, so only NEW posts
+  reflect a changed card; X caches ~7 days (append `?x=1` to bust). The card PNG
+  regenerates (new s3 filename) when the post or opengraph.html changes.
 
 ## CSS: avatar hiding on homepage
 ```css
