@@ -1,3 +1,22 @@
+<!-- ⚠️ ⚠️ ⚠️ -->
+
+> # ⚠️ Personal theme — no support, no external revisions
+>
+> **This is a personal theme built for a single site, [eberle.blog](https://eberle.blog).**
+> It was **written by Claude** (Anthropic's AI assistant) together with Jared Eberle,
+> for Jared's own use.
+>
+> It is published **as-is, for reference only.** Jared **cannot provide support**,
+> answer setup questions, or troubleshoot your installation, and **will not make
+> revisions, accept feature requests, or review/merge pull requests** for other users.
+>
+> You are welcome to fork it under the MIT License and adapt it yourself — but if you
+> do, **you are entirely on your own.** It is tightly coupled to Jared's specific
+> micro.blog configuration, installed plugins, and content categories, and is not
+> intended to be a general-purpose, reusable theme.
+
+<!-- ⚠️ ⚠️ ⚠️ -->
+
 # Eberle — micro.blog theme
 
 A micro.blog theme that mirrors the style of [jaredeberle.org](https://jaredeberle.org): Solarized Light palette, clean sans-serif typography, dark mode via `prefers-color-scheme`.
@@ -159,3 +178,14 @@ Plugins that inject into the `<head>` via `microblog_head.html` (e.g. opengraph-
 - `aria-label` on "Read more" and "Permalink" links includes post title/date for screen reader context
 - `:focus-visible` outline uses `var(--link)` color — verify contrast if changing the color palette
 - Solarized Light secondary text (`#6c6c6c` on `#fffcf2`) is borderline at WCAG 2.1 AA for small text sizes
+
+---
+
+## Credits
+
+- **Color palette:** [Solarized](https://ethanschoonover.com/solarized/) by Ethan Schoonover, used under the [MIT License](https://github.com/altercation/solarized/blob/master/LICENSE). The Solarized hues are adapted here as CSS custom properties; no Solarized source files are bundled.
+- **Authorship:** Written by Claude (Anthropic's AI assistant) in collaboration with Jared Eberle.
+
+## License
+
+This theme is released under the [MIT License](LICENSE) — see the disclaimer at the top regarding support and reuse.
