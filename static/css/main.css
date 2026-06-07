@@ -30,13 +30,13 @@
 }
 
 :root {
-  --bg:        #fffcf2;
-  --entry:     #FDF6E3;
-  --primary:   #2d3c42;
-  --secondary: #6c6c6c;
-  --border:    #d0c9bc;
-  --accent:    #b0a89a;
-  --link:      #268bd2;
+  --bg:        #fdf6e3;  /* Solarized Base3  */
+  --entry:     #eee8d5;  /* Solarized Base2  */
+  --primary:   #073642;  /* Solarized Base02 */
+  --secondary: #586e75;  /* Solarized Base01 */
+  --border:    #93a1a1;  /* Solarized Base1  */
+  --accent:    #93a1a1;  /* Solarized Base1  */
+  --link:      #268bd2;  /* Solarized Blue   */
   --max-width: 740px;
   --nav-width: 1024px;
   --gap:       24px;
