@@ -29,7 +29,9 @@ CSS must target BOTH `#site-header` and `.site-header` (and same for footer/main
 to handle both micro.blog's default structure and our custom partials.
 
 ## Known platform behavior
-### Manual full rebuild (Hugo 0.158) — ROOT CAUSE FOUND & FIXED (2026-06-06)
+### Manual full rebuild (Hugo 0.158) — FIXED & VERIFIED IN PRODUCTION (2026-06-06)
+- A live full rebuild now succeeds with the home page + feeds intact. Full
+  rebuilds are safe again. Upstream issue reported to plugin-search-page.
 - Symptom: triggering "full rebuild" broke the **home page + RSS/JSON feeds**
   (404) while every other page rendered fine. Fastpublish was unaffected; a 0.117
   full rebuild was also fine.
@@ -158,9 +160,8 @@ plugin-archive-months,plugin-photos-months,theme-blank
 - **Highlights post not appearing on homepage** — suspected fastpublish timing
   issue; most recent Highlights post shows on category page but not homepage.
   Trigger a full publish cycle to test.
-- **Manual full rebuild** — root cause found & fixed (stale `.Site.Author.avatar`
-  in plugin-search-page's archivejson template); should be safe now. Verify on the
-  next full rebuild, then this caveat can be removed.
+- **Manual full rebuild** — FIXED & verified in production (stale
+  `.Site.Author.avatar` in plugin-search-page's archivejson template). Safe to use.
 
 ## What was fixed in the June 2026 session
 - Removed `opengraph.html` (was breaking feed generation on 0.158)
