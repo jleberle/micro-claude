@@ -34,16 +34,19 @@ inputs in the micro.blog backend (Plugins → this plugin). Real micro.blog sche
   "placeholder": "https://...", "type": "string" }
 ```
 - Key is `"field"` (dotted `params.<name>`), NOT `name`. Types: `string` / `boolean`.
-- There is NO `default` mechanism — `placeholder` is only a hint. To ship working
-  values, keep them in `config.json` `params` (low-precedence defaults); a value
-  typed in the backend overrides the config.json default. **VERIFIED in production
+- There is NO `default` mechanism — `placeholder` is only a hint. A value typed in
+  the backend overrides any `config.json` `params` default. **VERIFIED in production
   (2026-06-06):** edited a `social_*_url` field in the micro.blog backend and the
   live link updated accordingly, confirming backend > config.json precedence.
 - Currently exposed: the 5 `social_*_url` links. Templates read `.Site.Params.
   social_*_url` and guard with `{{ with }}`, so an empty field just hides that link.
-- Editing flow: leave a field blank → config.json default applies; type a URL →
-  it overrides. Local `hugo server` only sees config.json (plugin.json fields are a
-  backend concept), so config.json must keep the defaults for local dev to work.
+- **The social URLs now live ONLY in the backend (plugin.json fields).** Their
+  `config.json` defaults were removed (2026-06-06) once the backend was verified as
+  the source of truth. Consequences: (a) a backend field left BLANK hides that link
+  on the live site — no fallback; (b) local `hugo server` no longer shows the social
+  links at all, since plugin.json fields are backend-only and config.json no longer
+  carries them. If you want them back in local preview, re-add them to config.json
+  `params` as low-precedence defaults (backend still overrides).
 
 ## How micro.blog renders this theme
 micro.blog uses **its own base template** for the page skeleton:
