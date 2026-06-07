@@ -129,7 +129,7 @@ plugin.json                  # micro.blog theme metadata + settings fields
 ## Homepage sections (layouts/index.html)
 1. **Intro card** — avatar + bio + social links (from `intro.html`)
 2. **Status card** — most recent post in "Status" category
-3. **Currently Reading** — from `hugo.Data` / `.Site.Data` bookshelves
+3. **Currently Reading** — from `hugo.Data` bookshelves
 4. **Books | Movies** — two-column, recent posts in Books/Movies categories
 5. **Highlights** — up to 10 recent posts in "Highlights" category
 
@@ -147,7 +147,8 @@ plugin.json                  # micro.blog theme metadata + settings fields
   0.91-compatible.
 - **Future landmines** (deprecated on 0.158, not yet removed — will break the same
   way when micro.blog next bumps Hugo): `.Site.LanguageCode` (→ `.Site.Language.Locale`),
-  `.Site.Data` (→ `hugo.Data`), config keys `languageCode` (→ `locale`) and `paginate`.
+  config keys `languageCode` (→ `locale`) and `paginate`.
+  (`.Site.Data` was also here but has been switched to `hugo.Data` in index.html.)
   NOTE: `.Site.LanguageCode` already misbehaves on micro.blog's 0.158 — it returns
   the literal `-`, which is why `og:locale` was rendering `content="-"`. Fixed by
   hardcoding `og:locale` to `en_US` in head.html (single-locale English blog).
@@ -156,8 +157,10 @@ plugin.json                  # micro.blog theme metadata + settings fields
   whenever micro.blog upgrades Hugo to catch the next round of removals before they
   ship. Watch installed PLUGINS too, not just this theme — they carry the same risk.
 
-- `hugo.Data` introduced ~0.155 — **use `.Site.Data` instead** for 0.117 compat
-  (generates a deprecation WARN on 0.158 but not an error)
+- `hugo.Data` introduced ~0.155 — now used in `index.html` (switched from `.Site.Data`
+  which generates a deprecation WARN on 0.158). Safe: micro.blog runs 0.158 in production
+  and won't go backwards. The 0.91 compat guideline is about not using *removed* APIs,
+  not about avoiding newer ones.
 - `.Site.Author.*` **removed in Hugo 0.156** (deprecated 0.124) — use
   `.Site.Params.author.*`. This is the exact bug that broke full rebuilds via the
   search plugin (see "Manual full rebuild" above).

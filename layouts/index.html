@@ -24,7 +24,7 @@
   {{ end }}
 
   {{/* ── 2. Currently reading (full width) ──────────── */}}
-  {{ with .Site.Data.bookshelves }}
+  {{ with hugo.Data.bookshelves }}
     {{ $reading := index . "currentlyreading" }}
     {{ if $reading }}
       <section class="home-reading" aria-label="Currently reading">
