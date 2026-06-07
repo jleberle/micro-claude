@@ -298,9 +298,11 @@ plugin-archive-months,plugin-photos-months,theme-blank
   via `.Site.Params.plugins_html`; missing ones = "partial X not found".
 
 ## Things still outstanding / to watch
-- **footer.html** custom links (RSS · Micro.blog · Theme · Codeberg) — confirm
-  these are rendering on the live site; if not, micro.blog's default footer is
-  being used instead of ours
+- **footer.html** custom footer — VERIFIED rendering live (2026-06-07). micro.blog
+  uses OUR custom header/footer partials, not its default. The copyright name now
+  links to `/humans.txt` (`rel="author"`); the RSS · Micro.blog · Theme · Codeberg
+  links render too. (Since the custom partials ARE used, future header/footer edits
+  show up live.)
 - **Highlights post not appearing on homepage** — suspected fastpublish timing
   issue; most recent Highlights post shows on category page but not homepage.
   Trigger a full publish cycle to test.
