@@ -2,7 +2,7 @@
 
 > # ⚠️ Personal theme — no support, no external revisions
 >
-> **This is a personal theme built for a single site, [eberle.blog](https://eberle.blog).**
+> **This is a personal theme built for my own site, [eberle.blog](https://eberle.blog).**
 > It was **written by Claude** (Anthropic's AI assistant) together with Jared Eberle,
 > for my own use, it's heavily tailored and opinionated for what I want.
 >
