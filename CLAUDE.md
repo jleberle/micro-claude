@@ -93,23 +93,29 @@ to handle both micro.blog's default structure and our custom partials.
 - Cannot inject page-scoped CSS via `<style>` tags in layout files
 - Use `main.css` with `:has()` selectors instead for page-specific rules
 
-### Archive page (`/archive/`) is the HOME node's ArchiveHTML output
-- `/archive/` is NOT a section list — it is the **home node's** `ArchiveHTML` output
-  format (`outputFormat ArchiveHTML` → `path: "archive"`, `baseName: "index"`). Same
-  for `/photos/` (PhotosHTML) and the feeds.
+### Archive/Photos pages are HOME-node outputs (root-level template rule)
+- `/archive/` and `/photos/` are NOT section lists — they are the **home node's**
+  `ArchiveHTML` / `PhotosHTML` output formats (`path: "archive"`/`"photos"`,
+  `baseName: "index"`). Same node family as the HTML page, RSS, and JSON feeds.
 - **Lookup consequence:** for the *home* kind, Hugo checks `layouts/list.archivehtml.html`
   (ROOT) BEFORE `layouts/_default/list.archivehtml.html`. micro.blog's default
-  `theme-blank` ships the ROOT-level copy, so a `_default/` copy from a theme OR plugin
-  **never wins** — regardless of plugin order. This is why `plugin-archive-months`
-  (template at `_default/`) silently did nothing and the plain theme-blank flat archive
-  rendered instead (no months). Our old override was also at `_default/` → dead, and its
-  classes didn't even match `main.css`.
-- **Fix (2026-06):** moved our archive template to ROOT `layouts/list.archivehtml.html`
-  (mirrors `list.archivejson.json`), rewritten to match `main.css` archive classes
-  (`.archive-cats`, `.archive-month`, `.archive-entry-*`). Themed month-grouped archive
-  with categories row + photo thumbnails (honors `archive_months_photos`). Verified via
-  the local 0.158 repro: our markers render, theme-blank's `h-feed`/`h-entry` gone.
-- Same rule applies to any home-node output override (photos, feeds): put it at ROOT,
+  `theme-blank` ships the ROOT-level copies (`list.archivehtml.html`,
+  `list.photoshtml.html`, etc.), so a `_default/` copy from a theme OR plugin **never
+  wins** — regardless of plugin order. This is why `plugin-archive-months` and
+  `plugin-photos-months` (both templates at `_default/`) silently did nothing and the
+  plain theme-blank flat lists rendered (no months). Our old archive override was also
+  at `_default/` → dead, and its classes didn't even match `main.css`.
+- **Fix (2026-06):** added ROOT-level `layouts/list.archivehtml.html` and
+  `layouts/list.photoshtml.html` (mirroring `list.archivejson.json`), matching
+  `main.css` classes (`.archive-cats`/`.archive-month`/`.archive-entry-*` and
+  `.photos-grid`; photo months reuse `.archive-month`). Both are themed + month-grouped;
+  archive honors `archive_months_photos`. Verified via the local 0.158 + full-plugin
+  repro: our markers render, theme-blank's `h-feed`/`h-entry`/`photos-grid-container` gone.
+- **Both month plugins are now superseded** — `plugin-archive-months` and
+  `plugin-photos-months` provide only `_default/` templates that can never win. They can
+  be uninstalled. The `archive_months_photos` toggle was moved into THIS repo's
+  `plugin.json` (boolean field), with `config.json` keeping `true` as the default.
+- Same rule applies to any home-node output override (feeds, RSD): put it at ROOT,
   not `_default/`.
 
 ### microblog_head.html
@@ -128,7 +134,9 @@ layouts/
     single.html              # generic single page
   list.archivehtml.html      # /archive/ — ROOT level (NOT _default) so it wins the
                              #   home-node ArchiveHTML lookup vs theme-blank; themed
-                             #   month-grouped archive (see "Archive page" below)
+                             #   month-grouped archive (see "Archive/Photos pages" below)
+  list.photoshtml.html       # /photos/ — ROOT level; themed month-grouped photo grid
+                             #   (.photos-grid). Supersedes plugin-photos-months.
   list.archivejson.json      # home-node ArchiveJSON (search index + Author fix)
   opengraph.html             # OG card template (micro.blog's non-Hugo renderer)
   partials/

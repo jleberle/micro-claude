@@ -1,8 +1,13 @@
 {
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"title": "Micro Claude Theme",
 	"description": "A clean Solarized Light theme for micro.blog.",
 	"fields": [
+		{
+			"field": "params.archive_months_photos",
+			"label": "Show photo thumbnails in the archive",
+			"type": "boolean"
+		},
 		{
 			"field": "params.social_website_url",
 			"label": "Personal website URL",

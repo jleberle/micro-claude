@@ -118,6 +118,14 @@ re-add them to `config.json` `params` as defaults.)
   which shipped a stale `.Site.Author.avatar` (removed in Hugo 0.156). On a micro.blog **full
   rebuild** that fault took down the home page + RSS/JSON feeds. This override uses the
   correct `.Site.Params.author.avatar` and shadows the plugin's copy.
+- **`list.archivehtml.html` / `list.photoshtml.html`** are ROOT-level (not `_default/`)
+  because `/archive/` and `/photos/` are the **home node's** ArchiveHTML/PhotosHTML outputs,
+  and for the home kind Hugo checks `layouts/list.*html` before `_default/`. micro.blog's
+  default theme-blank ships root-level copies, so a `_default/` template (from any theme or
+  plugin) never wins. These provide the themed, month-grouped archive and photo grid, and
+  **supersede `plugin-archive-months` / `plugin-photos-months`** (whose templates live in
+  `_default/` and therefore never took effect). The `archive_months_photos` toggle is a
+  field in this repo's `plugin.json`.
 - **`microblog_head.html`** is injected by micro.blog at the platform level — it is *not* in
   this repo (and is `.gitignore`d as a local-dev stub). Do not commit a stub.
 - **CSS targets both `#site-header`/`.site-header`** (and footer/main equivalents) because
@@ -134,8 +142,6 @@ These micro.blog plugins are installed alongside the theme:
 | [microdotblog-bookshelf-shortcode](https://github.com/kottkrig/microdotblog-bookshelf-shortcode) | Provides `.Site.Data.bookshelves` — **required** for the Currently Reading section |
 | [plugin-bookgoals](https://github.com/microdotblog/plugin-bookgoals) | Reading-goals shortcode |
 | [plugin-search-page](https://github.com/microdotblog/plugin-search-page) | Search page (see the `list.archivejson.json` override above) |
-| [plugin-archive-months](https://github.com/microdotblog/plugin-archive-months) | Groups the archive by year/month |
-| [plugin-photos-months](https://github.com/microdotblog/plugin-photos-months) | Groups the photos archive by year/month |
 | [plugin-cc](https://github.com/microdotblog/plugin-cc) | Creative Commons license tag (injects via `custom_footer.html`) |
 | [wayback-link-preserver](https://github.com/gunnarr/wayback-link-preserver) | Wayback fallbacks for broken links |
 | [mbplugin-youtube-nocookie](https://github.com/flschr/mbplugin-youtube-nocookie) | Privacy-friendly YouTube embeds |
