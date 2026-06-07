@@ -1,0 +1,40 @@
+{{/*
+  Home-node ArchiveHTML output → /archive/ (outputFormat ArchiveHTML, path "archive").
+  MUST live at root layouts/list.archivehtml.html (NOT _default/) so it wins the
+  home-kind lookup over micro.blog's default theme-blank, which ships a root-level
+  copy. Same reasoning as list.archivejson.json. Classes match static/css/main.css.
+*/}}
+{{ define "main" }}
+  <h1 class="page-title">Archive</h1>
+
+  {{ with .Site.GetPage "categories" }}
+    {{ if gt (len .Pages) 0 }}
+      <nav class="archive-cats" aria-label="Categories">
+        <span class="archive-cats-label">Categories:</span>
+        {{ range .Pages }}
+          <a class="post-category" href="{{ .Permalink }}">{{ .Title }}</a>
+        {{ end }}
+      </nav>
+    {{ end }}
+  {{ end }}
+
+  {{ $posts := (where .Site.RegularPages "Type" "post").ByDate.Reverse }}
+  {{ $currentMonth := "" }}
+  {{ range $posts }}
+    {{ $month := .Date.Format "January 2006" }}
+    {{ if ne $month $currentMonth }}
+      <h2 class="archive-month">{{ $month }}</h2>
+      {{ $currentMonth = $month }}
+    {{ end }}
+    <div class="archive-entry">
+      <time class="archive-entry-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2" }}</time>
+      <div class="archive-entry-body">
+        <a class="archive-entry-title" href="{{ .Permalink }}">{{ if .Title }}{{ .Title }}{{ else }}{{ .Date.Format "January 2, 2006" }}{{ end }}</a>
+        {{ with .Summary }}<div class="archive-entry-summary">{{ . | plainify | htmlUnescape | truncate 120 }}</div>{{ end }}
+      </div>
+      {{ if and .Site.Params.archive_months_photos .Params.photos }}
+        <img class="archive-entry-thumb" src="{{ index .Params.photos 0 }}" alt="" width="60" height="60" loading="lazy">
+      {{ end }}
+    </div>
+  {{ end }}
+{{ end }}

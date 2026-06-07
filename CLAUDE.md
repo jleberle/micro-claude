@@ -93,6 +93,25 @@ to handle both micro.blog's default structure and our custom partials.
 - Cannot inject page-scoped CSS via `<style>` tags in layout files
 - Use `main.css` with `:has()` selectors instead for page-specific rules
 
+### Archive page (`/archive/`) is the HOME node's ArchiveHTML output
+- `/archive/` is NOT a section list — it is the **home node's** `ArchiveHTML` output
+  format (`outputFormat ArchiveHTML` → `path: "archive"`, `baseName: "index"`). Same
+  for `/photos/` (PhotosHTML) and the feeds.
+- **Lookup consequence:** for the *home* kind, Hugo checks `layouts/list.archivehtml.html`
+  (ROOT) BEFORE `layouts/_default/list.archivehtml.html`. micro.blog's default
+  `theme-blank` ships the ROOT-level copy, so a `_default/` copy from a theme OR plugin
+  **never wins** — regardless of plugin order. This is why `plugin-archive-months`
+  (template at `_default/`) silently did nothing and the plain theme-blank flat archive
+  rendered instead (no months). Our old override was also at `_default/` → dead, and its
+  classes didn't even match `main.css`.
+- **Fix (2026-06):** moved our archive template to ROOT `layouts/list.archivehtml.html`
+  (mirrors `list.archivejson.json`), rewritten to match `main.css` archive classes
+  (`.archive-cats`, `.archive-month`, `.archive-entry-*`). Themed month-grouped archive
+  with categories row + photo thumbnails (honors `archive_months_photos`). Verified via
+  the local 0.158 repro: our markers render, theme-blank's `h-feed`/`h-entry` gone.
+- Same rule applies to any home-node output override (photos, feeds): put it at ROOT,
+  not `_default/`.
+
 ### microblog_head.html
 - micro.blog INJECTS this partial at the platform level — it is NOT in the theme repo
 - `.gitignore` includes `layouts/partials/microblog_head.html` for the local dev stub
@@ -106,8 +125,12 @@ layouts/
   _default/
     baseof.html              # page skeleton (may be overridden by micro.blog)
     list.html                # category/section list pages
-    list.archivehtml.html    # archive page (fixes Hugo 0.158 Date.Format syntax)
     single.html              # generic single page
+  list.archivehtml.html      # /archive/ — ROOT level (NOT _default) so it wins the
+                             #   home-node ArchiveHTML lookup vs theme-blank; themed
+                             #   month-grouped archive (see "Archive page" below)
+  list.archivejson.json      # home-node ArchiveJSON (search index + Author fix)
+  opengraph.html             # OG card template (micro.blog's non-Hugo renderer)
   partials/
     head.html                # <head> block including microblog_head.html call
     header.html              # site header with conditional avatar
