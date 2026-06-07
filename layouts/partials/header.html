@@ -1,9 +1,10 @@
 <header class="site-header h-card">
   <div class="wrapper">
     <a class="site-title u-url" href="{{ "/" | absURL }}" rel="home">
-      {{ if and (ne .Kind "home") (ne .RelPermalink "/") }}
-        {{ with .Site.Params.author.avatar }}<img src="{{ . }}" alt="{{ $.Site.Title }} avatar" class="u-photo" width="35" height="35" loading="lazy">{{ end }}
-      {{ end }}
+      {{/* Always emit the avatar; CSS (body:has(.intro)) hides it only on the
+           real homepage. A .Kind/RelPermalink guard fails here because /archive/
+           and /photos/ are home-NODE outputs (.Kind == "home") yet need the avatar. */}}
+      {{ with .Site.Params.author.avatar }}<img src="{{ . }}" alt="{{ $.Site.Title }} avatar" class="u-photo" width="35" height="35" loading="lazy">{{ end }}
       <span class="p-name">{{ .Site.Title }}</span>
     </a>
     <nav class="site-nav" aria-label="Main navigation">
