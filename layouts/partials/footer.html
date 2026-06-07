@@ -1,7 +1,7 @@
 <footer class="site-footer">
   <div class="wrapper">
     <span>
-      &copy; {{ now.Year }} {{ .Site.Params.author.name | default .Site.Title }}
+      &copy; {{ now.Year }} <a rel="author" href="{{ "/humans.txt" | relURL }}">{{ .Site.Params.author.name | default .Site.Title }}</a>
       &nbsp;&middot;&nbsp;
       <a href="{{ "/" | relURL }}feed.xml">RSS</a>
       &nbsp;&middot;&nbsp;
