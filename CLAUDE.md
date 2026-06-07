@@ -8,11 +8,40 @@ A custom Hugo theme for Jared Eberle's micro.blog at **eberle.blog**.
 - Local dev: `hugo server` from `/Users/jaredeberle/git/microblog-theme/`
 - Hugo locally: 0.162 | micro.blog production: **0.158**
 
+### Installed on micro.blog as a PLUGIN, not a Theme
+- It is added under micro.blog's **Plugins**, not selected as the active Theme.
+  Reason: `opengraph.html` (the OG card template) is **only loaded for plugins** —
+  when this repo is installed as the active Theme, micro.blog does NOT render
+  opengraph.html and the custom OG card never generates. As a plugin it overlays
+  the active/default theme and the card works.
+- Consequence: `plugin.json` `fields` become editable settings in the micro.blog
+  backend. Social links live there (see "Editable settings" below) instead of being
+  hardcoded-only. Our `config.json` `params` are now LOW-precedence defaults that
+  backend field values override.
+
 ## Identities to keep straight
 - micro.blog username: **eberle** (hosts eberle.blog, avatar URL uses this)
 - Personal site / Bluesky / LibraryThing handle: **jaredeberle**
 - Avatar: `https://micro.blog/eberle/avatar.jpg` (jaredeberle/avatar.jpg is 404)
 - Always push: `git push origin master`
+
+## Editable settings (plugin.json fields)
+Because this is installed as a plugin, `plugin.json` `fields` render as form
+inputs in the micro.blog backend (Plugins → this plugin). Real micro.blog schema
+(confirmed from installed plugins like plugin-cc / wayback-link-preserver):
+```json
+{ "field": "params.social_bluesky_url", "label": "Bluesky URL",
+  "placeholder": "https://...", "type": "string" }
+```
+- Key is `"field"` (dotted `params.<name>`), NOT `name`. Types: `string` / `boolean`.
+- There is NO `default` mechanism — `placeholder` is only a hint. To ship working
+  values, keep them in `config.json` `params` (low-precedence defaults); a value
+  typed in the backend overrides the config.json default.
+- Currently exposed: the 5 `social_*_url` links. Templates read `.Site.Params.
+  social_*_url` and guard with `{{ with }}`, so an empty field just hides that link.
+- Editing flow: leave a field blank → config.json default applies; type a URL →
+  it overrides. Local `hugo server` only sees config.json (plugin.json fields are a
+  backend concept), so config.json must keep the defaults for local dev to work.
 
 ## How micro.blog renders this theme
 micro.blog uses **its own base template** for the page skeleton:

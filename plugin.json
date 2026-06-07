@@ -1,6 +1,37 @@
 {
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"title": "Eberle Theme",
 	"description": "A clean Solarized Light theme for micro.blog.",
-	"fields": []
+	"fields": [
+		{
+			"field": "params.social_website_url",
+			"label": "Personal website URL",
+			"placeholder": "https://jaredeberle.org",
+			"type": "string"
+		},
+		{
+			"field": "params.social_bluesky_url",
+			"label": "Bluesky URL",
+			"placeholder": "https://bsky.app/profile/jaredeberle.org",
+			"type": "string"
+		},
+		{
+			"field": "params.social_letterboxd_url",
+			"label": "Letterboxd URL",
+			"placeholder": "https://letterboxd.com/eberle/",
+			"type": "string"
+		},
+		{
+			"field": "params.social_librarything_url",
+			"label": "LibraryThing URL",
+			"placeholder": "https://www.librarything.com/profile/jaredeberle",
+			"type": "string"
+		},
+		{
+			"field": "params.social_discogs_url",
+			"label": "Discogs URL",
+			"placeholder": "https://www.discogs.com/user/IrateBeagle",
+			"type": "string"
+		}
+	]
 }
