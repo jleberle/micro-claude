@@ -10,8 +10,8 @@
 > answer setup questions, or troubleshoot your installation, and **will not make
 > revisions, accept feature requests, or review/merge pull requests** for other users.
 >
-> You are welcome to fork it under the MIT License and adapt it yourself — but if you
-> do, **you are entirely on your own.** It is tightly coupled to my specific
+> You are welcome to fork it under the MIT License and adapt it yourself, but just know,
+> **you are entirely on your own.** It is tightly coupled to my specific
 > micro.blog configuration, installed plugins, and content categories, and is not
 > intended to be a general-purpose, reusable theme.
 
