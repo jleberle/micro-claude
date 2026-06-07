@@ -37,6 +37,7 @@
   --border:    #93a1a1;  /* Solarized Base1  */
   --accent:    #93a1a1;  /* Solarized Base1  */
   --link:      #268bd2;  /* Solarized Blue   */
+  --link-hover:#dc322f;  /* Solarized Red    */
   --max-width: 740px;
   --nav-width: 1024px;
   --gap:       24px;
@@ -52,6 +53,7 @@
     --border:    #586e75;  /* Solarized Base01 */
     --accent:    #586e75;  /* Solarized Base01 */
     --link:      #268bd2;  /* Solarized Blue   */
+    --link-hover:#2aa198;  /* Solarized Cyan   */
   }
 }
 
@@ -329,7 +331,7 @@ body:has(.intro) .site-header .site-title img {
   text-decoration: underline;
   text-underline-offset: 0.3rem;
 }
-.post-content a:hover { opacity: 0.75; }
+.post-content a:hover { color: var(--link-hover); }
 
 .post-content h1, .post-content h2, .post-content h3 {
   margin: 1.5rem 0 0.5rem;
@@ -725,6 +727,16 @@ body > .site-footer a,
   text-decoration: underline;
   text-underline-offset: 0.3rem;
   margin-top: 0.25rem;
+}
+
+/* Hover for the permalink / "more" links on homepage cards.
+   These had no hover state; use the Solarized hover accent (red light, cyan dark). */
+.read-more:hover,
+.status-card-more:hover,
+.media-col-more:hover,
+.home-feed-more:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
 }
 
 /* --- Responsive ------------------------------------------ */
