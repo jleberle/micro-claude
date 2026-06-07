@@ -1,5 +1,4 @@
 {
-  "paginate": 25,
   "pluralizeListTitles": false,
   "minify": {
     "minifyOutput": true
