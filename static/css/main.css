@@ -676,6 +676,13 @@ body > .site-footer a,
   line-clamp: 2;
 }
 
+/* Match the homepage card link hover (red light, cyan dark) so the
+   Books/Movies/Currently-Reading title links feel like the rest of the site. */
+.media-entry-info a:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+
 .media-entry-sub {
   font-size: 0.8rem;
   color: var(--secondary);
