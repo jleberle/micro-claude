@@ -515,7 +515,6 @@ body > .site-footer a,
   background: var(--entry);
   border-radius: var(--radius);
   padding: 1.25rem 1.5rem;
-  border-left: 3px solid var(--accent);
 }
 
 .status-card-meta {
