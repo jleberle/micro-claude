@@ -651,6 +651,11 @@ body > .site-footer a,
   content-visibility: auto;
 }
 
+/* Smaller covers in the Books|Movies two-column grid so book rows (which have a
+   cover) sit closer in height to the text-only movie rows. Currently-reading
+   keeps the full 80px. */
+.media-columns .media-cover { width: 56px; }
+
 .media-entry-info {
   display: flex;
   flex-direction: column;

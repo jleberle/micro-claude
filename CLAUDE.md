@@ -167,11 +167,14 @@ plugin.json                  # micro.blog theme metadata + settings fields
 - **Sourcing:** one base slice — `(where .Site.RegularPages "Type" "post").ByDate.Reverse`
   — then per-section `where ... "Params.categories" "intersect" (slice <name>)`. `where`
   preserves order, so derived slices are NOT re-sorted.
-- **Category names + counts are config.json params** (`home_cat_status/books/movies/
-  highlights`, `home_books_count`/`home_movies_count`/`home_highlights_count`), each read
-  with a `| default` fallback in the template. So a category rename or count change is a
-  one-line config edit, and a missing param can't break the build (a nil count would make
-  `first` fatal — the defaults prevent that).
+- **Category names + counts are params.** Names (`home_cat_status/books/movies/
+  highlights`) live in `config.json`. Counts (`home_books_count`/`home_movies_count`/
+  `home_highlights_count`) are `config.json` defaults AND exposed as **backend fields** in
+  `plugin.json` so they can be tuned without a push. Each is read with a `| default`
+  fallback, and the **counts are wrapped in `int (...)`** because a backend field value is
+  always a string — `int` casts both the config int and a backend "8"; `default` runs
+  first so a blank field falls back (and `int` never sees ""). A missing/blank param can't
+  break the build (a nil count would make `first` fatal — the default + int prevent that).
 - **De-duplicated across sections:** a `$seen` slice of permalinks is built in section
   order (Status → Books → Movies → Highlights); each section filters with
   `where ... "Permalink" "not in" $seen` so a post in multiple categories appears only
@@ -187,6 +190,10 @@ plugin.json                  # micro.blog theme metadata + settings fields
   (these posts have no title/author front matter), but parsed with exact string ops —
   `trim` + `split "\n"` (first line = title) + `strings.TrimPrefix` (rest = review) —
   instead of fragile `replaceRE`/`^Watched:` patterns.
+- **Column balance:** book rows have a cover (taller) and movie rows are text-only, so the
+  two columns diverge in height. `.media-columns .media-cover { width: 56px }` shrinks the
+  book covers in that grid only (currently-reading keeps 80px) to bring row heights closer;
+  the movie count is also backend-tunable to fill remaining space.
 
 ## Hugo version compatibility notes
 ### The 0.91-vs-0.158 tension (root of the full-rebuild class of bugs)

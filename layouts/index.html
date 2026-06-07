@@ -11,9 +11,11 @@
   {{ $moviePosts  := where $all "Params.categories" "intersect" (slice (.Site.Params.home_cat_movies     | default "Movies")) }}
   {{ $highlights  := where $all "Params.categories" "intersect" (slice (.Site.Params.home_cat_highlights | default "Highlights")) }}
 
-  {{ $booksCount      := .Site.Params.home_books_count      | default 5 }}
-  {{ $moviesCount     := .Site.Params.home_movies_count     | default 6 }}
-  {{ $highlightsCount := .Site.Params.home_highlights_count | default 10 }}
+  {{/* int() so a backend field value (always a string) works as well as the config.json
+       int default; `default` runs first so a blank field falls back to the default. */}}
+  {{ $booksCount      := int (.Site.Params.home_books_count      | default 5) }}
+  {{ $moviesCount     := int (.Site.Params.home_movies_count     | default 6) }}
+  {{ $highlightsCount := int (.Site.Params.home_highlights_count | default 10) }}
 
   {{/* De-duplicate across sections so a post never appears twice on the homepage.
        Order Status → Books → Movies → Highlights; each excludes posts shown above
