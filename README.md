@@ -163,6 +163,7 @@ Full details, root-cause history, and the pinned-`hugo-0.158` local reproduction
   used under the [MIT License](https://github.com/altercation/solarized/blob/master/LICENSE).
   The Solarized hues are adapted here as CSS custom properties; no Solarized source files are bundled.
 - **Authorship:** Written by Claude (Anthropic's AI assistant) in collaboration with Jared Eberle.
+- Building micro.blog locally pulled from [Chasen's Web Blog](https://web.chasen.dev/2025/06/14/testing-microblog-theme-changes-locally.html)
 
 ## License
 
