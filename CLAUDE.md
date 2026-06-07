@@ -179,6 +179,14 @@ plugin.json                  # micro.blog theme metadata + settings fields
 - **Status card body is capped** with `.Summary` (HTML-safe, word-bounded by
   summaryLength) instead of full `.Content` — never truncate raw `.Content`, it can sever
   tags. When `.Truncated`, the card's link becomes "Read more →" to the post.
+- **Books cover/link from structured data, not regex:** book posts carry the ISBN in
+  front matter (`.Params.books` → `["<isbn>"]`). The cover is `https://cdn.micro.blog/
+  books/<isbn>/cover.jpg` and the link `https://micro.blog/books/<isbn>` — no more
+  `findRE` scraping an `<img>` out of `.Content` (and rendered as `.media-cover`, matching
+  the rest of the theme). Title/review are still content-derived for BOTH books and movies
+  (these posts have no title/author front matter), but parsed with exact string ops —
+  `trim` + `split "\n"` (first line = title) + `strings.TrimPrefix` (rest = review) —
+  instead of fragile `replaceRE`/`^Watched:` patterns.
 
 ## Hugo version compatibility notes
 ### The 0.91-vs-0.158 tension (root of the full-rebuild class of bugs)
