@@ -4,20 +4,20 @@
 >
 > **This is a personal theme built for a single site, [eberle.blog](https://eberle.blog).**
 > It was **written by Claude** (Anthropic's AI assistant) together with Jared Eberle,
-> for Jared's own use.
+> for my own use, it's heavily tailored and opinionated for what I want.
 >
-> It is published **as-is, for reference only.** Jared **cannot provide support**,
+> It is published **as-is, for reference only.** I **cannot provide support**,
 > answer setup questions, or troubleshoot your installation, and **will not make
 > revisions, accept feature requests, or review/merge pull requests** for other users.
 >
 > You are welcome to fork it under the MIT License and adapt it yourself — but if you
-> do, **you are entirely on your own.** It is tightly coupled to Jared's specific
+> do, **you are entirely on your own.** It is tightly coupled to my specific
 > micro.blog configuration, installed plugins, and content categories, and is not
 > intended to be a general-purpose, reusable theme.
 
 <!-- ⚠️ ⚠️ ⚠️ -->
 
-# Eberle — micro.blog theme
+# Micro Claude, a micro.blog theme
 
 A custom Hugo theme for [eberle.blog](https://eberle.blog) that mirrors the style of
 [jaredeberle.org](https://jaredeberle.org): Solarized Light palette, clean sans-serif
