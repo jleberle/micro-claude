@@ -1,5 +1,5 @@
 # micro-claude theme — Claude session notes
-Last updated: 2026-06-06
+Last updated: 2026-06-06 (full-rebuild root cause found & fixed)
 
 ## What this repo is
 A custom Hugo theme for Jared Eberle's micro.blog at **eberle.blog**.
@@ -29,15 +29,29 @@ CSS must target BOTH `#site-header` and `.site-header` (and same for footer/main
 to handle both micro.blog's default structure and our custom partials.
 
 ## Known platform behavior
-### Manual full rebuild (Hugo 0.158) — KNOWN BUG, reported to micro.blog
-- Triggering "full rebuild" from micro.blog interface causes **Feed: Not found**
-- Root cause: Hugo 0.158 PR #14601 changed template lookup precedence for media
-  types, breaking resolution of micro.blog's platform-injected RSS template during
-  non-segmented builds
-- Fastpublish (normal posting) works fine — feed generates correctly
-- Hugo 0.117 full rebuild also works fine
-- **Do not trigger manual full rebuild** until micro.blog fixes this
-- Reported to micro.blog support with full diagnosis
+### Manual full rebuild (Hugo 0.158) — ROOT CAUSE FOUND & FIXED (2026-06-06)
+- Symptom: triggering "full rebuild" broke the **home page + RSS/JSON feeds**
+  (404) while every other page rendered fine. Fastpublish was unaffected; a 0.117
+  full rebuild was also fine.
+- **Actual root cause:** the `plugin-search-page` plugin ships
+  `layouts/list.archivejson.json` whose line 4 uses `.Site.Author.avatar`
+  (REMOVED in Hugo 0.156). That template renders the home node's **ArchiveJSON**
+  output format — one of ~10 output formats the home node emits (HTML, RSS, JSON,
+  RSD, ArchiveHTML/JSON, PhotosHTML/JSON, PodcastXML/JSON). When it faults, the
+  WHOLE home node fails, taking the home page and both feeds (feed.xml/feed.json)
+  with it. Other page kinds don't emit ArchiveJSON, so they survive.
+- Why each clue fit: home+feed only = same node; 0.158 only = `.Site.Author`
+  removed in 0.156 (present in 0.117); full-rebuild only = fastpublish serves the
+  ArchiveJSON output from cache; custom-theme only = stock theme ships its own
+  correct `list.archivejson.json` that shadows the plugin's; ours did not.
+- The old "PR #14601 / platform RSS bug" theory was WRONG. `opengraph.html`
+  presence was also NOT the cause (Mythos theme has it and full-rebuilds fine).
+- **Fix (shipped):** added `layouts/list.archivejson.json` to this theme with the
+  correct `.Site.Params.author.avatar` (keeps the plugin's full-text `.Plain`
+  search index). Theme out-ranks plugins in template lookup, so ours shadows the
+  broken copy. Full rebuilds should now be safe.
+- **TODO:** report upstream to github.com/microdotblog/plugin-search-page (line 4
+  should be `.Site.Params.author.avatar`); once fixed there, our override can go.
 
 ### micro.blog strips `<style>` tags from theme template output
 - Cannot inject page-scoped CSS via `<style>` tags in layout files
@@ -86,11 +100,14 @@ plugin.json                  # micro.blog theme metadata + settings fields
 ## Hugo version compatibility notes
 - `hugo.Data` introduced ~0.155 — **use `.Site.Data` instead** for 0.117 compat
   (generates a deprecation WARN on 0.158 but not an error)
-- `.Site.Author.*` removed in 0.162 — use `.Site.Params.author.*`
+- `.Site.Author.*` **removed in Hugo 0.156** (deprecated 0.124) — use
+  `.Site.Params.author.*`. This is the exact bug that broke full rebuilds via the
+  search plugin (see "Manual full rebuild" above).
 - `{{ .Title | default .Date.Format "January 2, 2006" }}` invalid in 0.158
   — use `{{ if .Title }}{{ .Title }}{{ else }}{{ .Date.Format "..." }}{{ end }}`
-- `opengraph.html` in layouts/ breaks feed output format generation in 0.158
-  — keep it deleted
+- `opengraph.html` in layouts/ is FINE on 0.158 (Mythos theme proves it) — earlier
+  belief that it broke the feed was wrong. Just keep it free of removed APIs
+  (it now uses `.Site.Params.author.username`, not the removed `.Site.Author`).
 
 ## CSS: avatar hiding on homepage
 ```css
@@ -108,6 +125,32 @@ hugo server
 # config.json has local dev params (author.avatar, itunes_description, etc.)
 ```
 
+## Faithful local 0.158 reproduction (matches micro.blog full rebuild)
+This is what found the full-rebuild bug. Reproduces production far better than
+`hugo server` because it includes the real platform theme + all installed plugins.
+- Pinned binary: `~/.local/bin/hugo-0.158` (extended; extracted from
+  `hugo_extended_0.158.0_darwin-universal.pkg` so it doesn't clash with Homebrew's
+  newer hugo). macOS only ships a `.pkg` for darwin now — no `.tar.gz`.
+- Site root: a micro.blog **export** (content + merged config.json + data + static),
+  e.g. `~/jleberle_<id>/`, with a `themes/` dir.
+- `theme-blank` IS micro.blog's real default/fallback theme (provides baseof,
+  microblog_head, rss.xml, index.xml/json, and ALL home output-format templates:
+  list.archive*/photos*/podcast*/rsd). Load YOUR theme first, then every installed
+  plugin, then theme-blank last:
+```bash
+~/.local/bin/hugo-0.158 -s <siteroot> --themesDir=<siteroot>/themes --gc \
+  --theme=micro-theme,plugin-cc,wayback-link-preserver,plugin-bookgoals,\
+microdotblog-bookshelf-shortcode,plugin-search-page,mbplugin-youtube-nocookie,\
+plugin-archive-months,plugin-photos-months,theme-blank
+```
+- Installed plugins (clone each into themes/): plugin-cc, wayback-link-preserver,
+  plugin-bookgoals, kottkrig/microdotblog-bookshelf-shortcode, plugin-search-page,
+  flschr/mbplugin-youtube-nocookie, plugin-archive-months, plugin-photos-months.
+- The local `hugo` CLI aborts the WHOLE build on the first render error (so
+  public/ ends up empty); micro.blog tolerates per-node failures and ships the
+  rest — which is why prod showed only home+feed gone. Plugins inject head partials
+  via `.Site.Params.plugins_html`; missing ones = "partial X not found".
+
 ## Things still outstanding / to watch
 - **footer.html** custom links (RSS · Micro.blog · Theme · Codeberg) — confirm
   these are rendering on the live site; if not, micro.blog's default footer is
@@ -115,7 +158,9 @@ hugo server
 - **Highlights post not appearing on homepage** — suspected fastpublish timing
   issue; most recent Highlights post shows on category page but not homepage.
   Trigger a full publish cycle to test.
-- **Manual full rebuild** — avoid until micro.blog fixes the 0.158 RSS bug
+- **Manual full rebuild** — root cause found & fixed (stale `.Site.Author.avatar`
+  in plugin-search-page's archivejson template); should be safe now. Verify on the
+  next full rebuild, then this caveat can be removed.
 
 ## What was fixed in the June 2026 session
 - Removed `opengraph.html` (was breaking feed generation on 0.158)
