@@ -4,7 +4,10 @@ Last updated: 2026-06-10 (hardening pass; month plugins uninstalled)
 ## What this repo is
 A custom Hugo theme for Jared Eberle's micro.blog at **eberle.blog**.
 - GitHub: `github.com/jleberle/micro-claude`
-- micro.blog pulls from the **master** branch (only branch — push to master)
+- micro.blog pulls from the **main** branch (the remote default — push to main).
+  CLAUDE.md previously said "master"; that was STALE — on 2026-06-10 the remote's
+  only branch and default was `main` (recent live deploys all came from it). A
+  stray remote `master` created that day by pushing on autopilot was deleted.
 - Local dev: `hugo server` from `/Users/jaredeberle/git/microblog-theme/`
 - Hugo locally: 0.162 | micro.blog production: **0.158**
 
@@ -23,7 +26,7 @@ A custom Hugo theme for Jared Eberle's micro.blog at **eberle.blog**.
 - micro.blog username: **eberle** (hosts eberle.blog, avatar URL uses this)
 - Personal site / Bluesky / LibraryThing handle: **jaredeberle**
 - Avatar: `https://micro.blog/eberle/avatar.jpg` (jaredeberle/avatar.jpg is 404)
-- Always push: `git push origin master`
+- Always push: `git push origin main`
 
 ## Editable settings (plugin.json fields)
 Because this is installed as a plugin, `plugin.json` `fields` render as form
@@ -348,6 +351,8 @@ theme-blank
   class-based selectors so styling works with micro.blog's default base template
 - Fixed avatar 404: changed username from `jaredeberle` to `eberle` in config.json
 - Added `:has(.intro)` CSS rule to hide header avatar on homepage
-- Pushed all changes to **master** branch (micro.blog pulls from master, not main)
+- Pushed all changes to the deploy branch (NOTE: as of 2026-06-10 the remote
+  default — and the branch micro.blog pulls — is **main**; earlier "master" notes
+  here were stale)
 - Diagnosed manual full rebuild failure as micro.blog platform bug (Hugo 0.158
   PR #14601 template lookup change), reported to micro.blog support

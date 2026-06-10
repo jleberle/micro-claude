@@ -23,7 +23,7 @@ A custom Hugo theme for [eberle.blog](https://eberle.blog) that mirrors the styl
 [jaredeberle.org](https://jaredeberle.org): Solarized Light palette, clean sans-serif
 typography, and dark mode via `prefers-color-scheme`.
 
-- **Repo:** `github.com/jleberle/micro-claude` — micro.blog pulls from the **`master`** branch.
+- **Repo:** `github.com/jleberle/micro-claude` — micro.blog pulls from the **`main`** branch.
 - **Hugo:** micro.blog runs **0.158** in production. Templates are kept compatible with
   micro.blog's recommended **0.91** floor as well (see [Hugo compatibility](#hugo-compatibility)).
 
