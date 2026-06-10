@@ -1,5 +1,5 @@
 # micro-claude theme — Claude session notes
-Last updated: 2026-06-06 (full-rebuild root cause found & fixed)
+Last updated: 2026-06-10 (hardening pass; month plugins uninstalled)
 
 ## What this repo is
 A custom Hugo theme for Jared Eberle's micro.blog at **eberle.blog**.
@@ -112,10 +112,11 @@ to handle both micro.blog's default structure and our custom partials.
   `.photos-grid`; photo months reuse `.archive-month`). Both are themed + month-grouped;
   archive honors `archive_months_photos`. Verified via the local 0.158 + full-plugin
   repro: our markers render, theme-blank's `h-feed`/`h-entry`/`photos-grid-container` gone.
-- **Both month plugins are now superseded** — `plugin-archive-months` and
-  `plugin-photos-months` provide only `_default/` templates that can never win. They can
-  be uninstalled. The `archive_months_photos` toggle was moved into THIS repo's
-  `plugin.json` (boolean field), with `config.json` keeping `true` as the default.
+- **Both month plugins are superseded and were UNINSTALLED on micro.blog
+  (2026-06-10)** — `plugin-archive-months` and `plugin-photos-months` provided only
+  `_default/` templates that could never win. The `archive_months_photos` toggle was
+  moved into THIS repo's `plugin.json` (boolean field), with `config.json` keeping
+  `true` as the default.
 - Same rule applies to any home-node output override (feeds, RSD): put it at ROOT,
   not `_default/`.
 
@@ -275,6 +276,13 @@ hugo server
 ## Faithful local 0.158 reproduction (matches micro.blog full rebuild)
 This is what found the full-rebuild bug. Reproduces production far better than
 `hugo server` because it includes the real platform theme + all installed plugins.
+- **HEADS UP — the local test folder is NOT persisted and must be RECREATED before
+  running any local test.** The site-root export + `themes/` (this theme + every
+  installed plugin cloned in + theme-blank) is not kept in this repo. Before running
+  either `hugo server` or the pinned-0.158 repro, re-create it: get a fresh micro.blog
+  export for the site root, drop in the gitignored `microblog_head.html` stub, and
+  re-clone each plugin listed below into `themes/`. Don't assume a prior test folder
+  is still there.
 - Pinned binary: `~/.local/bin/hugo-0.158` (extended; extracted from
   `hugo_extended_0.158.0_darwin-universal.pkg` so it doesn't clash with Homebrew's
   newer hugo). macOS only ships a `.pkg` for darwin now — no `.tar.gz`.
@@ -288,11 +296,12 @@ This is what found the full-rebuild bug. Reproduces production far better than
 ~/.local/bin/hugo-0.158 -s <siteroot> --themesDir=<siteroot>/themes --gc \
   --theme=micro-theme,plugin-cc,wayback-link-preserver,plugin-bookgoals,\
 microdotblog-bookshelf-shortcode,plugin-search-page,mbplugin-youtube-nocookie,\
-plugin-archive-months,plugin-photos-months,theme-blank
+theme-blank
 ```
 - Installed plugins (clone each into themes/): plugin-cc, wayback-link-preserver,
   plugin-bookgoals, kottkrig/microdotblog-bookshelf-shortcode, plugin-search-page,
-  flschr/mbplugin-youtube-nocookie, plugin-archive-months, plugin-photos-months.
+  flschr/mbplugin-youtube-nocookie. (plugin-archive-months and plugin-photos-months
+  were uninstalled 2026-06-10 — superseded by this theme's root-level templates.)
 - The local `hugo` CLI aborts the WHOLE build on the first render error (so
   public/ ends up empty); micro.blog tolerates per-node failures and ships the
   rest — which is why prod showed only home+feed gone. Plugins inject head partials
@@ -306,6 +315,26 @@ plugin-archive-months,plugin-photos-months,theme-blank
   show up live.)
 - **Manual full rebuild** — FIXED & verified in production (stale
   `.Site.Author.avatar` in plugin-search-page's archivejson template). Safe to use.
+
+## Hardening pass (2026-06-10)
+- **index.html: guarded `index $statusPosts 0`** — `index` errors on an empty slice,
+  and a fault in the home HTML template kills the whole home node (page + feeds),
+  same blast radius as the plugin-search-page bug. Now `$status` stays "" when the
+  Status category is empty and the card simply doesn't render.
+- **index.html: "All …" links derive from the `home_cat_*` params** (`urlize`d) —
+  previously hardcoded `/categories/<name>`, which would silently 404 after a
+  backend category rename.
+- head.html: `about_me` piped through `plainify` before meta tags (it can contain
+  HTML); post `meta description` truncated to 160; dropped redundant `| absURL` on
+  canonical.
+- list.archivejson.json: `feed_url` corrected `photos/` → `archive/` (copy-paste
+  from the plugin).
+- list.photoshtml.html: photo links got `aria-label` (date) — were `<a><img alt="">`
+  with no accessible name.
+- main.css: dark-mode `--secondary` Base01 → Base1 (`#93a1a1`) for WCAG AA contrast
+  on meta text; removed dead `.media-entry-content`/`.media-shelf-label` rules
+  (leftovers from the old content-scraping homepage).
+- Uninstalled `plugin-archive-months` + `plugin-photos-months` on micro.blog.
 
 ## What was fixed in the June 2026 session
 - Removed `opengraph.html` (was breaking feed generation on 0.158)
