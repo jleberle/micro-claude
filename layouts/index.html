@@ -6,10 +6,22 @@
        Category names + counts live in config.json params so renames/tweaks are one-line. */}}
   {{ $all := (where .Site.RegularPages "Type" "post").ByDate.Reverse }}
 
-  {{ $statusPosts := where $all "Params.categories" "intersect" (slice (.Site.Params.home_cat_status     | default "Status")) }}
-  {{ $bookPosts   := where $all "Params.categories" "intersect" (slice (.Site.Params.home_cat_books      | default "Books")) }}
-  {{ $moviePosts  := where $all "Params.categories" "intersect" (slice (.Site.Params.home_cat_movies     | default "Movies")) }}
-  {{ $highlights  := where $all "Params.categories" "intersect" (slice (.Site.Params.home_cat_highlights | default "Highlights")) }}
+  {{ $catStatus     := .Site.Params.home_cat_status     | default "Status" }}
+  {{ $catBooks      := .Site.Params.home_cat_books      | default "Books" }}
+  {{ $catMovies     := .Site.Params.home_cat_movies     | default "Movies" }}
+  {{ $catHighlights := .Site.Params.home_cat_highlights | default "Highlights" }}
+
+  {{ $statusPosts := where $all "Params.categories" "intersect" (slice $catStatus) }}
+  {{ $bookPosts   := where $all "Params.categories" "intersect" (slice $catBooks) }}
+  {{ $moviePosts  := where $all "Params.categories" "intersect" (slice $catMovies) }}
+  {{ $highlights  := where $all "Params.categories" "intersect" (slice $catHighlights) }}
+
+  {{/* "All …" links must track the configurable category names above, not
+       hardcoded /categories/<name> paths that break on a backend rename. */}}
+  {{ $statusURL     := printf "/categories/%s" ($catStatus     | urlize) | relURL }}
+  {{ $booksURL      := printf "/categories/%s" ($catBooks      | urlize) | relURL }}
+  {{ $moviesURL     := printf "/categories/%s" ($catMovies     | urlize) | relURL }}
+  {{ $highlightsURL := printf "/categories/%s" ($catHighlights | urlize) | relURL }}
 
   {{/* int() so a backend field value (always a string) works as well as the config.json
        int default; `default` runs first so a blank field falls back to the default. */}}
@@ -20,8 +32,11 @@
   {{/* De-duplicate across sections so a post never appears twice on the homepage.
        Order Status → Books → Movies → Highlights; each excludes posts shown above
        it (tracked by permalink). `where ... "not in"` over an empty slice keeps all. */}}
+  {{/* `index` errors on an empty slice — and a fault here kills the WHOLE home
+       node (page + RSS/JSON feeds), so guard for a Status category with no posts. */}}
   {{ $seen := slice }}
-  {{ $status := index $statusPosts 0 }}
+  {{ $status := "" }}
+  {{ if $statusPosts }}{{ $status = index $statusPosts 0 }}{{ end }}
   {{ with $status }}{{ $seen = $seen | append .Permalink }}{{ end }}
 
   {{ $books := first $booksCount (where $bookPosts "Permalink" "not in" $seen) }}
@@ -46,7 +61,7 @@
         {{ if .Truncated }}
           <a class="status-card-more" href="{{ .Permalink }}">Read more &rarr;</a>
         {{ else }}
-          <a class="status-card-more" href="{{ "/categories/status" | relURL }}">All status posts &rarr;</a>
+          <a class="status-card-more" href="{{ $statusURL }}">All status posts &rarr;</a>
         {{ end }}
       </div>
     </section>
@@ -62,7 +77,7 @@
           {{ range $reading }}
             <li class="media-entry">
               <a href="https://micro.blog/books/{{ .isbn }}">
-                <img class="media-cover" src="{{ .cover_url }}" alt="{{ .title }}">
+                <img class="media-cover" src="{{ .cover_url }}" alt="{{ .title }}" width="80" height="120" loading="lazy">
               </a>
               <div class="media-entry-info">
                 <a href="https://micro.blog/books/{{ .isbn }}">{{ .title }}</a>
@@ -107,7 +122,7 @@
               </li>
             {{ end }}
           </ul>
-          <a class="media-col-more" href="{{ "/categories/books" | relURL }}">All books &rarr;</a>
+          <a class="media-col-more" href="{{ $booksURL }}">All books &rarr;</a>
         </div>
 
         {{/* Movies */}}
@@ -131,7 +146,7 @@
             {{ end }}
           </ul>
           {{ if gt (len $moviePosts) $moviesCount }}
-            <a class="media-col-more" href="{{ "/categories/movies" | relURL }}">All movies &rarr;</a>
+            <a class="media-col-more" href="{{ $moviesURL }}">All movies &rarr;</a>
           {{ end }}
         </div>
 
@@ -161,7 +176,7 @@
         {{ end }}
       </ul>
       {{ if gt (len $highlights) $highlightsCount }}
-        <a class="home-feed-more" href="{{ "/categories/highlights" | relURL }}">All highlights &rarr;</a>
+        <a class="home-feed-more" href="{{ $highlightsURL }}">All highlights &rarr;</a>
       {{ end }}
     </section>
   {{ end }}
