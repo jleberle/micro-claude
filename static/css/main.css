@@ -49,7 +49,8 @@
     --bg:        #002b36;  /* Solarized Base03 */
     --entry:     #073642;  /* Solarized Base02 */
     --primary:   #839496;  /* Solarized Base0  */
-    --secondary: #586e75;  /* Solarized Base01 */
+    --secondary: #93a1a1;  /* Solarized Base1 — Base01 on Base02 is ~3:1, below
+                              WCAG AA for the small meta/date text this is used on */
     --border:    #586e75;  /* Solarized Base01 */
     --accent:    #586e75;  /* Solarized Base01 */
     --link:      #268bd2;  /* Solarized Blue   */
@@ -585,15 +586,6 @@ body > .site-footer a,
   gap: 2rem;
 }
 
-.media-shelf-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--secondary);
-  margin: 0.75rem 0 0.4rem;
-}
-
 .media-col-heading {
   font-size: 1rem;
   font-weight: 700;
@@ -618,29 +610,6 @@ body > .site-footer a,
 }
 
 .media-entry:last-child { border-bottom: none; }
-
-.media-entry-content {
-  font-size: 0.85rem;
-  color: var(--primary);
-  margin-top: 0.25rem;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  line-clamp: 3;
-  overflow: hidden;
-}
-
-.media-entry-content p { margin: 0 0 0.25rem; }
-.media-entry-content p:last-child { margin-bottom: 0; }
-
-.media-entry-content img {
-  width: 80px;
-  height: auto;
-  border-radius: 3px;
-  float: left;
-  margin: 0 0.75rem 0.5rem 0;
-}
 
 .media-cover {
   width: 80px;

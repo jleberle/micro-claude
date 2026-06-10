@@ -16,9 +16,11 @@
   {{- if .IsHome -}}
     <meta name="twitter:title" content="{{ .Site.Title }}">
     <meta property="og:title" content="{{ .Site.Title }}">
-    <meta name="twitter:description" content="{{ .Site.Params.about_me | truncate 125 }}">
-    <meta property="og:description" content="{{ .Site.Params.about_me | truncate 160 }}">
-    <meta name="description" content="{{ .Site.Params.about_me }}">
+    {{/* about_me may contain HTML (intro.html renders it with safeHTML) — plainify
+         so tags don't leak into meta content. */}}
+    <meta name="twitter:description" content="{{ .Site.Params.about_me | plainify | truncate 125 }}">
+    <meta property="og:description" content="{{ .Site.Params.about_me | plainify | truncate 160 }}">
+    <meta name="description" content="{{ .Site.Params.about_me | plainify | truncate 160 }}">
     <meta name="twitter:image" content="{{ .Site.Params.author.avatar }}">
     <meta property="og:image" content="{{ .Site.Params.author.avatar }}">
   {{- else -}}
@@ -32,7 +34,7 @@
     {{- end -}}
     <meta name="twitter:description" content="{{ .Summary | plainify | truncate 125 }}">
     <meta property="og:description" content="{{ .Summary | plainify | truncate 160 }}">
-    <meta name="description" content="{{ .Summary | plainify }}">
+    <meta name="description" content="{{ .Summary | plainify | truncate 160 }}">
     {{- if .Params.photos -}}
       {{- range .Params.photos -}}
         <meta name="twitter:image" content="{{ . }}">
@@ -61,7 +63,7 @@
   <meta property="article:author" content="{{ .Site.Params.author.name | default .Site.Title }}">
   {{- end }}
 
-  <link rel="canonical" href="{{ .Permalink | absURL }}">
+  <link rel="canonical" href="{{ .Permalink }}">
   <link rel="author" href="{{ .Site.Params.social_website_url | default .Site.BaseURL }}">
   <link rel="stylesheet" href="{{ "css/main.css" | relURL }}?{{ .Site.Params.theme_seconds }}">
 

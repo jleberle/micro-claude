@@ -12,6 +12,7 @@
   {{ $currentMonth := "" }}
   {{ range $photoPosts }}
     {{ $permalink := .Permalink }}
+    {{ $label := printf "Photo from %s" (.Date.Format "January 2, 2006") }}
     {{ $month := .Date.Format "January 2006" }}
     {{ if ne $month $currentMonth }}
       {{ if ne $currentMonth "" }}</div>{{ end }}
@@ -20,7 +21,9 @@
       {{ $currentMonth = $month }}
     {{ end }}
     {{ range .Params.photos }}
-      <a href="{{ $permalink }}"><img src="{{ . }}" alt="" loading="lazy"></a>
+      {{/* alt is empty (no per-photo text exists), so the link needs an
+           aria-label or it has no accessible name at all. */}}
+      <a href="{{ $permalink }}" aria-label="{{ $label }}"><img src="{{ . }}" alt="" loading="lazy"></a>
     {{ end }}
   {{ end }}
   {{ if ne $currentMonth "" }}</div>{{ end }}
