@@ -93,6 +93,34 @@ to handle both micro.blog's default structure and our custom partials.
   (line 4 should be `.Site.Params.author.avatar`). Our override stays until the fix
   lands there; once it does, the override can go.
 
+### ArchiveJSON output lags builds (observed 2026-06-10)
+- After pushing the `feed_url` fix and running a manual FULL rebuild, every output
+  (photos HTML, archive HTML, CSS, homepage) served the new code — EXCEPT
+  `/archive/index.json`, which had a fresh last-modified (same second as the rest
+  of the build) but the PREVIOUS generation's content. micro.blog apparently
+  copies a previously-rendered ArchiveJSON artifact into new builds rather than
+  always re-rendering it. Expect this file to be stale-by-one; it should catch up
+  on a later build. Not harmful (only the feed_url metadata differed).
+- **Template-winner fingerprints** for /archive/index.json (who actually rendered it):
+  theme-blank → `content_text` truncated to 100 chars; plugin-search-page → fatal
+  on 0.158 (`.Site.Author.avatar`); OUR override → full-text `.Plain` +
+  `Params.author.avatar` icon. The live file is full-text, so our override IS
+  winning the lookup — confirmed.
+- **theme-blank is the ORIGIN of the `feed_url: photos/index.json` copy-paste bug**
+  (its own `list.archivejson.json` has it; plugin-search-page copied it, and so did
+  our first override).
+
+### "Raw HTML omitted" WARNs in the micro.blog timeline = stale error log
+- These Hugo warnings (goldmark, unsafe=false) sat in micro.blog's error log and
+  re-surfaced on the timeline until the log was manually cleared (2026-06-10). A
+  fresh full rebuild did NOT regenerate them, and live post pages DO contain their
+  raw HTML (verified: book-cover `<img>` renders) — so production builds run with
+  goldmark unsafe enabled and the warning never fires there. NOTE: vanilla Hugo
+  ignores `markup`/`ignoreLogs` from a THEME's config.json (only params/menus/
+  outputFormats/mediaTypes merge — verified empirically; even our
+  `pluralizeListTitles: false` doesn't merge), so for LOCAL builds add
+  `markup.goldmark.renderer.unsafe: true` to the site-root export config.
+
 ### micro.blog strips `<style>` tags from theme template output
 - Cannot inject page-scoped CSS via `<style>` tags in layout files
 - Use `main.css` with `:has()` selectors instead for page-specific rules
