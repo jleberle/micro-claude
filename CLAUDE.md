@@ -112,16 +112,26 @@ to handle both micro.blog's default structure and our custom partials.
   (its own `list.archivejson.json` has it; plugin-search-page copied it, and so did
   our first override).
 
-### "Raw HTML omitted" WARNs in the micro.blog timeline = stale error log
-- These Hugo warnings (goldmark, unsafe=false) sat in micro.blog's error log and
-  re-surfaced on the timeline until the log was manually cleared (2026-06-10). A
-  fresh full rebuild did NOT regenerate them, and live post pages DO contain their
-  raw HTML (verified: book-cover `<img>` renders) — so production builds run with
-  goldmark unsafe enabled and the warning never fires there. NOTE: vanilla Hugo
-  ignores `markup`/`ignoreLogs` from a THEME's config.json (only params/menus/
-  outputFormats/mediaTypes merge — verified empirically; even our
-  `pluralizeListTitles: false` doesn't merge), so for LOCAL builds add
-  `markup.goldmark.renderer.unsafe: true` to the site-root export config.
+### "Raw HTML omitted" WARNs = micro.blog's GitHub-archive job, NOT the site build
+- UPDATE 2026-06-11: these warnings are NOT only stale-log residue — fresh ones
+  appeared after the log was cleared on 2026-06-10 (naming book posts with raw
+  `<img>` covers), DESPITE our config.json carrying `ignoreLogs` the whole time.
+  That's production proof that a plugin/theme config.json cannot suppress them.
+- Per micro.blog staff (Manton, help.micro.blog/t/occasional-error-message/4297):
+  the warnings come from the **automated GitHub archiving process**, which runs
+  its own render pass with default goldmark settings (unsafe=false). The REAL
+  site build runs unsafe=true — which is why live post pages render their raw
+  HTML fine while the error log still collects these WARNs. Cosmetic only.
+- User-side levers: (a) edit the offending posts, replacing raw `<img ...>` with
+  markdown `![alt](url)` — goldmark renders md images natively, so no warning in
+  ANY pass (the homepage no longer needs the embedded img; covers come from the
+  ISBN front matter); use md image syntax in future book posts too. (b) Disable
+  GitHub archiving (stops the job, loses the backup). (c) Clear the log manually
+  and ignore. There is NO config fix available to users for the archive pass.
+- NOTE for LOCAL builds: vanilla Hugo ignores `markup`/`ignoreLogs` from a
+  THEME's config.json (only params/menus/outputFormats/mediaTypes merge —
+  verified empirically; even our `pluralizeListTitles: false` doesn't merge), so
+  add `markup.goldmark.renderer.unsafe: true` to the site-root export config.
 
 ### micro.blog strips `<style>` tags from theme template output
 - Cannot inject page-scoped CSS via `<style>` tags in layout files
