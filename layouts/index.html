@@ -23,11 +23,16 @@
   {{ $moviesURL     := printf "/categories/%s" ($catMovies     | urlize) | relURL }}
   {{ $highlightsURL := printf "/categories/%s" ($catHighlights | urlize) | relURL }}
 
-  {{/* int() so a backend field value (always a string) works as well as the config.json
-       int default; `default` runs first so a blank field falls back to the default. */}}
-  {{ $booksCount      := int (.Site.Params.home_books_count      | default 5) }}
-  {{ $moviesCount     := int (.Site.Params.home_movies_count     | default 6) }}
-  {{ $highlightsCount := int (.Site.Params.home_highlights_count | default 10) }}
+  {{/* Backend field values are always strings, and `int` is FATAL on a malformed one —
+       even "5 " with a trailing space — which would kill the whole home node (page +
+       feeds). Never cast raw input: accept digits-only values, otherwise keep the
+       fallback (mirrors the config.json defaults; covers blank/missing params too). */}}
+  {{ $booksCount := 5 }}
+  {{ with findRE `^(0|[1-9][0-9]*)$` (trim (printf "%v" .Site.Params.home_books_count) " ") 1 }}{{ $booksCount = int (index . 0) }}{{ end }}
+  {{ $moviesCount := 6 }}
+  {{ with findRE `^(0|[1-9][0-9]*)$` (trim (printf "%v" .Site.Params.home_movies_count) " ") 1 }}{{ $moviesCount = int (index . 0) }}{{ end }}
+  {{ $highlightsCount := 10 }}
+  {{ with findRE `^(0|[1-9][0-9]*)$` (trim (printf "%v" .Site.Params.home_highlights_count) " ") 1 }}{{ $highlightsCount = int (index . 0) }}{{ end }}
 
   {{/* De-duplicate across sections so a post never appears twice on the homepage.
        Order Status → Books → Movies → Highlights; each excludes posts shown above

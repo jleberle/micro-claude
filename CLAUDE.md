@@ -1,5 +1,5 @@
 # micro-claude theme — Claude session notes
-Last updated: 2026-06-10 (hardening pass; month plugins uninstalled)
+Last updated: 2026-06-11 (homepage count-guard; 0.91 compat verified with real binary)
 
 ## What this repo is
 A custom Hugo theme for Jared Eberle's micro.blog at **eberle.blog**.
@@ -9,7 +9,9 @@ A custom Hugo theme for Jared Eberle's micro.blog at **eberle.blog**.
   only branch and default was `main` (recent live deploys all came from it). A
   stray remote `master` created that day by pushing on autopilot was deleted.
 - Local dev: `hugo server` from `/Users/jaredeberle/git/microblog-theme/`
-- Hugo locally: 0.162 | micro.blog production: **0.158**
+- Hugo locally: 0.163 (Homebrew) | micro.blog production: **0.158**
+  Also kept: pinned `~/.local/bin/hugo-0.158` and `/tmp/hugo091/hugo` (0.91.2,
+  re-download from GitHub releases if gone — /tmp is not persistent)
 
 ### Installed on micro.blog as a PLUGIN, not a Theme
 - It is added under micro.blog's **Plugins**, not selected as the active Theme.
@@ -203,11 +205,16 @@ plugin.json                  # micro.blog theme metadata + settings fields
 - **Category names + counts are params.** Names (`home_cat_status/books/movies/
   highlights`) live in `config.json`. Counts (`home_books_count`/`home_movies_count`/
   `home_highlights_count`) are `config.json` defaults AND exposed as **backend fields** in
-  `plugin.json` so they can be tuned without a push. Each is read with a `| default`
-  fallback, and the **counts are wrapped in `int (...)`** because a backend field value is
-  always a string — `int` casts both the config int and a backend "8"; `default` runs
-  first so a blank field falls back (and `int` never sees ""). A missing/blank param can't
-  break the build (a nil count would make `first` fatal — the default + int prevent that).
+  `plugin.json` so they can be tuned without a push. **Counts are validated, never cast
+  raw (2026-06-11):** Hugo's `int` is FATAL on any malformed string — even `"5 "` with a
+  trailing space (verified empirically on 0.158) — and a fault in index.html kills the
+  whole home node (page + feeds), so a typo in the backend settings form could have taken
+  the site down on the next full rebuild. Each count now starts at a hardcoded default
+  (5/6/10, mirroring config.json) and is overwritten only when a digits-only
+  `findRE` (pattern `^(0|[1-9][0-9]*)$`) matches the space-trimmed `printf "%v"`. The
+  regex also rejects leading zeros because Go's cast parses them as OCTAL (`int "010"` =
+  8, verified). Blank/missing/malformed values fall back silently. Guard verified on
+  0.91.2, 0.158, and 0.163 (matrix: "8"→8, 7→7, "5 "/""/"abc"/"010"/missing→default).
 - **De-duplicated across sections:** a `$seen` slice of permalinks is built in section
   order (Status → Books → Movies → Highlights); each section filters with
   `where ... "Permalink" "not in" $seen` so a post in multiple categories appears only
@@ -240,6 +247,22 @@ plugin.json                  # micro.blog theme metadata + settings fields
   the canonical example — valid on 0.91 AND 0.158, unlike the removed
   `.Site.Author.avatar`. Everything changed in the June 2026 session is
   0.91-compatible.
+- **0.91 compat VERIFIED with a real 0.91.2 binary (2026-06-11):** the whole theme
+  builds clean on Hugo 0.91.2 with exactly ONE exception — `hugo.Data` in
+  index.html:76 is fatal there ("can't evaluate field Data"); that's the known,
+  deliberate trade-off documented below (prod is 0.158 and won't go backwards).
+  Gotcha when testing: 0.91 only reads `config.toml`, not `hugo.toml`.
+- **Do NOT migrate to the Hugo 0.146+ "new template system" layout structure.**
+  Verified empirically: new-style root-level `layouts/single.html`/`list.html` are
+  INVISIBLE to 0.91 (kinds silently get "found no layout file") while working on
+  0.163 — migrating would break the 0.91 floor wholesale, not just one line. The
+  current old-style tree (`_default/`, `section/replies.html`, `post/single.html`)
+  runs on 0.158/0.163 via the legacy compat layer, which micro.blog cannot drop
+  without breaking theme-blank and every plugin (all old-style). The root-level
+  home-output templates (`list.archivehtml.html` etc.) are valid in BOTH systems.
+  Revisit only if/when micro.blog migrates theme-blank itself — and re-verify the
+  theme-vs-theme-blank shadowing then (the archive/photos fix depends on lookup
+  order).
 - **Future landmines** (deprecated on 0.158, not yet removed — will break the same
   way when micro.blog next bumps Hugo): `.Site.LanguageCode` (→ `.Site.Language.Locale`),
   config keys `languageCode` (→ `locale`) and `paginate`.
