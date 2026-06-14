@@ -122,12 +122,22 @@ to handle both micro.blog's default structure and our custom partials.
   its own render pass with default goldmark settings (unsafe=false). The REAL
   site build runs unsafe=true — which is why live post pages render their raw
   HTML fine while the error log still collects these WARNs. Cosmetic only.
-- User-side levers: (a) edit the offending posts, replacing raw `<img ...>` with
-  markdown `![alt](url)` — goldmark renders md images natively, so no warning in
-  ANY pass (the homepage no longer needs the embedded img; covers come from the
-  ISBN front matter); use md image syntax in future book posts too. (b) Disable
-  GitHub archiving (stops the job, loses the backup). (c) Clear the log manually
-  and ignore. There is NO config fix available to users for the archive pass.
+- **For "finished reading" BOOK posts the raw HTML is INJECTED by micro.blog, NOT
+  in your source — so it is NOT editable-away (VERIFIED 2026-06-14).** The editable
+  post body is pure markdown (`Finished reading: [Title](https://micro.blog/books/
+  <ISBN>) by Author 📚`), but micro.blog's book pipeline PREPENDS a raw cover `<img>`
+  at render time. Confirmed from the live `feed.json` content_html:
+  `<img src="https://cdn.micro.blog/books/<ISBN>/cover.jpg" align="left"
+  class="microblog_book" style="max-width:60px;…">` ahead of the `<p>`. The real
+  build (unsafe=true) keeps that `<img>`; the archive pass (unsafe=false) strips it →
+  the WARN. Because the tag isn't in your markdown, lever (a) below CANNOT remove it.
+- User-side levers: (a) edit the offending posts, replacing any raw `<img ...>` you
+  AUTHORED with markdown `![alt](url)` — goldmark renders md images natively, so no
+  warning in ANY pass; use md image syntax in future posts. **Does not help the
+  book-post case above** (the `<img>` is platform-injected, source is already clean).
+  (b) Disable GitHub archiving (stops the job, loses the backup) — the only lever
+  that silences the book-post WARNs. (c) Clear the log manually and ignore (cosmetic;
+  live site unaffected). There is NO config fix available to users for the archive pass.
 - NOTE for LOCAL builds: vanilla Hugo ignores `markup`/`ignoreLogs` from a
   THEME's config.json (only params/menus/outputFormats/mediaTypes merge —
   verified empirically; even our `pluralizeListTitles: false` doesn't merge), so
