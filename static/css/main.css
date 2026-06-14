@@ -38,7 +38,7 @@
   --accent:    #93a1a1;  /* Solarized Base1  */
   --link:      #268bd2;  /* Solarized Blue   */
   --link-hover:#dc322f;  /* Solarized Red    */
-  --max-width: 740px;
+  --max-width: 680px;  /* tighter reading measure for 18px serif (~60–75ch); mirrors website's --main-width */
   --nav-width: 1024px;
   --gap:       24px;
   --radius:    8px;
@@ -61,22 +61,44 @@
 html { -webkit-text-size-adjust: 100%; overflow-y: scroll; }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-               Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  /* Serif body type, mirroring jaredeberle.org (assets/css/extended/serif.css).
+     Georgia is a screen-optimized serif present on virtually all platforms;
+     code keeps the monospace stack below. */
+  font-family: Georgia, Cambria, 'Times New Roman', Times, serif;
   font-size: 18px;
-  line-height: 1.6;
+  line-height: 1.7;          /* a touch airier than 1.6; serif body reads better with it */
   color: var(--primary);
   background: var(--bg);
   margin: 0;
   overflow-wrap: break-word;
+  /* Grayscale antialiasing on macOS (WebKit + Firefox): renders the serif a
+     touch lighter and cleaner on Retina. No effect elsewhere. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a { color: var(--primary); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-h1, h2, h3, h4, h5, h6 { color: var(--primary); line-height: 1.2; }
+/* Headings (prose + page title). Refinements mirrored from website serif.css:
+   optimizeLegibility = kerning + ligatures; tighter line-height for display type;
+   a hair of negative tracking (Georgia is loose at size); text-wrap: balance evens
+   multi-line headings; scroll-margin-top gives anchor jumps breathing room. */
+h1, h2, h3, h4, h5, h6,
+.post-title {
+  color: var(--primary);
+  text-rendering: optimizeLegibility;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  scroll-margin-top: 1rem;
+}
 
 img { max-width: 100%; height: auto; display: block; }
+
+/* Form controls don't inherit font-family by default — pull search, buttons,
+   etc. into the serif stack so they match the site (mirrors website serif.css). */
+input, button, textarea, select { font-family: inherit; }
 
 /* --- Bookgoals plugin (microdotblog/plugin-bookgoals) -------------- */
 /* Sourced from: https://github.com/microdotblog/plugin-bookgoals
@@ -114,9 +136,25 @@ blockquote {
   color: var(--secondary);
 }
 
-code, pre, kbd {
+/* Large, muted opening quote set inline at the start of the first paragraph,
+   indenting that first line (mirrors website theme.css). Decorative
+   pseudo-element, skipped by screen readers; line-height:0 stops the big glyph
+   from inflating the first line's height. */
+.post-content blockquote p:first-of-type::before {
+  content: "\201C";              /* left double quotation mark */
+  margin-inline-end: 0.12em;
+  font-size: 3em;
+  line-height: 0;
+  vertical-align: -0.4em;
+  color: var(--accent);
+  opacity: 0.55;
+  pointer-events: none;
+  user-select: none;
+}
+
+code, pre, kbd, samp, tt {
   font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
-               'Liberation Mono', monospace;
+               'Liberation Mono', 'Cascadia Code', 'Roboto Mono', monospace;
   font-size: 0.88em;
 }
 
@@ -125,6 +163,47 @@ pre {
   padding: 1rem;
   border-radius: var(--radius);
   overflow-x: auto;
+}
+
+/* --- Tables (mirrors website tables.css) ----------------- */
+/* Restyles markdown tables in the site's vocabulary: collapsed --border
+   lines, an --entry header band, quiet zebra striping, and tabular figures
+   so numeric columns line up (Georgia otherwise uses proportional numerals). */
+.post-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.5em 0;
+  font-size: 0.95em;
+}
+
+.post-content table th,
+.post-content table td {
+  border: 1px solid var(--border);
+  padding: 0.5em 0.75em;
+  line-height: 1.5;
+  vertical-align: top;
+}
+
+.post-content table th {
+  background: var(--entry);
+  color: var(--primary);
+  font-weight: 600;
+  text-align: start;   /* yields to a markdown column alignment if set */
+}
+
+/* Tabular (lining) figures keep numeric columns aligned. */
+.post-content table td { font-variant-numeric: tabular-nums; }
+
+/* Quiet zebra striping for scanning long tables. */
+.post-content table tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--entry), transparent 55%);
+}
+
+.post-content table caption {
+  color: var(--secondary);
+  font-size: 0.85em;
+  text-align: start;
+  margin-bottom: 0.5em;
 }
 
 /* --- Layout wrappers ------------------------------------- */
@@ -331,11 +410,77 @@ body:has(.intro) .site-header .site-title img {
   color: var(--primary);
   text-decoration: underline;
   text-underline-offset: 0.3rem;
+  /* Thin, consistent serif-friendly underline weight so Georgia's descenders
+     don't collide with the rule. */
+  text-decoration-thickness: 1px;
+  transition: color 0.15s ease;   /* gentle hover shift (mirrors website theme.css) */
 }
 .post-content a:hover { color: var(--link-hover); }
 
 .post-content h1, .post-content h2, .post-content h3 {
   margin: 1.5rem 0 0.5rem;
+}
+
+/* --- Serif prose refinements (mirrors website serif.css) ------------- */
+/* Prevent widows (a lone word on a paragraph's last line) where supported.
+   Progressive enhancement — ignored elsewhere. */
+.post-content p,
+.post-content li {
+  text-wrap: pretty;
+}
+
+/* Hang opening quotation marks into the margin so the left edge stays optically
+   flush when a line begins with a quote. Safari/iOS only today; ignored
+   elsewhere. Disabled on blockquotes so it doesn't pull their deliberate
+   first-line quote-mark indent into the margin. */
+.post-content { hanging-punctuation: first; }
+.post-content blockquote { hanging-punctuation: none; }
+
+/* Footnote references. The browser's default sup uses vertical-align:super,
+   which inflates the line box; line-height:0 + position lifts the number
+   cleanly without adding stray leading. */
+.post-content sup {
+  font-size: 0.7em;
+  line-height: 0;
+  vertical-align: baseline;
+  position: relative;
+  top: -0.6em;
+}
+
+.post-content sup a.footnote-ref,
+.post-content sup a.footnote-ref:hover {
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1px;
+}
+
+/* Footnote section at the foot of the article: rendered as apparatus —
+   stepped down in size and muted, with the goldmark <hr> as a divider. */
+.post-content .footnotes {
+  font-size: 0.9em;
+  color: var(--secondary);
+  margin-top: 2.5em;
+}
+
+.post-content .footnotes hr { margin: 0 0 1.2em; }
+.post-content .footnotes li { margin-bottom: 0.5em; }
+
+.post-content a.footnote-backref {
+  text-decoration: none;
+  color: var(--secondary);
+  margin-inline-start: 0.3em;
+}
+
+.post-content a.footnote-backref:hover { color: var(--link-hover); }
+
+/* Breathing room when a footnote or its reference is jumped to. */
+.post-content li[id^="fn:"],
+.post-content sup[id^="fnref:"] { scroll-margin-top: 2rem; }
+
+/* Brief tint on the reference when you jump back up to it from a note. */
+.post-content sup[id^="fnref:"] { transition: background-color 0.4s ease; }
+.post-content sup[id^="fnref:"]:target {
+  background: var(--entry);
+  border-radius: 3px;
 }
 
 /* --- Post categories ------------------------------------- */
