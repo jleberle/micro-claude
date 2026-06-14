@@ -58,14 +58,16 @@
   }
 }
 
-html { -webkit-text-size-adjust: 100%; overflow-y: scroll; }
+/* 106.25% root = ~17px base, lifting every rem-based size a slight notch
+   (1rem post body -> 17px, etc.) while layout widths stay px-fixed. */
+html { -webkit-text-size-adjust: 100%; overflow-y: scroll; font-size: 106.25%; }
 
 body {
   /* Serif body type, mirroring jaredeberle.org (assets/css/extended/serif.css).
      Georgia is a screen-optimized serif present on virtually all platforms;
      code keeps the monospace stack below. */
   font-family: Georgia, Cambria, 'Times New Roman', Times, serif;
-  font-size: 18px;
+  font-size: 19px;
   line-height: 1.7;          /* a touch airier than 1.6; serif body reads better with it */
   color: var(--primary);
   background: var(--bg);
@@ -718,6 +720,15 @@ body > .site-footer a,
   padding: 0.75rem;
 }
 
+/* Currently-reading book title: bold italic (the book-title convention) and a
+   notch larger than the "by <author>" line below it. */
+.media-list--reading .media-entry-info a {
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+
 @media (max-width: 640px) {
   .media-list--reading .media-entry { width: 100%; }
 }
@@ -862,7 +873,7 @@ body > .site-footer a,
 
 /* --- Responsive ------------------------------------------ */
 @media (max-width: 640px) {
-  body { font-size: 16px; }
+  body { font-size: 17px; }
   .post-title { font-size: 1.5rem; }
   .photos-grid { grid-template-columns: repeat(2, 1fr); }
   .site-nav { gap: 0; }
