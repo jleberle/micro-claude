@@ -2,6 +2,26 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
+  {{/* Security headers via <meta>. micro.blog hosted blogs are isolated from the
+       dynamic platform, so per-blog HTTP response headers are NOT possible (per
+       Manton, help.micro.blog/t/add-security-headers/2169) — only the subset of
+       policies the browser honors from a <meta> tag can be delivered here.
+       NOT deliverable this way (need a reverse proxy / Cloudflare in front of the
+       custom domain): HSTS, X-Frame-Options, X-Content-Type-Options (nosniff),
+       Permissions-Policy. CSP frame-ancestors/report-uri/sandbox are also ignored
+       in meta context — so there is NO clickjacking protection available from the
+       theme. Must precede the stylesheet/microblog_head so it governs everything.
+
+       The CSP is intentionally PERMISSIVE: micro.blog injects its own scripts,
+       inline styles (e.g. book-cover style=""), embeds (youtube-nocookie), and CDN
+       images (cdn.micro.blog, avatars, s3 og cards). Allowing all https for those
+       resource types avoids breakage on platform changes while still closing the
+       cheap, zero-breakage gaps. Loosen further only if something breaks live;
+       tighten (drop 'unsafe-inline'/'unsafe-eval', pin hosts) only after testing
+       against the real platform output — a CSP fault here is silent in the log. */}}
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:; media-src 'self' https:; frame-src https:; connect-src 'self' https:; form-action 'self' https://micro.blog; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+
   {{- $hasImage := false -}}
   {{- if .IsHome -}}
     {{- $hasImage = true -}}
