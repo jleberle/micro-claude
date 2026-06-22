@@ -1,5 +1,5 @@
 # micro-claude theme — Claude session notes
-Last updated: 2026-06-11 (homepage count-guard; 0.91 compat verified with real binary)
+Last updated: 2026-06-22 (accessibility pass: main landmark + WCAG AA contrast)
 
 ## What this repo is
 A custom Hugo theme for Jared Eberle's micro.blog at **eberle.blog**.
@@ -409,6 +409,43 @@ theme-blank
   on meta text; removed dead `.media-entry-content`/`.media-shelf-label` rules
   (leftovers from the old content-scraping homepage).
 - Uninstalled `plugin-archive-months` + `plugin-photos-months` on micro.blog.
+
+## Accessibility pass (2026-06-22) — PageSpeed/Lighthouse a11y 93 → target 100
+Lighthouse reported 100/100/100 except Accessibility 93. Two flagged audits, both fixed:
+- **"Document does not have a main landmark"** (Best Practices) — `baseof.html` wrapped
+  content in `<div class="wrapper" id="main-content">`, so the live page had NO `<main>`
+  element (this confirms micro.blog renders OUR baseof, not its own — consistent with the
+  custom footer/header being used live). Changed that wrapper from `<div>` to `<main>`.
+  The CSS selector `.page-content > .wrapper, #main` still matches (class `wrapper` kept),
+  and the skip-link target `#main-content` now lands on the `<main>`.
+- **"Background and foreground colors do not have a sufficient contrast ratio"** (Contrast)
+  — light-mode `--secondary` (Base01 `#586e75`) on the `--entry`/Base2 card background was
+  **4.39:1**, just under AA 4.5. Nudged to `#50666d` (4.95:1 on entry, 5.62:1 on bg).
+  Verified with the relative-luminance formula, not eyeballed.
+- **Latent dark-mode failure fixed too** (not flagged by the light-mode run): `--primary`
+  body text (Base0 `#839496`) on `--entry`/Base02 cards was **4.11:1**. Bumped to Base1
+  `#93a1a1` (4.86:1 on entry, 5.61:1 on bg). Dark `--primary` and `--secondary` now both
+  Base1 — body/meta hierarchy in dark mode leans on size/weight (it was already inverted
+  before, meta brighter than body, so nothing real was lost).
+- Polish: decorative SVGs in `intro.html` social links got `aria-hidden="true"
+  focusable="false"` (the links already carry an `aria-label` + visible text).
+- **Header site title is now `<h1>` on the home node** (`header.html`): the homepage
+  previously had NO `<h1>` (sections start at `<h2>`). Conditioned on `.IsHome` —
+  the only page-level signal available, since `/archive/` and `/photos/` are home-node
+  outputs whose `.RelPermalink` is also `/` (VERIFIED: a RelPermalink/IsHome probe
+  returns `/`+true for the ArchiveHTML output, so neither distinguishes them from the
+  home HTML). Consequence: archive/photos carry the masthead `<h1>` PLUS their own
+  `page-title` `<h1>` — two `<h1>`s, but no skipped levels, which Lighthouse/axe allow.
+  Content pages (`.IsHome` false) keep the title as an inline `<span>` so the
+  article/section heading stays that page's sole top-level `<h1>`. The `<h1>` is
+  styled `.site-title-text { font: inherit; margin: 0; letter-spacing: normal }` to
+  render identically to the `<span>` (inherits 1rem/700 from `.site-title`).
+- **NOT theme-fixable** (platform-side, perf already 100; "diagnostics don't affect score"):
+  render-blocking CSS, cache lifetimes (no per-blog response headers — see head.html),
+  image delivery (micro.blog CDN), minify CSS/JS + unused CSS (main.css is served as-is
+  from `static/`; Hugo's `minifyOutput` only touches generated HTML/feeds, not static
+  assets — moving CSS to `assets/` + Hugo Pipes would minify/fingerprint it but is
+  unverified on micro.blog's build and unnecessary at a 100 perf score).
 
 ## What was fixed in the June 2026 session
 - Removed `opengraph.html` (was breaking feed generation on 0.158)

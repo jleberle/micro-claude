@@ -33,7 +33,9 @@
   --bg:        #fdf6e3;  /* Solarized Base3  */
   --entry:     #eee8d5;  /* Solarized Base2  */
   --primary:   #073642;  /* Solarized Base02 */
-  --secondary: #586e75;  /* Solarized Base01 */
+  --secondary: #50666d;  /* Solarized Base01 (#586e75) nudged ~3% darker so muted
+                            meta text clears WCAG AA (4.5:1) on the --entry (Base2)
+                            card background — pure Base01 was 4.39:1 there. */
   --border:    #93a1a1;  /* Solarized Base1  */
   --accent:    #93a1a1;  /* Solarized Base1  */
   --link:      #268bd2;  /* Solarized Blue   */
@@ -48,7 +50,9 @@
   :root {
     --bg:        #002b36;  /* Solarized Base03 */
     --entry:     #073642;  /* Solarized Base02 */
-    --primary:   #839496;  /* Solarized Base0  */
+    --primary:   #93a1a1;  /* Solarized Base1 — Base0 (#839496) body text on the
+                              --entry (Base02) card background was only 4.11:1, below
+                              WCAG AA; Base1 lifts it to 4.86:1 (5.61:1 on the page bg) */
     --secondary: #93a1a1;  /* Solarized Base1 — Base01 on Base02 is ~3:1, below
                               WCAG AA for the small meta/date text this is used on */
     --border:    #586e75;  /* Solarized Base01 */
@@ -325,6 +329,15 @@ body > .site-header .wrapper,
   width: 35px;
   height: 35px;
   object-fit: cover;
+}
+
+/* On the home node the title is an <h1> (see header.html); strip the UA heading
+   font-size/margin and the global heading letter-spacing so it renders identically
+   to the inline <span> used on content pages. It inherits 1rem/700 from .site-title. */
+.site-title-text {
+  font: inherit;
+  margin: 0;
+  letter-spacing: normal;
 }
 
 /* Hide header avatar on the homepage — .intro only renders on the homepage,

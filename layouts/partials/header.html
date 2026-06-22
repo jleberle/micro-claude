@@ -5,7 +5,11 @@
            real homepage. A .Kind/RelPermalink guard fails here because /archive/
            and /photos/ are home-NODE outputs (.Kind == "home") yet need the avatar. */}}
       {{ with .Site.Params.author.avatar }}<img src="{{ . }}" alt="{{ $.Site.Title }} avatar" class="u-photo" width="35" height="35" loading="lazy">{{ end }}
-      <span class="p-name">{{ .Site.Title }}</span>
+      {{/* The site title is the page's primary heading on the home node (home /
+           archive / photos all report .IsHome), so render it as <h1> there. On
+           content pages an inline <span> keeps the article/section <h1> as that
+           page's sole top-level heading. */}}
+      {{ if .IsHome }}<h1 class="site-title-text p-name">{{ .Site.Title }}</h1>{{ else }}<span class="p-name">{{ .Site.Title }}</span>{{ end }}
     </a>
     <nav class="site-nav" aria-label="Main navigation">
       {{ range .Site.Menus.main }}
