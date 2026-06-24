@@ -136,12 +136,27 @@
           <ul class="media-list">
             {{ range $movies }}
               {{ $p := . }}
+              {{ $contentHTML := $p.Content }}
+              {{/* micro.blog injects the movie poster as a leading <img> once it has
+                   fetched it from TMDB. Local Hugo previews do not add this, so the
+                   poster must stay optional and the text path remains the fallback. */}}
+              {{ $posterSrc := "" }}
+              {{ with findRE `(?i)<img[^>]+src=(?:"[^"]+"|[^[:space:]>]+)` $contentHTML 1 }}
+                {{ $posterSrc = replaceRE `(?i)^.*src=(?:"([^"]+)"|([^[:space:]>]+)).*$` "$1$2" (index . 0) }}
+              {{ end }}
+              {{ $movieURL := $p.Permalink }}
+              {{ with findRE `https://www\.themoviedb\.org/[^"'[:space:]<>]+` $contentHTML 1 }}
+                {{ $movieURL = index . 0 }}
+              {{ end }}
               {{/* No structured movie data — title (first line) + review (the rest) are
-                   parsed from content, but with exact string ops instead of regex. */}}
-              {{ $text := trim ($p.Content | plainify | htmlUnescape) "\n\r\t " }}
+                   still parsed from content, but with exact string ops instead of regex. */}}
+              {{ $text := trim ($contentHTML | plainify | htmlUnescape) "\n\r\t " }}
               {{ $title := trim (index (split $text "\n") 0) " " }}
               {{ $review := trim (strings.TrimPrefix $title $text) "\n\r\t " }}
               <li class="media-entry media-entry--movie">
+                {{ with $posterSrc }}
+                  <a href="{{ $movieURL }}"><img class="media-cover" src="{{ . }}" alt="{{ $title }}" loading="lazy"></a>
+                {{ end }}
                 <div class="media-entry-info">
                   <time class="media-entry-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "January 2, 2006" }}</time>
                   <a href="{{ $p.Permalink }}">{{ $title }}</a>
