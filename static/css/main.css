@@ -1,6 +1,9 @@
 /* =========================================================
    Jared Eberle micro.blog theme — mirrors jaredeberle.org
-   Solarized Light palette, PaperMod-inspired layout
+   Prairie (warm earthy) light palette in light mode, neutral
+   PaperMod dark-gray palette with Solarized-cyan links in dark
+   mode — mirroring ~/git/website's assets/css/extended/00-tokens.css
+   and assets/css/base/00-theme-vars.css. PaperMod-inspired layout.
    ========================================================= */
 
 /* --- Reset & base ---------------------------------------- */
@@ -30,16 +33,16 @@
 }
 
 :root {
-  --bg:        #fdf6e3;  /* Solarized Base3  */
-  --entry:     #eee8d5;  /* Solarized Base2  */
-  --primary:   #073642;  /* Solarized Base02 */
-  --secondary: #50666d;  /* Solarized Base01 (#586e75) nudged ~3% darker so muted
-                            meta text clears WCAG AA (4.5:1) on the --entry (Base2)
-                            card background — pure Base01 was 4.39:1 there. */
-  --border:    #93a1a1;  /* Solarized Base1  */
-  --accent:    #93a1a1;  /* Solarized Base1  */
-  --link:      #268bd2;  /* Solarized Blue   */
-  --link-hover:#dc322f;  /* Solarized Red    */
+  /* Prairie Light — field paper, wheat card stock, sage-gray text,
+     clay links, ochre rule. Same palette as website's --prairie-* tokens. */
+  --bg:        #f6edd8;  /* prairie-paper  */
+  --entry:     #eadfc5;  /* prairie-panel  */
+  --primary:   #253431;  /* prairie-ink    */
+  --secondary: #5b665d;  /* prairie-muted — 5.14:1 on bg, 4.53:1 on entry (AA) */
+  --border:    #ddcfaa;  /* prairie-border */
+  --accent:    #b8a068;  /* prairie-rule (hr, rules, hovers) */
+  --link:      #8f3f2d;  /* prairie-clay   */
+  --link-hover:#6f351f;  /* prairie-rust   */
   --max-width: 680px;  /* tighter reading measure for 18px serif (~60–75ch); mirrors website's --main-width */
   --nav-width: 1024px;
   --gap:       24px;
@@ -48,17 +51,17 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg:        #002b36;  /* Solarized Base03 */
-    --entry:     #073642;  /* Solarized Base02 */
-    --primary:   #93a1a1;  /* Solarized Base1 — Base0 (#839496) body text on the
-                              --entry (Base02) card background was only 4.11:1, below
-                              WCAG AA; Base1 lifts it to 4.86:1 (5.61:1 on the page bg) */
-    --secondary: #93a1a1;  /* Solarized Base1 — Base01 on Base02 is ~3:1, below
-                              WCAG AA for the small meta/date text this is used on */
-    --border:    #586e75;  /* Solarized Base01 */
-    --accent:    #586e75;  /* Solarized Base01 */
-    --link:      #268bd2;  /* Solarized Blue   */
-    --link-hover:#2aa198;  /* Solarized Cyan   */
+    /* Deliberately NOT Solarized dark (read too warm/low-contrast for long-form
+       reading) — neutral PaperMod dark-gray, matching website's fallback, with
+       links lifted into Solarized cyan for an AA-passing accent. */
+    --bg:        #1d1e20;  /* PaperMod dark bg    */
+    --entry:     #2e2e33;  /* PaperMod dark card  */
+    --primary:   #dadadb;  /* PaperMod dark text  */
+    --secondary: #9b9c9d;  /* PaperMod dark muted */
+    --border:    #333333;  /* PaperMod dark border */
+    --accent:    #6abdb7;  /* cyan + 30% white — 7.61:1 on bg, 6.16:1 on entry */
+    --link:      #3faaa2;  /* cyan + 10% white — 5.94:1 on bg, 4.81:1 on entry (AA) */
+    --link-hover:#6abdb7;  /* cyan + 30% white, brighter on hover */
   }
 }
 
