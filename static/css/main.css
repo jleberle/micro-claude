@@ -1,9 +1,13 @@
 /* =========================================================
-   Jared Eberle micro.blog theme — mirrors jaredeberle.org
-   Prairie (warm earthy) light palette in light mode, neutral
-   PaperMod dark-gray palette with Solarized-cyan links in dark
+   Jared Eberle micro.blog theme — mirrors jaredeberle.org's
+   "Foggy New England Sea" light palette (pale sea-fog over wet
+   granite, storm-slate ink, tidal-teal links, weathered-driftwood
+   warm highlight) and its neutral PaperMod dark-gray palette with
+   bioluminescent-teal links + lighthouse-amber highlight in dark
    mode — mirroring ~/git/website's assets/css/extended/00-tokens.css
    and assets/css/base/00-theme-vars.css. PaperMod-inspired layout.
+   Footer stays our own minimal one-line version (not the site's
+   four-column panel).
    ========================================================= */
 
 /* --- Reset & base ---------------------------------------- */
@@ -33,16 +37,18 @@
 }
 
 :root {
-  /* Prairie Light — field paper, wheat card stock, sage-gray text,
-     clay links, ochre rule. Same palette as website's --prairie-* tokens. */
-  --bg:        #f6edd8;  /* prairie-paper  */
-  --entry:     #eadfc5;  /* prairie-panel  */
-  --primary:   #253431;  /* prairie-ink    */
-  --secondary: #5b665d;  /* prairie-muted — 5.14:1 on bg, 4.53:1 on entry (AA) */
-  --border:    #ddcfaa;  /* prairie-border */
-  --accent:    #b8a068;  /* prairie-rule (hr, rules, hovers) */
-  --link:      #8f3f2d;  /* prairie-clay   */
-  --link-hover:#6f351f;  /* prairie-rust   */
+  /* Foggy New England Sea (light) — pale sea-fog page, wet-granite card
+     stock, storm-slate ink, deep tidal-teal links, weathered-driftwood
+     warm rule. Same palette as website's --fog-*/--tide/--driftwood tokens. */
+  --bg:        #eef1f2;  /* fog-mist — page background    */
+  --entry:     #dde3e5;  /* fog-granite — cards/footer     */
+  --primary:   #1d2b32;  /* fog-slate — headings/strong, 12.81:1 on bg */
+  --secondary: #54636a;  /* fog-driftgray — meta/muted, 5.49:1 on bg, 4.81:1 on entry (AA) */
+  --border:    #c3ced2;  /* fog-pale-haze — borders        */
+  --accent:    #1a444d;  /* tide-deep — interactive hover highlight, 9.35:1 on bg */
+  --quote-rule:#9c8a6e;  /* driftwood — the one warm note: hr, blockquote, quote mark */
+  --link:      #296672;  /* tide — 5.71:1 on bg, 5.0:1 on entry (AA) */
+  --link-hover:#1a444d;  /* tide-deep — darkens toward ink on hover */
   --max-width: 680px;  /* tighter reading measure for 18px serif (~60–75ch); mirrors website's --main-width */
   --nav-width: 1024px;
   --gap:       24px;
@@ -51,17 +57,18 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Deliberately NOT Solarized dark (read too warm/low-contrast for long-form
-       reading) — neutral PaperMod dark-gray, matching website's fallback, with
-       links lifted into Solarized cyan for an AA-passing accent. */
+    /* Moonless night at sea (dark) — neutral PaperMod dark-gray surfaces
+       (the site falls back to these too) with the coastal accents: a
+       bioluminescent-teal link and a lighthouse-amber warm highlight. */
     --bg:        #1d1e20;  /* PaperMod dark bg    */
     --entry:     #2e2e33;  /* PaperMod dark card  */
     --primary:   #dadadb;  /* PaperMod dark text  */
     --secondary: #9b9c9d;  /* PaperMod dark muted */
     --border:    #333333;  /* PaperMod dark border */
-    --accent:    #6abdb7;  /* cyan + 30% white — 7.61:1 on bg, 6.16:1 on entry */
-    --link:      #3faaa2;  /* cyan + 10% white — 5.94:1 on bg, 4.81:1 on entry (AA) */
-    --link-hover:#6abdb7;  /* cyan + 30% white, brighter on hover */
+    --accent:    #86e0da;  /* bioluminescent teal, brighter — hover highlight */
+    --quote-rule:#d8ad4d;  /* lighthouse amber — the one warm note in dark mode */
+    --link:      #5fd0c8;  /* bioluminescent teal — 9.0:1 on bg, 7.3:1 on entry */
+    --link-hover:#86e0da;  /* brighter teal on hover */
   }
 }
 
@@ -134,14 +141,14 @@ h3.bookshelf__title { margin: 0; padding: 0; }
 
 hr {
   border: none;
-  border-top: 1px solid var(--accent);
+  border-top: 1px solid var(--quote-rule);
   margin: 1.5rem 0;
 }
 
 blockquote {
   margin: 1rem 0;
   padding: 0.5rem 0 0.5rem 1rem;
-  border-left: 2px solid var(--accent);
+  border-left: 2px solid var(--quote-rule);
   color: var(--secondary);
 }
 
@@ -155,7 +162,7 @@ blockquote {
   font-size: 3em;
   line-height: 0;
   vertical-align: -0.4em;
-  color: var(--accent);
+  color: var(--quote-rule);
   opacity: 0.55;
   pointer-events: none;
   user-select: none;
@@ -240,6 +247,7 @@ pre {
   margin-bottom: 2rem;
   padding: 1.5rem;
   background: var(--entry);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
 }
 
@@ -282,8 +290,8 @@ pre {
 }
 
 .intro-social a:hover {
-  color: var(--primary);
-  border-color: var(--primary);
+  color: var(--accent);
+  border-color: var(--accent);
   text-decoration: none;
 }
 
@@ -366,6 +374,7 @@ body:has(.intro) .site-header .site-title img {
 
 .site-nav a:hover {
   background: var(--entry);
+  color: var(--accent);
   text-decoration: none;
 }
 
@@ -374,6 +383,7 @@ body:has(.intro) .site-header .site-title img {
 
 .post-entry {
   background: var(--entry);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1.2rem 1.5rem;
   margin-bottom: 1.5rem;
@@ -386,7 +396,7 @@ body:has(.intro) .site-header .site-title img {
 }
 
 .post-entry-title a { color: var(--primary); }
-.post-entry-title a:hover { color: var(--link); text-decoration: none; }
+.post-entry-title a:hover { color: var(--link-hover); text-decoration: none; }
 
 .post-entry-meta {
   font-size: 0.8rem;
@@ -525,8 +535,8 @@ body:has(.intro) .site-header .site-title img {
 }
 
 .post-category:hover {
-  color: var(--primary);
-  border-color: var(--primary);
+  color: var(--accent);
+  border-color: var(--accent);
   text-decoration: none;
 }
 
@@ -679,6 +689,7 @@ body > .site-footer a,
 
 .status-card {
   background: var(--entry);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1.25rem 1.5rem;
 }
@@ -732,6 +743,7 @@ body > .site-footer a,
   width: calc(50% - 0.5rem);
   border-bottom: none;
   background: var(--entry);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 0.75rem;
 }
@@ -817,8 +829,9 @@ body > .site-footer a,
   line-clamp: 2;
 }
 
-/* Match the homepage card link hover (red light, cyan dark) so the
-   Books/Movies/Currently-Reading title links feel like the rest of the site. */
+/* Match the homepage card link hover (tide-deep light, bioluminescent teal
+   dark) so the Books/Movies/Currently-Reading title links feel like the
+   rest of the site. */
 .media-entry-info a:hover {
   color: var(--link-hover);
   text-decoration: underline;
@@ -878,7 +891,7 @@ body > .site-footer a,
 }
 
 /* Hover for the permalink / "more" links on homepage cards.
-   These had no hover state; use the Solarized hover accent (red light, cyan dark). */
+   These had no hover state; use the link-hover accent (tide-deep light, teal dark). */
 .read-more:hover,
 .status-card-more:hover,
 .media-col-more:hover,
