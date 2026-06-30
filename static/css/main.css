@@ -41,7 +41,7 @@
      stock, storm-slate ink, deep tidal-teal links, weathered-driftwood
      warm rule. Same palette as website's --fog-*/--tide/--driftwood tokens. */
   --bg:        #eef1f2;  /* fog-mist — page background    */
-  --entry:     #dde3e5;  /* fog-granite — cards/footer     */
+  --entry:     #dde3e5;  /* fog-granite — cards     */
   --primary:   #1d2b32;  /* fog-slate — headings/strong, 12.81:1 on bg */
   --secondary: #54636a;  /* fog-driftgray — meta/muted, 5.49:1 on bg, 4.81:1 on entry (AA) */
   --border:    #c3ced2;  /* fog-pale-haze — borders        */
@@ -53,6 +53,15 @@
   --nav-width: 1024px;
   --gap:       24px;
   --radius:    8px;
+
+  /* Footer — a deliberate dark band (like the site's full-bleed footer
+     panel), darker than the page itself even in light mode. fog-slate bg
+     with fog-haze muted text and the bioluminescent teal as the link
+     accent, since the light-mode tide link fails contrast on a dark bg. */
+  --footer-bg:        #1d2b32;  /* fog-slate */
+  --footer-text:      #a9b6bb;  /* fog-haze — 6.99:1 on footer-bg */
+  --footer-link:      #5fd0c8;  /* bioluminescent teal — 7.86:1 on footer-bg */
+  --footer-link-hover:#86e0da;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -69,7 +78,46 @@
     --quote-rule:#d8ad4d;  /* lighthouse amber — the one warm note in dark mode */
     --link:      #5fd0c8;  /* bioluminescent teal — 9.0:1 on bg, 7.3:1 on entry */
     --link-hover:#86e0da;  /* brighter teal on hover */
+
+    /* Footer — darker still than the already-dark page, so the band stays
+       visually distinct (a moonless-night depth below the moonless-night
+       page). */
+    --footer-bg:        #141a1e;
+    --footer-text:      #b9bbbc;  /* 10.3:1 on footer-bg */
+    --footer-link:      #5fd0c8;  /* 9.64:1 on footer-bg */
+    --footer-link-hover:#86e0da;
   }
+}
+
+/* --- Fonts (mirrors website's assets/css/extended/fonts.css) --------- */
+/* Fraunces — self-hosted heading serif (Undercase Type, via Google Fonts),
+   used for headings/.post-title/.site-title only; body+nav text uses the
+   system-ui sans stack below. Single static instance pinned at opsz=144
+   (display optical size), wght=600, SOFT=0, WONK=1 — same subsetted file
+   the website ships, latin unicode-range, woff2, font-display: swap so
+   headings paint in the fallback immediately and re-render when the font
+   arrives (preloaded in head.html). License: static/fonts/OFL.txt. */
+@font-face {
+  font-family: Fraunces;
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/fraunces-600-latin.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Fallback-metric proxy for headings: resolves to Georgia with size-adjust
+   so heading text wraps the same before and after the font swap, avoiding
+   layout shift in h1–h6. Same measured values as the website's instance
+   (opsz=144, wght=600 renders ~10.82% narrower than Georgia at the same
+   font-size). */
+@font-face {
+  font-family: 'Fraunces Fallback';
+  src: local('Georgia'), local('Cambria'), local('Times New Roman'), local('Times');
+  size-adjust: 89.18%;
+  ascent-override: 109.66%;
+  descent-override: 28.59%;
+  line-gap-override: 0%;
 }
 
 /* 106.25% root = ~17px base, lifting every rem-based size a slight notch
@@ -77,18 +125,20 @@
 html { -webkit-text-size-adjust: 100%; overflow-y: scroll; font-size: 106.25%; }
 
 body {
-  /* Serif body type, mirroring jaredeberle.org (assets/css/extended/serif.css).
-     Georgia is a screen-optimized serif present on virtually all platforms;
-     code keeps the monospace stack below. */
-  font-family: Georgia, Cambria, 'Times New Roman', Times, serif;
+  /* System-ui sans body type, mirroring jaredeberle.org
+     (assets/css/extended/serif.css) — no web-font download for body text,
+     so there's no FOUT/layout shift for paragraphs or nav. Users get San
+     Francisco on Apple, Segoe UI on Windows, Roboto on Android. Headings
+     use Fraunces (above) for editorial contrast; code keeps the monospace
+     stack below. */
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+               Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 19px;
-  line-height: 1.7;          /* a touch airier than 1.6; serif body reads better with it */
+  line-height: 1.7;
   color: var(--primary);
   background: var(--bg);
   margin: 0;
   overflow-wrap: break-word;
-  /* Grayscale antialiasing on macOS (WebKit + Firefox): renders the serif a
-     touch lighter and cleaner on Retina. No effect elsewhere. */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -96,14 +146,19 @@ body {
 a { color: var(--primary); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-/* Headings (prose + page title). Refinements mirrored from website serif.css:
-   optimizeLegibility = kerning + ligatures; tighter line-height for display type;
-   a hair of negative tracking (Georgia is loose at size); text-wrap: balance evens
+/* Headings (prose + page title). Fraunces, pinned at its display optical
+   size, with the fallback-metric proxy chained ahead of Georgia so layout
+   doesn't jump when the webfont swaps in. Refinements mirrored from website
+   serif.css: optimizeLegibility = kerning + ligatures; font-weight: 600
+   matches the real weight shipped (no synthetic bold); tighter line-height
+   for display type; a hair of negative tracking; text-wrap: balance evens
    multi-line headings; scroll-margin-top gives anchor jumps breathing room. */
 h1, h2, h3, h4, h5, h6,
 .post-title {
+  font-family: Fraunces, 'Fraunces Fallback', Georgia, serif;
   color: var(--primary);
   text-rendering: optimizeLegibility;
+  font-weight: 600;
   line-height: 1.25;
   letter-spacing: -0.01em;
   text-wrap: balance;
@@ -113,7 +168,8 @@ h1, h2, h3, h4, h5, h6,
 img { max-width: 100%; height: auto; display: block; }
 
 /* Form controls don't inherit font-family by default — pull search, buttons,
-   etc. into the serif stack so they match the site (mirrors website serif.css). */
+   etc. into the body sans stack so they match the site (mirrors website
+   serif.css). */
 input, button, textarea, select { font-family: inherit; }
 
 /* --- Bookgoals plugin (microdotblog/plugin-bookgoals) -------------- */
@@ -327,8 +383,13 @@ body > .site-header .wrapper,
 }
 
 .site-title {
+  /* Logo in Fraunces to match the heading face (mirrors website
+     header.css .logo a) — ties the wordmark to the editorial identity
+     of the headings rather than the nav's system sans. */
+  font-family: Fraunces, 'Fraunces Fallback', Georgia, serif;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--primary);
   display: flex;
   align-items: center;
@@ -343,12 +404,17 @@ body > .site-header .wrapper,
 }
 
 /* On the home node the title is an <h1> (see header.html); strip the UA heading
-   font-size/margin and the global heading letter-spacing so it renders identically
-   to the inline <span> used on content pages. It inherits 1rem/700 from .site-title. */
+   font-size/margin so it renders identically to the inline <span> used on
+   content pages, while still picking up Fraunces/weight/tracking from the
+   parent .site-title (rather than the global h1 rule's own copies of those
+   same properties — class specificity wins either way, this is just explicit
+   about which one is the source of truth). */
 .site-title-text {
-  font: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
   margin: 0;
-  letter-spacing: normal;
 }
 
 /* Hide header avatar on the homepage — .intro only renders on the homepage,
@@ -580,14 +646,16 @@ body:has(.intro) .site-header .site-title img {
 }
 
 /* --- Footer --------------------------------------------- */
+/* A dark full-bleed band, like the site's footer panel — darker than the
+   page itself in both light and dark mode, not just a step off --entry. */
 body > .site-footer,
 #site-footer {
-  border-top: 1px solid var(--border);
+  background: var(--footer-bg);
   height: 60px;
   display: flex;
   align-items: center;
   font-size: 0.8rem;
-  color: var(--secondary);
+  color: var(--footer-text);
 }
 
 body > .site-footer .wrapper,
@@ -598,7 +666,10 @@ body > .site-footer .wrapper,
 }
 
 body > .site-footer a,
-#site-footer a { color: var(--secondary); text-decoration: underline; }
+#site-footer a { color: var(--footer-link); text-decoration: underline; }
+
+body > .site-footer a:hover,
+#site-footer a:hover { color: var(--footer-link-hover); }
 
 /* --- Photos grid ----------------------------------------- */
 .photos-grid {
