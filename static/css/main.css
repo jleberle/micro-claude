@@ -387,7 +387,7 @@ body > .site-header .wrapper,
      header.css .logo a) — ties the wordmark to the editorial identity
      of the headings rather than the nav's system sans. */
   font-family: Fraunces, 'Fraunces Fallback', Georgia, serif;
-  font-size: 1rem;
+  font-size: 1.15rem;
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--primary);
@@ -456,7 +456,7 @@ body:has(.intro) .site-header .site-title img {
 }
 
 .post-entry-title {
-  font-size: 1.2rem;
+  font-size: 1.35rem;
   font-weight: 700;
   margin: 0 0 0.4rem;
 }
@@ -701,7 +701,7 @@ body > .site-footer a:hover,
 }
 
 .archive-month {
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: 700;
   border-bottom: 1px solid var(--border);
   padding-bottom: 0.3rem;
@@ -797,7 +797,7 @@ body > .site-footer a:hover,
 .home-reading { margin-bottom: 2rem; }
 
 .home-section-heading {
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: 700;
   border-bottom: 1px solid var(--border);
   padding-bottom: 0.4rem;
@@ -842,7 +842,7 @@ body > .site-footer a:hover,
 }
 
 .media-col-heading {
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: 700;
   border-bottom: 1px solid var(--border);
   padding-bottom: 0.4rem;
@@ -936,7 +936,7 @@ body > .site-footer a:hover,
 .home-feed { margin-bottom: 2rem; }
 
 .home-feed-heading {
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: 700;
   border-bottom: 1px solid var(--border);
   padding-bottom: 0.4rem;
