@@ -1,7 +1,5 @@
 {{ define "main" }}
-  <header class="page-header">
-    {{ if .Title }}<h1 class="page-title p-name">{{ .Title }}</h1>{{ end }}
-  </header>
+  {{ if .Title }}<h1 class="page-title p-name">{{ .Title }}</h1>{{ end }}
 
   {{ $paginator := .Paginate (.Data.Pages.ByDate.Reverse) }}
   <ul class="post-list h-feed">

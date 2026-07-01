@@ -5,9 +5,7 @@
   copy. Same reasoning as list.archivejson.json. Classes match static/css/main.css.
 */}}
 {{ define "main" }}
-  <header class="page-header">
-    <h1 class="page-title">Archive</h1>
-  </header>
+  <h1 class="page-title">Archive</h1>
 
   {{ with .Site.GetPage "categories" }}
     {{ if gt (len .Pages) 0 }}

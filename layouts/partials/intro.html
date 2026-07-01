@@ -1,11 +1,10 @@
 {{ $bio := .Site.Params.about_me }}
 {{ if $bio }}
-<article class="intro h-card">
+<div class="intro h-card">
   <img class="intro-avatar u-photo" src="https://micro.blog/{{ .Site.Params.author.username }}/avatar.jpg" alt="{{ .Site.Params.author.name | default .Site.Title }}" width="80" height="80">
   <div class="intro-body">
-    <p class="intro-kicker">From the notebook of</p>
-    <h2 class="intro-title p-name">{{ .Site.Params.author.name | default .Site.Title }}</h2>
-    <div class="intro-bio p-note">{{ $bio | safeHTML }}</div>
+    <p class="intro-name p-name" style="display:none;">{{ .Site.Params.author.name | default .Site.Title }}</p>
+    <p class="intro-bio p-note">{{ $bio | safeHTML }}</p>
     <nav class="intro-social" aria-label="Social links">
       {{/* Website */}}
       {{ with .Site.Params.social_website_url }}
@@ -44,5 +43,5 @@
       {{ end }}
     </nav>
   </div>
-</article>
+</div>
 {{ end }}
