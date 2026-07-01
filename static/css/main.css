@@ -540,7 +540,7 @@ body > .site-header,
   align-items: center;
   gap: 0.38rem;
   padding: 4px 9px;
-  color: var(--secondary);
+  color: var(--primary);
   background: color-mix(in srgb, var(--theme), white 22%);
   border: 1px solid color-mix(in srgb, var(--border), transparent 8%);
   border-radius: 999px;
@@ -555,7 +555,6 @@ body > .site-header,
 .intro-social a:hover,
 .intro-social a:focus-visible {
   color: var(--accent);
-  background: color-mix(in srgb, var(--entry), white 28%);
   border-color: var(--accent);
   text-decoration: none;
 }
