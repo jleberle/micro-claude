@@ -1,5 +1,7 @@
 {{ define "main" }}
-  <h1 class="page-title">Replies</h1>
+  <header class="page-header">
+    <h1 class="page-title">Replies</h1>
+  </header>
   <ul class="post-list h-feed">
     {{ range first 25 (where .Data.Pages.ByDate.Reverse "Type" "reply") }}
       <li class="post-entry short h-entry">

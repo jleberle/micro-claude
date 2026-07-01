@@ -6,7 +6,9 @@
   match static/css/main.css (.photos-grid); month headers reuse .archive-month.
 */}}
 {{ define "main" }}
-  <h1 class="page-title">Photos</h1>
+  <header class="page-header">
+    <h1 class="page-title">Photos</h1>
+  </header>
 
   {{ $photoPosts := (where .Site.RegularPages ".Params.photos" "!=" nil).ByDate.Reverse }}
   {{ $currentMonth := "" }}
