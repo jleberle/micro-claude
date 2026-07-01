@@ -1,15 +1,59 @@
 <footer class="site-footer">
-  <div class="wrapper">
-    <span>
-      &copy; {{ now.Year }} <a rel="author" href="{{ "/humans.txt" | relURL }}">{{ .Site.Params.author.name | default .Site.Title }}</a>
-      &nbsp;&middot;&nbsp;
-      <a href="{{ "/" | relURL }}feed.xml">RSS</a>
-      &nbsp;&middot;&nbsp;
-      <a href="https://micro.blog/{{ .Site.Params.author.username }}">Micro.blog</a>
-      &nbsp;&middot;&nbsp;
-      <a href="https://github.com/jleberle/micro-Codex">Theme</a>
-      &nbsp;&middot;&nbsp;
-      <a href="https://codeberg.org/jleberle">Codeberg</a>
-    </span>
+  <div class="footer-inner">
+    <div class="footer-about">
+      <p class="footer-name"><a href="{{ "/" | relURL }}">{{ .Site.Title }}</a></p>
+      <div class="footer-about-text">
+        <p>
+          &copy; {{ now.Year }} <a rel="author" href="{{ "/humans.txt" | relURL }}">{{ .Site.Params.author.name | default .Site.Title }}</a>.
+          {{ with .Site.Params.about_me }}
+            {{ . | plainify | truncate 170 }}
+          {{ else }}
+            Notes, reviews, reading, and photographs published on micro.blog.
+          {{ end }}
+        </p>
+      </div>
+    </div>
+
+    {{ with .Site.Menus.main }}
+      <nav class="footer-nav" aria-label="Footer">
+        <h2 class="footer-heading">Site</h2>
+        <ul class="footer-link-list">
+          {{ range . }}
+            {{ $item := . }}
+            {{ with .Page }}
+              {{ with .Params.redirect_url }}
+                <li><a href="{{ . }}">{{ $item.Name }}</a></li>
+              {{ else }}
+                <li><a href="{{ $item.URL | relLangURL | safeURL }}">{{ $item.Name }}</a></li>
+              {{ end }}
+            {{ else }}
+              <li><a href="{{ .URL | relLangURL | safeURL }}">{{ .Name }}</a></li>
+            {{ end }}
+          {{ end }}
+        </ul>
+      </nav>
+    {{ end }}
+
+    <div class="footer-connect">
+      <h2 class="footer-heading">Elsewhere</h2>
+      <ul class="footer-link-list">
+        {{ with .Site.Params.social_website_url }}<li><a href="{{ . }}" rel="me noopener">Website</a></li>{{ end }}
+        {{ with .Site.Params.social_bluesky_url }}<li><a href="{{ . }}" rel="me noopener">Bluesky</a></li>{{ end }}
+        {{ with .Site.Params.social_letterboxd_url }}<li><a href="{{ . }}" rel="me noopener">Letterboxd</a></li>{{ end }}
+        {{ with .Site.Params.social_librarything_url }}<li><a href="{{ . }}" rel="me noopener">LibraryThing</a></li>{{ end }}
+        {{ with .Site.Params.social_discogs_url }}<li><a href="{{ . }}" rel="me noopener">Discogs</a></li>{{ end }}
+        <li><a href="https://micro.blog/{{ .Site.Params.author.username }}">Micro.blog</a></li>
+        <li><a href="https://codeberg.org/jleberle">Codeberg</a></li>
+        <li><a href="https://github.com/jleberle/micro-Codex">Theme</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-subscribe">
+      <h2 class="footer-heading">Feeds</h2>
+      <div class="footer-feeds">
+        <a class="footer-feed" href="{{ "/" | relURL }}feed.xml">RSS feed</a>
+        <a class="footer-feed" href="{{ "/" | relURL }}feed.json">JSON feed</a>
+      </div>
+    </div>
   </div>
 </footer>

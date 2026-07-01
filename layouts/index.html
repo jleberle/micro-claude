@@ -60,20 +60,26 @@
 
   <div class="home-frontpage">
     {{ with $status }}
-      <section class="home-status" aria-label="Latest status">
-        <h2 class="home-section-heading">Most Recent Status</h2>
+      <section class="home-section home-status" aria-label="Latest status">
+        <header class="home-section-header">
+          <div>
+            <p class="home-section-kicker">Current note</p>
+            <h2 class="home-section-title"><a href="{{ $statusURL }}">Most Recent Status</a></h2>
+          </div>
+          <p class="home-section-meta"><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time></p>
+        </header>
         <div class="status-card">
           <div class="status-card-meta">
             <span class="status-label">Status</span>
-            <a href="{{ .Permalink }}"><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time></a>
+            <a href="{{ .Permalink }}">Permalink</a>
           </div>
           {{/* Cap the card body: .Summary is HTML-safe and word-bounded (summaryLength),
                unlike truncating raw .Content which can sever tags. */}}
           <div class="status-card-body">{{ .Summary | safeHTML }}</div>
           {{ if .Truncated }}
-            <a class="status-card-more" href="{{ .Permalink }}">Read more &rarr;</a>
+            <a class="section-more" href="{{ .Permalink }}">Continue reading &rarr;</a>
           {{ else }}
-            <a class="status-card-more" href="{{ $statusURL }}">All status posts &rarr;</a>
+            <a class="section-more" href="{{ $statusURL }}">Browse notes &rarr;</a>
           {{ end }}
         </div>
       </section>
@@ -84,7 +90,12 @@
         <div class="media-columns">
           {{ with $reading }}
             <div class="media-col">
-              <h2 class="media-col-heading">Currently Reading</h2>
+              <header class="home-section-header">
+                <div>
+                  <p class="home-section-kicker">At hand</p>
+                  <h2 class="home-section-title">Currently Reading</h2>
+                </div>
+              </header>
               <ul class="media-list media-list--reading">
                 {{ range . }}
                   <li class="media-entry">
@@ -103,7 +114,12 @@
 
           {{ if $books }}
             <div class="media-col">
-              <h2 class="media-col-heading"><a href="{{ $booksURL }}">Finished Reading</a></h2>
+              <header class="home-section-header">
+                <div>
+                  <p class="home-section-kicker">Recently read</p>
+                  <h2 class="home-section-title"><a href="{{ $booksURL }}">Finished Reading</a></h2>
+                </div>
+              </header>
               <ul class="media-list">
                 {{ range $books }}
                   {{ $p := . }}
@@ -134,7 +150,12 @@
 
           {{ if $movies }}
             <div class="media-col">
-              <h2 class="media-col-heading"><a href="{{ $moviesURL }}">Movies</a></h2>
+              <header class="home-section-header">
+                <div>
+                  <p class="home-section-kicker">Recently watched</p>
+                  <h2 class="home-section-title"><a href="{{ $moviesURL }}">Movies</a></h2>
+                </div>
+              </header>
               <ul class="media-list">
                 {{ range $movies }}
                   {{ $p := . }}
@@ -177,8 +198,13 @@
     {{ end }}
 
     {{ if $highlightsShown }}
-      <section class="home-feed" aria-label="Highlights">
-        <h2 class="home-feed-heading"><a href="{{ $highlightsURL }}">{{ $catHighlights }}</a></h2>
+      <section class="home-section home-feed" aria-label="Highlights">
+        <header class="home-section-header">
+          <div>
+            <p class="home-section-kicker">Recent writing</p>
+            <h2 class="home-section-title"><a href="{{ $highlightsURL }}">{{ $catHighlights }}</a></h2>
+          </div>
+        </header>
         <ul class="post-list">
           {{ range $highlightsShown }}
             {{ $page := . }}
@@ -197,7 +223,7 @@
           {{ end }}
         </ul>
         {{ if gt (len $highlights) $highlightsCount }}
-          <a class="home-feed-more" href="{{ $highlightsURL }}">All highlights &rarr;</a>
+          <a class="section-more" href="{{ $highlightsURL }}">All highlights &rarr;</a>
         {{ end }}
       </section>
     {{ end }}

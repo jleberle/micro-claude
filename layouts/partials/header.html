@@ -1,14 +1,8 @@
 <header class="site-header h-card">
-  <div class="wrapper">
+  <div class="wrapper site-header-inner">
     <a class="site-title u-url" href="{{ "/" | absURL }}" rel="home">
-      {{/* Always emit the avatar; CSS (body:has(.intro)) hides it only on the
-           real homepage. A .Kind/RelPermalink guard fails here because /archive/
-           and /photos/ are home-node outputs (.Kind == "home") yet need the avatar. */}}
-      {{ with .Site.Params.author.avatar }}<img src="{{ . }}" alt="{{ $.Site.Title }} avatar" class="u-photo" width="35" height="35" loading="lazy">{{ end }}
-      {{/* The site title is the page's primary heading on the home node (home /
-           archive / photos all report .IsHome), so render it as <h1> there. On
-           content pages an inline <span> keeps the article/section <h1> as that
-           page's sole top-level heading. */}}
+      {{/* Keep the publication name as the page h1 on the home node, but avoid
+           a second top-level heading on content pages. */}}
       {{ if .IsHome }}<h1 class="site-title-text p-name">{{ .Site.Title }}</h1>{{ else }}<span class="site-title-text p-name">{{ .Site.Title }}</span>{{ end }}
     </a>
     <nav class="site-nav" aria-label="Main navigation">

@@ -85,6 +85,9 @@
 
   <link rel="canonical" href="{{ .Permalink }}">
   <link rel="author" href="{{ .Site.Params.social_website_url | default .Site.BaseURL }}">
+  {{/* Self-hosted Fraunces heading font, preloaded so the editorial display
+       face is available when main.css is parsed. */}}
+  <link rel="preload" href="{{ "fonts/fraunces-600-latin.woff2" | relURL }}" as="font" type="font/woff2" crossorigin="anonymous">
   <link rel="stylesheet" href="{{ "css/main.css" | relURL }}?{{ .Site.Params.theme_seconds }}">
 
   {{- with .Site.Params.author.activitypub.username }}
