@@ -59,35 +59,35 @@
   {{ end }}
 
   <div class="home-frontpage">
-    {{ with $status }}
-      <section class="home-section home-status" aria-label="Latest status">
-        <header class="home-section-header">
-          <div>
-            <p class="home-section-kicker">Current note</p>
-            <h2 class="home-section-title"><a href="{{ $statusURL }}">Most Recent Status</a></h2>
-          </div>
-          <p class="home-section-meta"><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time></p>
-        </header>
-        <div class="status-card">
-          <div class="status-card-meta">
-            <span class="status-label">Status</span>
-            <a href="{{ .Permalink }}">Permalink</a>
-          </div>
-          {{/* Cap the card body: .Summary is HTML-safe and word-bounded (summaryLength),
-               unlike truncating raw .Content which can sever tags. */}}
-          <div class="status-card-body">{{ .Summary | safeHTML }}</div>
-          {{ if .Truncated }}
-            <a class="section-more" href="{{ .Permalink }}">Continue reading &rarr;</a>
-          {{ else }}
-            <a class="section-more" href="{{ $statusURL }}">Browse notes &rarr;</a>
+    {{ if or $status $reading }}
+      <section class="home-split" aria-label="Status and currently reading">
+        <div class="home-split-grid">
+          {{ with $status }}
+            <section class="home-section home-status" aria-label="Latest status">
+              <header class="home-section-header">
+                <div>
+                  <p class="home-section-kicker">Current note</p>
+                  <h2 class="home-section-title"><a href="{{ $statusURL }}">Most Recent Status</a></h2>
+                </div>
+                <p class="home-section-meta"><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time></p>
+              </header>
+              <div class="status-card">
+                <div class="status-card-meta">
+                  <span class="status-label">Status</span>
+                  <a href="{{ .Permalink }}">Permalink</a>
+                </div>
+                {{/* Cap the card body: .Summary is HTML-safe and word-bounded (summaryLength),
+                     unlike truncating raw .Content which can sever tags. */}}
+                <div class="status-card-body">{{ .Summary | safeHTML }}</div>
+                {{ if .Truncated }}
+                  <a class="section-more" href="{{ .Permalink }}">Continue reading &rarr;</a>
+                {{ else }}
+                  <a class="section-more" href="{{ $statusURL }}">Browse notes &rarr;</a>
+                {{ end }}
+              </div>
+            </section>
           {{ end }}
-        </div>
-      </section>
-    {{ end }}
 
-    {{ if or $reading (or $books $movies) }}
-      <section class="home-media" aria-label="Currently reading, finished reading, and movies">
-        <div class="media-columns">
           {{ with $reading }}
             <div class="media-col">
               <header class="home-section-header">
@@ -111,7 +111,13 @@
               </ul>
             </div>
           {{ end }}
+        </div>
+      </section>
+    {{ end }}
 
+    {{ if or $books $movies }}
+      <section class="home-media" aria-label="Finished reading and movies">
+        <div class="home-split-grid">
           {{ if $books }}
             <div class="media-col">
               <header class="home-section-header">
