@@ -550,12 +550,10 @@ body > .site-header,
 }
 
 .home-primary {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  gap: 1.7rem 2.4rem;
+  display: block;
 }
 
-.home-secondary {
+.home-support-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem 2.4rem;
@@ -710,28 +708,6 @@ body > .site-header,
 .post-entry .post-content > :last-child { margin-bottom: 0; }
 
 /* --- Reading / books / movies ---------------------------- */
-.media-columns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem 2rem;
-}
-
-.media-col-heading {
-  margin: 0 0 0.2rem;
-  font-size: 1.08rem;
-}
-
-.media-col-heading a {
-  color: var(--primary);
-  text-decoration: none;
-}
-
-.media-col-heading a:hover,
-.media-col-heading a:focus-visible {
-  color: var(--accent);
-  text-decoration: underline;
-}
-
 .media-list {
   margin: 0;
   padding: 0;
@@ -740,8 +716,8 @@ body > .site-header,
 
 .media-list--reading {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.35rem 1.5rem;
+  grid-template-columns: 1fr;
+  gap: 0.2rem;
 }
 
 .media-entry {
@@ -1240,9 +1216,7 @@ body > .site-footer,
 
 /* --- Responsive ------------------------------------------ */
 @media (max-width: 900px) {
-  .home-primary,
-  .home-secondary,
-  .media-columns {
+  .home-support-grid {
     grid-template-columns: 1fr;
     gap: 1.35rem;
   }
@@ -1314,10 +1288,6 @@ body > .site-footer,
 
   .site-nav {
     gap: 0.18rem 0.9rem;
-  }
-
-  .media-list--reading {
-    grid-template-columns: 1fr;
   }
 
   .post-entry-title {

@@ -59,10 +59,41 @@
   {{ end }}
 
   <div class="home-frontpage">
-    {{ if or $status $highlightsShown }}
-      <div class="home-primary">
+    {{ if $highlightsShown }}
+      <section class="home-section home-section--primary home-feed" aria-label="Highlights">
+        <header class="home-section-header">
+          <div>
+            <p class="home-section-kicker">Recent writing</p>
+            <h2 class="home-section-title"><a href="{{ $highlightsURL }}">{{ $catHighlights }}</a></h2>
+          </div>
+        </header>
+        <ul class="post-list">
+          {{ range $highlightsShown }}
+            {{ $page := . }}
+            <li class="post-entry{{ if not $page.Title }} short{{ end }}">
+              {{ if $page.Title }}
+                <h3 class="post-entry-title">
+                  <a href="{{ $page.Permalink }}">{{ $page.Title }}</a>
+                </h3>
+              {{ end }}
+              <div class="post-entry-meta">
+                <time datetime="{{ $page.Date.Format "2006-01-02" }}">{{ $page.Date.Format "January 2, 2006" }}</time>
+              </div>
+              <p class="post-entry-summary">{{ $page.Summary | plainify | htmlUnescape | truncate 200 }}</p>
+              <a class="read-more" href="{{ $page.Permalink }}">{{ if $page.Title }}Read more{{ else }}Permalink{{ end }} &rarr;</a>
+            </li>
+          {{ end }}
+        </ul>
+        {{ if gt (len $highlights) $highlightsCount }}
+          <a class="section-more" href="{{ $highlightsURL }}">All highlights &rarr;</a>
+        {{ end }}
+      </section>
+    {{ end }}
+
+    {{ if or $status (or $reading (or $books $movies)) }}
+      <div class="home-support-grid">
         {{ with $status }}
-          <section class="home-section home-section--primary home-status" aria-label="Latest status">
+          <section class="home-section home-status" aria-label="Latest status">
             <header class="home-section-header">
               <div>
                 <p class="home-section-kicker">Current note</p>
@@ -81,41 +112,6 @@
           </section>
         {{ end }}
 
-        {{ if $highlightsShown }}
-          <section class="home-section home-section--primary home-feed" aria-label="Highlights">
-            <header class="home-section-header">
-              <div>
-                <p class="home-section-kicker">Recent writing</p>
-                <h2 class="home-section-title"><a href="{{ $highlightsURL }}">{{ $catHighlights }}</a></h2>
-              </div>
-            </header>
-            <ul class="post-list">
-              {{ range $highlightsShown }}
-                {{ $page := . }}
-                <li class="post-entry{{ if not $page.Title }} short{{ end }}">
-                  {{ if $page.Title }}
-                    <h3 class="post-entry-title">
-                      <a href="{{ $page.Permalink }}">{{ $page.Title }}</a>
-                    </h3>
-                  {{ end }}
-                  <div class="post-entry-meta">
-                    <time datetime="{{ $page.Date.Format "2006-01-02" }}">{{ $page.Date.Format "January 2, 2006" }}</time>
-                  </div>
-                  <p class="post-entry-summary">{{ $page.Summary | plainify | htmlUnescape | truncate 200 }}</p>
-                  <a class="read-more" href="{{ $page.Permalink }}">{{ if $page.Title }}Read more{{ else }}Permalink{{ end }} &rarr;</a>
-                </li>
-              {{ end }}
-            </ul>
-            {{ if gt (len $highlights) $highlightsCount }}
-              <a class="section-more" href="{{ $highlightsURL }}">All highlights &rarr;</a>
-            {{ end }}
-          </section>
-        {{ end }}
-      </div>
-    {{ end }}
-
-    {{ if or $reading (or $books $movies) }}
-      <div class="home-secondary">
         {{ if $reading }}
           <section class="home-section home-reading" aria-label="Currently reading">
             <header class="home-section-header">
@@ -140,83 +136,85 @@
           </section>
         {{ end }}
 
-        {{ if or $books $movies }}
-          <section class="home-section home-media" aria-label="Books and movies">
+        {{ if $books }}
+          <section class="home-section home-books" aria-label="Recent books">
             <header class="home-section-header">
               <div>
-                <p class="home-section-kicker">Recent media</p>
-                <h2 class="home-section-title">Books and Movies</h2>
+                <p class="home-section-kicker">Recently read</p>
+                <h2 class="home-section-title"><a href="{{ $booksURL }}">Books</a></h2>
               </div>
             </header>
-            <div class="media-columns">
-              <div class="media-col">
-                <h3 class="media-col-heading"><a href="{{ $booksURL }}">Books</a></h3>
-                <ul class="media-list">
-                  {{ range $books }}
-                    {{ $p := . }}
-                    {{/* Cover + canonical link come from the structured ISBN (.Params.books),
-                         not from scraping an <img> out of .Content. Title/review are still
-                         content-derived (these posts have no title/author front-matter) but
-                         parsed with exact string ops, not regex. */}}
-                    {{ $isbn := "" }}
-                    {{ with $p.Params.books }}{{ $isbn = index . 0 }}{{ end }}
-                    {{ $text := trim ($p.Content | plainify | htmlUnescape) "\n\r\t " }}
-                    {{ $title := trim (index (split $text "\n") 0) " " }}
-                    {{ $review := trim (strings.TrimPrefix $title $text) "\n\r\t " }}
-                    <li class="media-entry">
-                      {{ with $isbn }}
-                        <a href="https://micro.blog/books/{{ . }}"><img class="media-cover" src="https://cdn.micro.blog/books/{{ . }}/cover.jpg" alt="{{ $title }}" loading="lazy"></a>
-                      {{ end }}
-                      <div class="media-entry-info">
-                        <time class="media-entry-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "January 2, 2006" }}</time>
-                        <a href="{{ $p.Permalink }}">{{ $title }}</a>
-                        {{ with $review }}<span class="media-entry-review">{{ . | truncate 80 }}</span>{{ end }}
-                      </div>
-                    </li>
+            <ul class="media-list">
+              {{ range $books }}
+                {{ $p := . }}
+                {{/* Cover + canonical link come from the structured ISBN (.Params.books),
+                     not from scraping an <img> out of .Content. Title/review are still
+                     content-derived (these posts have no title/author front-matter) but
+                     parsed with exact string ops, not regex. */}}
+                {{ $isbn := "" }}
+                {{ with $p.Params.books }}{{ $isbn = index . 0 }}{{ end }}
+                {{ $text := trim ($p.Content | plainify | htmlUnescape) "\n\r\t " }}
+                {{ $title := trim (index (split $text "\n") 0) " " }}
+                {{ $review := trim (strings.TrimPrefix $title $text) "\n\r\t " }}
+                <li class="media-entry">
+                  {{ with $isbn }}
+                    <a href="https://micro.blog/books/{{ . }}"><img class="media-cover" src="https://cdn.micro.blog/books/{{ . }}/cover.jpg" alt="{{ $title }}" loading="lazy"></a>
                   {{ end }}
-                </ul>
-                <a class="section-more" href="{{ $booksURL }}">All books &rarr;</a>
-              </div>
+                  <div class="media-entry-info">
+                    <time class="media-entry-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "January 2, 2006" }}</time>
+                    <a href="{{ $p.Permalink }}">{{ $title }}</a>
+                    {{ with $review }}<span class="media-entry-review">{{ . | truncate 80 }}</span>{{ end }}
+                  </div>
+                </li>
+              {{ end }}
+            </ul>
+            <a class="section-more" href="{{ $booksURL }}">All books &rarr;</a>
+          </section>
+        {{ end }}
 
-              <div class="media-col">
-                <h3 class="media-col-heading"><a href="{{ $moviesURL }}">Movies</a></h3>
-                <ul class="media-list">
-                  {{ range $movies }}
-                    {{ $p := . }}
-                    {{ $contentHTML := $p.Content }}
-                    {{/* micro.blog injects the movie poster as a leading <img> once it has
-                         fetched it from TMDB. Local Hugo previews do not add this, so the
-                         poster must stay optional and the text path remains the fallback. */}}
-                    {{ $posterSrc := "" }}
-                    {{ with findRE `(?i)<img[^>]+src=(?:"[^"]+"|[^[:space:]>]+)` $contentHTML 1 }}
-                      {{ $posterSrc = replaceRE `(?i)^.*src=(?:"([^"]+)"|([^[:space:]>]+)).*$` "$1$2" (index . 0) }}
-                    {{ end }}
-                    {{ $movieURL := $p.Permalink }}
-                    {{ with findRE `https://www\.themoviedb\.org/[^"'[:space:]<>]+` $contentHTML 1 }}
-                      {{ $movieURL = index . 0 }}
-                    {{ end }}
-                    {{/* No structured movie data — title (first line) + review (the rest) are
-                         still parsed from content, but with exact string ops instead of regex. */}}
-                    {{ $text := trim ($contentHTML | plainify | htmlUnescape) "\n\r\t " }}
-                    {{ $title := trim (index (split $text "\n") 0) " " }}
-                    {{ $review := trim (strings.TrimPrefix $title $text) "\n\r\t " }}
-                    <li class="media-entry media-entry--movie">
-                      {{ with $posterSrc }}
-                        <a href="{{ $movieURL }}"><img class="media-cover" src="{{ . }}" alt="{{ $title }}" loading="lazy"></a>
-                      {{ end }}
-                      <div class="media-entry-info">
-                        <time class="media-entry-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "January 2, 2006" }}</time>
-                        <a href="{{ $p.Permalink }}">{{ $title }}</a>
-                        {{ with $review }}<span class="media-entry-review">{{ . | truncate 80 }}</span>{{ end }}
-                      </div>
-                    </li>
-                  {{ end }}
-                </ul>
-                {{ if gt (len $moviePosts) $moviesCount }}
-                  <a class="section-more" href="{{ $moviesURL }}">All movies &rarr;</a>
-                {{ end }}
+        {{ if $movies }}
+          <section class="home-section home-movies" aria-label="Recent movies">
+            <header class="home-section-header">
+              <div>
+                <p class="home-section-kicker">Recently watched</p>
+                <h2 class="home-section-title"><a href="{{ $moviesURL }}">Movies</a></h2>
               </div>
-            </div>
+            </header>
+            <ul class="media-list">
+              {{ range $movies }}
+                {{ $p := . }}
+                {{ $contentHTML := $p.Content }}
+                {{/* micro.blog injects the movie poster as a leading <img> once it has
+                     fetched it from TMDB. Local Hugo previews do not add this, so the
+                     poster must stay optional and the text path remains the fallback. */}}
+                {{ $posterSrc := "" }}
+                {{ with findRE `(?i)<img[^>]+src=(?:"[^"]+"|[^[:space:]>]+)` $contentHTML 1 }}
+                  {{ $posterSrc = replaceRE `(?i)^.*src=(?:"([^"]+)"|([^[:space:]>]+)).*$` "$1$2" (index . 0) }}
+                {{ end }}
+                {{ $movieURL := $p.Permalink }}
+                {{ with findRE `https://www\.themoviedb\.org/[^"'[:space:]<>]+` $contentHTML 1 }}
+                  {{ $movieURL = index . 0 }}
+                {{ end }}
+                {{/* No structured movie data — title (first line) + review (the rest) are
+                     still parsed from content, but with exact string ops instead of regex. */}}
+                {{ $text := trim ($contentHTML | plainify | htmlUnescape) "\n\r\t " }}
+                {{ $title := trim (index (split $text "\n") 0) " " }}
+                {{ $review := trim (strings.TrimPrefix $title $text) "\n\r\t " }}
+                <li class="media-entry media-entry--movie">
+                  {{ with $posterSrc }}
+                    <a href="{{ $movieURL }}"><img class="media-cover" src="{{ . }}" alt="{{ $title }}" loading="lazy"></a>
+                  {{ end }}
+                  <div class="media-entry-info">
+                    <time class="media-entry-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "January 2, 2006" }}</time>
+                    <a href="{{ $p.Permalink }}">{{ $title }}</a>
+                    {{ with $review }}<span class="media-entry-review">{{ . | truncate 80 }}</span>{{ end }}
+                  </div>
+                </li>
+              {{ end }}
+            </ul>
+            {{ if gt (len $moviePosts) $moviesCount }}
+              <a class="section-more" href="{{ $moviesURL }}">All movies &rarr;</a>
+            {{ end }}
           </section>
         {{ end }}
       </div>
