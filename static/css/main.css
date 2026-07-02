@@ -701,6 +701,10 @@ body > .site-header,
   border-bottom: 1px solid var(--border);
 }
 
+.home-frontpage .media-list > .media-entry:first-child {
+  border-top: 0;
+}
+
 .media-cover {
   width: 72px;
   flex-shrink: 0;
@@ -790,6 +794,10 @@ body > .site-header,
 
 .post-list .post-entry:last-child {
   border-bottom: 1px solid var(--border);
+}
+
+.home-frontpage .post-list > .post-entry:first-child {
+  border-top: 0;
 }
 
 .post-entry-title {
