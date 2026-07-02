@@ -14,7 +14,8 @@
   "params": {
     "archive_months_photos": true,
     "home_cat_status": "Status",
-    "home_cat_books": "Books",
+    "home_cat_started_reading": "Started Reading",
+    "home_cat_finished_reading": "Finished Reading",
     "home_cat_movies": "Movies",
     "home_cat_highlights": "Highlights",
     "home_books_count": 5,

@@ -6,22 +6,24 @@
        Category names + counts live in config.json params so renames/tweaks are one-line. */}}
   {{ $all := (where .Site.RegularPages "Type" "post").ByDate.Reverse }}
 
-  {{ $catStatus     := .Site.Params.home_cat_status     | default "Status" }}
-  {{ $catBooks      := .Site.Params.home_cat_books      | default "Books" }}
-  {{ $catMovies     := .Site.Params.home_cat_movies     | default "Movies" }}
-  {{ $catHighlights := .Site.Params.home_cat_highlights | default "Highlights" }}
+  {{ $catStatus          := .Site.Params.home_cat_status          | default "Status" }}
+  {{ $catStartedReading  := .Site.Params.home_cat_started_reading | default "Started Reading" }}
+  {{ $catFinishedReading := .Site.Params.home_cat_finished_reading | default "Finished Reading" }}
+  {{ $catMovies          := .Site.Params.home_cat_movies          | default "Movies" }}
+  {{ $catHighlights      := .Site.Params.home_cat_highlights      | default "Highlights" }}
 
-  {{ $statusPosts := where $all "Params.categories" "intersect" (slice $catStatus) }}
-  {{ $bookPosts   := where $all "Params.categories" "intersect" (slice $catBooks) }}
-  {{ $moviePosts  := where $all "Params.categories" "intersect" (slice $catMovies) }}
-  {{ $highlights  := where $all "Params.categories" "intersect" (slice $catHighlights) }}
+  {{ $statusPosts   := where $all "Params.categories" "intersect" (slice $catStatus) }}
+  {{ $startedPosts  := where $all "Params.categories" "intersect" (slice $catStartedReading) }}
+  {{ $finishedPosts := where $all "Params.categories" "intersect" (slice $catFinishedReading) }}
+  {{ $moviePosts    := where $all "Params.categories" "intersect" (slice $catMovies) }}
+  {{ $highlights    := where $all "Params.categories" "intersect" (slice $catHighlights) }}
 
   {{/* "All …" links must track the configurable category names above, not
        hardcoded /categories/<name> paths that break on a backend rename. */}}
-  {{ $statusURL     := printf "/categories/%s" ($catStatus     | urlize) | relURL }}
-  {{ $booksURL      := printf "/categories/%s" ($catBooks      | urlize) | relURL }}
-  {{ $moviesURL     := printf "/categories/%s" ($catMovies     | urlize) | relURL }}
-  {{ $highlightsURL := printf "/categories/%s" ($catHighlights | urlize) | relURL }}
+  {{ $statusURL          := printf "/categories/%s" ($catStatus          | urlize) | relURL }}
+  {{ $finishedReadingURL := printf "/categories/%s" ($catFinishedReading | urlize) | relURL }}
+  {{ $moviesURL          := printf "/categories/%s" ($catMovies          | urlize) | relURL }}
+  {{ $highlightsURL      := printf "/categories/%s" ($catHighlights      | urlize) | relURL }}
 
   {{/* Backend field values are always strings, and `int` is FATAL on a malformed one —
        even "5 " with a trailing space — which would kill the whole home node (page +
@@ -39,24 +41,47 @@
        it (tracked by permalink). `where ... "not in"` over an empty slice keeps all. */}}
   {{/* `index` errors on an empty slice — and a fault here kills the WHOLE home
        node (page + RSS/JSON feeds), so guard for a Status category with no posts. */}}
+  {{ $finishedISBNs := slice }}
+  {{ range $finishedPosts }}
+    {{ $p := . }}
+    {{ $isbn := "" }}
+    {{ with $p.Params.books }}{{ $isbn = index . 0 }}{{ end }}
+    {{ if not $isbn }}
+      {{ with findRE `https://micro\.blog/books/[^"'[:space:]<>]+` $p.Content 1 }}
+        {{ $isbn = replaceRE `^.*?/books/([^/?#"'<>\s]+).*$` "$1" (index . 0) }}
+      {{ end }}
+    {{ end }}
+    {{ with $isbn }}{{ $finishedISBNs = $finishedISBNs | append . }}{{ end }}
+  {{ end }}
+
   {{ $seen := slice }}
   {{ $status := "" }}
   {{ if $statusPosts }}{{ $status = index $statusPosts 0 }}{{ end }}
   {{ with $status }}{{ $seen = $seen | append .Permalink }}{{ end }}
 
-  {{ $books := first $booksCount (where $bookPosts "Permalink" "not in" $seen) }}
+  {{ $reading := slice }}
+  {{ range $startedPosts }}
+    {{ $p := . }}
+    {{ $isbn := "" }}
+    {{ with $p.Params.books }}{{ $isbn = index . 0 }}{{ end }}
+    {{ if not $isbn }}
+      {{ with findRE `https://micro\.blog/books/[^"'[:space:]<>]+` $p.Content 1 }}
+        {{ $isbn = replaceRE `^.*?/books/([^/?#"'<>\s]+).*$` "$1" (index . 0) }}
+      {{ end }}
+    {{ end }}
+    {{ if and (not (in $seen $p.Permalink)) (or (not $isbn) (not (in $finishedISBNs $isbn))) }}
+      {{ $reading = $reading | append $p }}
+      {{ $seen = $seen | append $p.Permalink }}
+    {{ end }}
+  {{ end }}
+
+  {{ $books := first $booksCount (where $finishedPosts "Permalink" "not in" $seen) }}
   {{ range $books }}{{ $seen = $seen | append .Permalink }}{{ end }}
 
   {{ $movies := first $moviesCount (where $moviePosts "Permalink" "not in" $seen) }}
   {{ range $movies }}{{ $seen = $seen | append .Permalink }}{{ end }}
 
   {{ $highlightsShown := first $highlightsCount (where $highlights "Permalink" "not in" $seen) }}
-  {{ $reading := slice }}
-  {{ with hugo.Data.bookshelves }}
-    {{ with index . "currentlyreading" }}
-      {{ $reading = . }}
-    {{ end }}
-  {{ end }}
 
   <div class="home-frontpage">
     {{ if or $status $reading }}
@@ -98,13 +123,25 @@
               </header>
               <ul class="media-list media-list--reading">
                 {{ range . }}
+                  {{ $p := . }}
+                  {{ $isbn := "" }}
+                  {{ with $p.Params.books }}{{ $isbn = index . 0 }}{{ end }}
+                  {{ if not $isbn }}
+                    {{ with findRE `https://micro\.blog/books/[^"'[:space:]<>]+` $p.Content 1 }}
+                      {{ $isbn = replaceRE `^.*?/books/([^/?#"'<>\s]+).*$` "$1" (index . 0) }}
+                    {{ end }}
+                  {{ end }}
+                  {{ $text := trim ($p.Content | plainify | htmlUnescape) "\n\r\t " }}
+                  {{ $title := trim (index (split $text "\n") 0) " " }}
+                  {{ $review := trim (strings.TrimPrefix $title $text) "\n\r\t " }}
                   <li class="media-entry">
-                    <a href="https://micro.blog/books/{{ .isbn }}">
-                      <img class="media-cover" src="{{ .cover_url }}" alt="{{ .title }}" width="80" height="120" loading="lazy">
-                    </a>
+                    {{ with $isbn }}
+                      <a href="https://micro.blog/books/{{ . }}"><img class="media-cover" src="https://cdn.micro.blog/books/{{ . }}/cover.jpg" alt="{{ $title }}" loading="lazy"></a>
+                    {{ end }}
                     <div class="media-entry-info">
-                      <a href="https://micro.blog/books/{{ .isbn }}">{{ .title }}</a>
-                      <span class="media-entry-sub">by {{ .author }}</span>
+                      <time class="media-entry-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "January 2, 2006" }}</time>
+                      <a href="{{ $p.Permalink }}">{{ $title }}</a>
+                      {{ with $review }}<span class="media-entry-review">{{ . | truncate 80 }}</span>{{ end }}
                     </div>
                   </li>
                 {{ end }}
@@ -123,7 +160,7 @@
               <header class="home-section-header">
                 <div>
                   <p class="home-section-kicker">Recently read</p>
-                  <h2 class="home-section-title"><a href="{{ $booksURL }}">Finished Reading</a></h2>
+                  <h2 class="home-section-title"><a href="{{ $finishedReadingURL }}">Finished Reading</a></h2>
                 </div>
               </header>
               <ul class="media-list">
@@ -150,7 +187,7 @@
                   </li>
                 {{ end }}
               </ul>
-              <a class="media-col-more" href="{{ $booksURL }}">All books &rarr;</a>
+              <a class="media-col-more" href="{{ $finishedReadingURL }}">All books &rarr;</a>
             </div>
           {{ end }}
 

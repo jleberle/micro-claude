@@ -9,8 +9,20 @@
 			"type": "boolean"
 		},
 		{
+			"field": "params.home_cat_started_reading",
+			"label": "Homepage: category for Currently Reading",
+			"placeholder": "Started Reading",
+			"type": "string"
+		},
+		{
+			"field": "params.home_cat_finished_reading",
+			"label": "Homepage: category for Finished Reading",
+			"placeholder": "Finished Reading",
+			"type": "string"
+		},
+		{
 			"field": "params.home_books_count",
-			"label": "Homepage: number of Books to show",
+			"label": "Homepage: number of Finished Reading books to show",
 			"placeholder": "5",
 			"type": "string"
 		},

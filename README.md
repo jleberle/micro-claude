@@ -75,12 +75,14 @@ theme.toml                   theme metadata
 
 1. **Intro card** — avatar + bio + social links (`partials/intro.html`).
 2. **Status** — most recent post in the `Status` category.
-3. **Currently Reading** — from the bookshelf plugin's data (`.Site.Data.bookshelves`).
-4. **Books | Movies** — two columns of recent posts in the `Books` / `Movies` categories.
+3. **Currently Reading** — unresolved posts in the `Started Reading` category.
+4. **Finished Reading | Movies** — two columns of recent posts in the `Finished Reading` /
+   `Movies` categories.
 5. **Highlights** — up to 10 recent posts in the `Highlights` category.
 
-Category names are matched **exactly and case-sensitively** (`Status`, `Books`, `Movies`,
-`Highlights`). Rename a category in micro.blog and its section silently goes empty.
+Category names are matched **exactly and case-sensitively** (`Status`, `Started Reading`,
+`Finished Reading`, `Movies`, `Highlights`). Rename a category in micro.blog and its section
+silently goes empty unless you update the matching `home_cat_*` setting.
 
 ## Customization
 
@@ -139,7 +141,7 @@ These micro.blog plugins are installed alongside the theme:
 
 | Plugin | Role |
 |---|---|
-| [microdotblog-bookshelf-shortcode](https://github.com/kottkrig/microdotblog-bookshelf-shortcode) | Provides `.Site.Data.bookshelves` — **required** for the Currently Reading section |
+| [microdotblog-bookshelf-shortcode](https://github.com/kottkrig/microdotblog-bookshelf-shortcode) | Optional bookshelf shortcode plugin; no longer used by the homepage reading sections |
 | [plugin-bookgoals](https://github.com/microdotblog/plugin-bookgoals) | Reading-goals shortcode |
 | [plugin-search-page](https://github.com/microdotblog/plugin-search-page) | Search page (see the `list.archivejson.json` override above) |
 | [plugin-cc](https://github.com/microdotblog/plugin-cc) | Creative Commons license tag (injects via `custom_footer.html`) |

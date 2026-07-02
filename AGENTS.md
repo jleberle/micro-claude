@@ -215,15 +215,15 @@ plugin.json                  # micro.blog theme metadata + settings fields
 ## Homepage sections (layouts/index.html)
 1. **Intro card** — avatar + bio + social links (from `intro.html`)
 2. **Status card** — most recent post in "Status" category
-3. **Currently Reading** — from `hugo.Data` bookshelves
-4. **Books | Movies** — two-column, recent posts in Books/Movies categories
+3. **Currently Reading** — unresolved posts in the "Started Reading" category
+4. **Finished Reading | Movies** — two-column, recent posts in Finished Reading/Movies categories
 5. **Highlights** — recent posts in "Highlights" category
 
 - **Sourcing:** one base slice — `(where .Site.RegularPages "Type" "post").ByDate.Reverse`
   — then per-section `where ... "Params.categories" "intersect" (slice <name>)`. `where`
   preserves order, so derived slices are NOT re-sorted.
-- **Category names + counts are params.** Names (`home_cat_status/books/movies/
-  highlights`) live in `config.json`. Counts (`home_books_count`/`home_movies_count`/
+- **Category names + counts are params.** Names (`home_cat_status/started_reading/
+  finished_reading/movies/highlights`) live in `config.json`. Counts (`home_books_count`/`home_movies_count`/
   `home_highlights_count`) are `config.json` defaults AND exposed as **backend fields** in
   `plugin.json` so they can be tuned without a push. **Counts are validated, never cast
   raw (2026-06-11):** Hugo's `int` is FATAL on any malformed string — even `"5 "` with a
@@ -236,20 +236,25 @@ plugin.json                  # micro.blog theme metadata + settings fields
   8, verified). Blank/missing/malformed values fall back silently. Guard verified on
   0.91.2, 0.158, and 0.163 (matrix: "8"→8, 7→7, "5 "/""/"abc"/"010"/missing→default).
 - **De-duplicated across sections:** a `$seen` slice of permalinks is built in section
-  order (Status → Books → Movies → Highlights); each section filters with
-  `where ... "Permalink" "not in" $seen` so a post in multiple categories appears only
-  once (e.g. a Books+Status post shows in Status, not again in Books/Highlights).
+  order (Status → Currently Reading → Finished Reading → Movies → Highlights); each section
+  filters with `where ... "Permalink" "not in" $seen` so a post in multiple categories
+  appears only once (e.g. a Finished Reading+Status post shows in Status, not again below).
+- **Currently Reading is derived from Started/Finished pairs, not the bookshelf plugin.**
+  Started-reading posts are shown until a finished-reading post with the same ISBN exists.
+  The ISBN comes from `.Params.books` when present, else falls back to parsing a
+  `https://micro.blog/books/<isbn>` link out of the post body. That lets imported RSS posts
+  behave like native Micro.blog book entries without requiring the bookshelf data path.
 - **Status card body is capped** with `.Summary` (HTML-safe, word-bounded by
   summaryLength) instead of full `.Content` — never truncate raw `.Content`, it can sever
   tags. When `.Truncated`, the card's link becomes "Read more →" to the post.
-- **Books cover/link from structured data, not regex:** book posts carry the ISBN in
-  front matter (`.Params.books` → `["<isbn>"]`). The cover is `https://cdn.micro.blog/
-  books/<isbn>/cover.jpg` and the link `https://micro.blog/books/<isbn>` — no more
-  `findRE` scraping an `<img>` out of `.Content` (and rendered as `.media-cover`, matching
-  the rest of the theme). Title/review are still content-derived for BOTH books and movies
-  (these posts have no title/author front matter), but parsed with exact string ops —
-  `trim` + `split "\n"` (first line = title) + `strings.TrimPrefix` (rest = review) —
-  instead of fragile `replaceRE`/`^Watched:` patterns.
+- **Reading cover/link uses structured data first, body link second.** Reading posts use
+  the ISBN in front matter (`.Params.books` → `["<isbn>"]`) when present; if absent, the
+  homepage falls back to parsing a `https://micro.blog/books/<isbn>` link from `.Content`.
+  The cover is then `https://cdn.micro.blog/books/<isbn>/cover.jpg` and the canonical book
+  link `https://micro.blog/books/<isbn>`. Title/review are still content-derived for BOTH
+  reading and movies (these posts have no title/author front matter), but parsed with exact
+  string ops — `trim` + `split "\n"` (first line = title) + `strings.TrimPrefix` (rest =
+  review) — instead of fragile `replaceRE`/`^Watched:` patterns.
 - **Column balance:** book rows have a cover (taller) and movie rows are text-only, so the
   two columns diverge in height. `.media-columns .media-cover { width: 56px }` shrinks the
   book covers in that grid only (currently-reading keeps 80px) to bring row heights closer;
