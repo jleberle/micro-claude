@@ -215,8 +215,9 @@ plugin.json                  # micro.blog theme metadata + settings fields
 ## Homepage sections (layouts/index.html)
 1. **Intro card** — avatar + bio + social links (from `intro.html`)
 2. **Status card** — most recent post in "Status" category
-3. **Currently Reading** — unresolved posts in the "Started Reading" category
-4. **Finished Reading | Movies** — two-column, recent posts in Finished Reading/Movies categories
+3. **Currently Reading** — imported `Started reading:` posts that do not yet have a matching
+   finished entry
+4. **Finished Reading | Movies** — two-column, recent `Finished reading:`/Movies posts
 5. **Highlights** — recent posts in "Highlights" category
 
 - **Sourcing:** one base slice — `(where .Site.RegularPages "Type" "post").ByDate.Reverse`
@@ -240,10 +241,13 @@ plugin.json                  # micro.blog theme metadata + settings fields
   filters with `where ... "Permalink" "not in" $seen` so a post in multiple categories
   appears only once (e.g. a Finished Reading+Status post shows in Status, not again below).
 - **Currently Reading is derived from Started/Finished pairs, not the bookshelf plugin.**
-  Started-reading posts are shown until a finished-reading post with the same ISBN exists.
-  The ISBN comes from `.Params.books` when present, else falls back to parsing a
-  `https://micro.blog/books/<isbn>` link out of the post body. That lets imported RSS posts
-  behave like native Micro.blog book entries without requiring the bookshelf data path.
+  Started-reading posts are detected by either the `Started Reading` category OR a first
+  line beginning `Started reading:`; finished-reading posts are detected the same way with
+  `Finished Reading` / `Finished reading:`. Started-reading posts are shown until a
+  finished-reading post with the same ISBN exists. The ISBN comes from `.Params.books` when
+  present, else falls back to parsing a `https://micro.blog/books/<isbn>` link out of the
+  post body. That lets imported RSS posts behave like native Micro.blog book entries
+  without a brittle dependency on exact category labels.
 - **Status card body is capped** with `.Summary` (HTML-safe, word-bounded by
   summaryLength) instead of full `.Content` — never truncate raw `.Content`, it can sever
   tags. When `.Truncated`, the card's link becomes "Read more →" to the post.

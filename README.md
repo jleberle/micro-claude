@@ -75,14 +75,15 @@ theme.toml                   theme metadata
 
 1. **Intro card** — avatar + bio + social links (`partials/intro.html`).
 2. **Status** — most recent post in the `Status` category.
-3. **Currently Reading** — unresolved posts in the `Started Reading` category.
-4. **Finished Reading | Movies** — two columns of recent posts in the `Finished Reading` /
-   `Movies` categories.
+3. **Currently Reading** — imported `Started reading:` posts that do not yet have a matching
+   finished entry.
+4. **Finished Reading | Movies** — two columns of recent `Finished reading:` / `Movies`
+   posts.
 5. **Highlights** — up to 10 recent posts in the `Highlights` category.
 
-Category names are matched **exactly and case-sensitively** (`Status`, `Started Reading`,
-`Finished Reading`, `Movies`, `Highlights`). Rename a category in micro.blog and its section
-silently goes empty unless you update the matching `home_cat_*` setting.
+Reading sections are driven primarily by the imported post text pattern (`Started reading:`
+and `Finished reading:`) so they keep working even if category labels drift. The matching
+reading categories are still configurable and used for category-page links.
 
 ## Customization
 

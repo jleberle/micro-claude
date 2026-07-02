@@ -7,23 +7,69 @@
   {{ $all := (where .Site.RegularPages "Type" "post").ByDate.Reverse }}
 
   {{ $catStatus          := .Site.Params.home_cat_status          | default "Status" }}
+  {{ $catBooksFallback   := .Site.Params.home_cat_books           | default "Books" }}
   {{ $catStartedReading  := .Site.Params.home_cat_started_reading | default "Started Reading" }}
   {{ $catFinishedReading := .Site.Params.home_cat_finished_reading | default "Finished Reading" }}
   {{ $catMovies          := .Site.Params.home_cat_movies          | default "Movies" }}
   {{ $catHighlights      := .Site.Params.home_cat_highlights      | default "Highlights" }}
 
-  {{ $statusPosts   := where $all "Params.categories" "intersect" (slice $catStatus) }}
-  {{ $startedPosts  := where $all "Params.categories" "intersect" (slice $catStartedReading) }}
-  {{ $finishedPosts := where $all "Params.categories" "intersect" (slice $catFinishedReading) }}
-  {{ $moviePosts    := where $all "Params.categories" "intersect" (slice $catMovies) }}
-  {{ $highlights    := where $all "Params.categories" "intersect" (slice $catHighlights) }}
+  {{ $statusPosts         := where $all "Params.categories" "intersect" (slice $catStatus) }}
+  {{ $bookFallbackPosts   := where $all "Params.categories" "intersect" (slice $catBooksFallback) }}
+  {{ $startedTaggedPosts  := where $all "Params.categories" "intersect" (slice $catStartedReading) }}
+  {{ $finishedTaggedPosts := where $all "Params.categories" "intersect" (slice $catFinishedReading) }}
+  {{ $moviePosts          := where $all "Params.categories" "intersect" (slice $catMovies) }}
+  {{ $highlights          := where $all "Params.categories" "intersect" (slice $catHighlights) }}
+
+  {{/* Category archives can have custom slugs in Micro.blog, so resolve the
+       actual taxonomy-page permalink by title instead of assuming `urlize`
+       matches the live path. Fall back to the conventional Hugo path when the
+       term page is unavailable locally. */}}
+  {{ $categoryURLs := dict }}
+  {{ with .Site.Taxonomies.categories }}
+    {{ range $term, $weightedPages := . }}
+      {{ with $weightedPages.Page }}
+        {{ $categoryURLs = merge $categoryURLs (dict .Title .RelPermalink) }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+
+  {{/* Reading sections are sourced from the imported RSS posts themselves.
+       Category matching is still supported, but the durable signal is the
+       first line's native text pattern (`Started reading:` / `Finished reading:`),
+       which is what the RSS feed and the Micro.blog autotagging rules are both
+       built around. This avoids a brittle dependency on exact backend category
+       labels while still keeping category pages/links useful. */}}
+  {{ $startedPosts := slice }}
+  {{ $finishedPosts := slice }}
+  {{ range $all }}
+    {{ $p := . }}
+    {{ $text := trim ($p.Content | plainify | htmlUnescape) "\n\r\t " }}
+    {{ $titleLine := trim (index (split $text "\n") 0) " " }}
+    {{ $isStarted := false }}
+    {{ $isFinished := false }}
+    {{ with $p.Params.categories }}
+      {{ if in . $catStartedReading }}{{ $isStarted = true }}{{ end }}
+      {{ if in . $catFinishedReading }}{{ $isFinished = true }}{{ end }}
+    {{ end }}
+    {{ if and (not $isStarted) (findRE `(?i)^Started reading:` $titleLine 1) }}{{ $isStarted = true }}{{ end }}
+    {{ if and (not $isFinished) (findRE `(?i)^Finished reading:` $titleLine 1) }}{{ $isFinished = true }}{{ end }}
+    {{ if $isStarted }}{{ $startedPosts = $startedPosts | append $p }}{{ end }}
+    {{ if $isFinished }}{{ $finishedPosts = $finishedPosts | append $p }}{{ end }}
+  {{ end }}
 
   {{/* "All …" links must track the configurable category names above, not
        hardcoded /categories/<name> paths that break on a backend rename. */}}
-  {{ $statusURL          := printf "/categories/%s" ($catStatus          | urlize) | relURL }}
-  {{ $finishedReadingURL := printf "/categories/%s" ($catFinishedReading | urlize) | relURL }}
-  {{ $moviesURL          := printf "/categories/%s" ($catMovies          | urlize) | relURL }}
-  {{ $highlightsURL      := printf "/categories/%s" ($catHighlights      | urlize) | relURL }}
+  {{ $statusURL          := (index $categoryURLs $catStatus)          | default (printf "/categories/%s" ($catStatus          | urlize) | relURL) }}
+  {{ $booksFallbackURL   := (index $categoryURLs $catBooksFallback)   | default (printf "/categories/%s" ($catBooksFallback   | urlize) | relURL) }}
+  {{ $startedReadingURL  := (index $categoryURLs $catStartedReading)  | default (printf "/categories/%s" ($catStartedReading  | urlize) | relURL) }}
+  {{ $finishedReadingURL := (index $categoryURLs $catFinishedReading) | default (printf "/categories/%s" ($catFinishedReading | urlize) | relURL) }}
+  {{ $moviesURL          := (index $categoryURLs $catMovies)          | default (printf "/categories/%s" ($catMovies          | urlize) | relURL) }}
+  {{ $highlightsURL      := (index $categoryURLs $catHighlights)      | default (printf "/categories/%s" ($catHighlights      | urlize) | relURL) }}
+  {{/* Imported RSS reading posts can appear on the broad Books archive before
+       Micro.blog's more specific Started/Finished Reading categories populate.
+       Keep the homepage sections content-driven, but send "All books" to the
+       real archive if the narrower category is still empty. */}}
+  {{ if and (eq (len $finishedTaggedPosts) 0) (gt (len $bookFallbackPosts) 0) }}{{ $finishedReadingURL = $booksFallbackURL }}{{ end }}
 
   {{/* Backend field values are always strings, and `int` is FATAL on a malformed one —
        even "5 " with a trailing space — which would kill the whole home node (page +
@@ -118,7 +164,7 @@
               <header class="home-section-header">
                 <div>
                   <p class="home-section-kicker">At hand</p>
-                  <h2 class="home-section-title">Currently Reading</h2>
+                  <h2 class="home-section-title"><a href="{{ $startedReadingURL }}">Currently Reading</a></h2>
                 </div>
               </header>
               <ul class="media-list media-list--reading">
@@ -172,6 +218,11 @@
                        parsed with exact string ops, not regex. */}}
                   {{ $isbn := "" }}
                   {{ with $p.Params.books }}{{ $isbn = index . 0 }}{{ end }}
+                  {{ if not $isbn }}
+                    {{ with findRE `https://micro\.blog/books/[^"'[:space:]<>]+` $p.Content 1 }}
+                      {{ $isbn = replaceRE `^.*?/books/([^/?#"'<>\s]+).*$` "$1" (index . 0) }}
+                    {{ end }}
+                  {{ end }}
                   {{ $text := trim ($p.Content | plainify | htmlUnescape) "\n\r\t " }}
                   {{ $title := trim (index (split $text "\n") 0) " " }}
                   {{ $review := trim (strings.TrimPrefix $title $text) "\n\r\t " }}
