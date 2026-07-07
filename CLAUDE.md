@@ -1,5 +1,5 @@
 # micro-claude theme — Claude session notes
-Last updated: 2026-06-22 (accessibility pass: main landmark + WCAG AA contrast)
+Last updated: 2026-07-07 (dark theme removed; palette normalized to ~/git/website)
 
 ## What this repo is
 A custom Hugo theme for Jared Eberle's micro.blog at **eberle.blog**.
@@ -206,7 +206,8 @@ layouts/
     replies.html             # /replies/ page
   index.html                 # HOMEPAGE: intro + status + currently reading +
                              #           books/movies + highlights
-static/css/main.css          # all styling — Solarized Light palette
+static/css/main.css          # all styling — Northeaster palette (light-only,
+                             #   shared token names/values with ~/git/website)
 config.json                  # Hugo config + local dev params
 plugin.json                  # micro.blog theme metadata + settings fields
 .gitignore                   # excludes public/, resources/, microblog_head.html
@@ -455,6 +456,48 @@ Lighthouse reported 100/100/100 except Accessibility 93. Two flagged audits, bot
   from `static/`; Hugo's `minifyOutput` only touches generated HTML/feeds, not static
   assets — moving CSS to `assets/` + Hugo Pipes would minify/fingerprint it but is
   unverified on micro.blog's build and unnecessary at a 100 perf score).
+
+## Dark theme removal + palette normalization (2026-07-07)
+- **Deleted the `@media (prefers-color-scheme: dark)` block in `main.css`.**
+  `~/git/website` (the main site, "Northeaster" palette, `assets/css/site/
+  01-tokens.css`) has no dark theme at all — `color-scheme: light` only, no
+  dark media query anywhere in its `assets/css/site/*.css`. This theme's dark
+  variant was a one-off addition that had drifted from that source of truth;
+  removing it also drops one more surface that could silently break on a
+  future Hugo bump. Verified live in a browser preview with `prefers-color-
+  scheme: dark` emulated + a hard reload — page still renders the light
+  palette, confirming no residual dark styling anywhere in the theme (grepped
+  the whole repo for "dark" first — `main.css` was the only hit).
+- **Normalized the `--fog-*`/`--driftwood`/`--tide*` hex values to match
+  `~/git/website`'s `01-tokens.css` exactly**, plus the body background
+  gradient's `color-mix` percentage (26% → 28%, matching the main site). The
+  theme's copy of this palette had quietly diverged (bluer/darker variants of
+  the same named tokens) since it was first ported — same token names, drifted
+  values. `--gap`/`--nav-width`/`--content-gap`/`--header-height`/
+  `--footer-height` were deliberately NOT synced — those are layout knobs the
+  main site's structural CSS files (`10-layout.css` etc.) depend on directly,
+  and this theme's homepage grid is intentionally different (see the file
+  header comment). Same reasoning for the main site's self-hosted Source
+  Serif 4 body font (`03-fonts.css`) — left as this theme's system serif
+  stack; swapping would mean shipping additional font files through the
+  micro.blog plugin, out of scope for a token/contrast pass. Fraunces
+  (headings) was already identical between the two.
+- **`--fog-driftgray` (the `--secondary`/meta-text color) was intentionally
+  NOT copied verbatim.** The main site's own value (`#667076`) only reaches
+  3.9:1 against `--entry`/`#dfe2e1` — this theme uses that color at smaller
+  meta-text sizes (dates, kickers, footer links, ~0.74–0.88rem) than the main
+  site does, where AA requires 4.5:1, not the 3:1 large-text minimum. Darkened
+  to `#5b646a` (4.6:1 on `--entry`, 5.2:1 on `--theme`) — same hue, enough
+  margin to survive rounding. Every other shared token (primary, content,
+  link, accent) already cleared AA at the main site's own values once ported
+  (checked with the relative-luminance formula against both `--theme` and
+  `--entry` backgrounds, not eyeballed — smallest margin was link-on-entry at
+  6.16:1).
+- Verified visually via a throwaway static HTML fixture (not committed) served
+  locally and screenshotted through the browser preview tool — not a full
+  micro.blog export rebuild, since this was a pure CSS variable change with no
+  template/logic touched. Re-run the full pinned-0.158 repro (see "Faithful
+  local 0.158 reproduction") if a future change here touches templates.
 
 ## What was fixed in the June 2026 session
 - Removed `opengraph.html` (was breaking feed generation on 0.158)
