@@ -39,6 +39,10 @@
        which is what the RSS feed and the Micro.blog autotagging rules are both
        built around. This avoids a brittle dependency on exact backend category
        labels while still keeping category pages/links useful. */}}
+  {{/* One pass builds every derived value a reading post needs — ISBN, pairing key,
+       title, review — into $readingMeta, keyed by permalink. The render loops below
+       just look it up, so the parsing rules live in exactly one place. */}}
+  {{ $readingMeta := dict }}
   {{ $startedPosts := slice }}
   {{ $finishedPosts := slice }}
   {{ range $all }}
@@ -53,8 +57,45 @@
     {{ end }}
     {{ if and (not $isStarted) (findRE `(?i)^Started reading:` $titleLine 1) }}{{ $isStarted = true }}{{ end }}
     {{ if and (not $isFinished) (findRE `(?i)^Finished reading:` $titleLine 1) }}{{ $isFinished = true }}{{ end }}
-    {{ if $isStarted }}{{ $startedPosts = $startedPosts | append $p }}{{ end }}
-    {{ if $isFinished }}{{ $finishedPosts = $finishedPosts | append $p }}{{ end }}
+    {{ if or $isStarted $isFinished }}
+      {{/* Native Micro.blog book posts put the review on its own line; the website's
+           reading feed packs headline + notes into ONE paragraph, so a newline split
+           alone swallows the notes into the title. Split on the trailing 📚 marker
+           (present in both shapes) whenever the newline split yielded no review. */}}
+      {{ $title := $titleLine }}
+      {{ $review := trim (strings.TrimPrefix $titleLine $text) "\n\r\t " }}
+      {{ if not $review }}
+        {{ with findRE `^.*?📚` $titleLine 1 }}
+          {{ $title = trim (index . 0) " " }}
+          {{ $review = trim (strings.TrimPrefix $title $titleLine) "\n\r\t " }}
+        {{ end }}
+      {{ end }}
+      {{ $isbn := "" }}
+      {{ with $p.Params.books }}{{ $isbn = index . 0 }}{{ end }}
+      {{ if not $isbn }}
+        {{ with findRE `https://micro\.blog/books/[^"'[:space:]<>]+` $p.Content 1 }}
+          {{ $isbn = replaceRE `^.*?/books/([^/?#"'<>\s]+).*$` "$1" (index . 0) }}
+        {{ end }}
+      {{ end }}
+      {{/* $label is the bare "<title> by <author>" segment: the headline minus the
+           action prefix and minus everything from 📚 onward. It is what Currently
+           Reading displays (so ledger rows read the same as Micro.blog shelf rows),
+           and lowercased it becomes $key — the Started/Finished pairing key for
+           entries with no ISBN, i.e. the website ledger's DOI/URL sources, which
+           would otherwise never leave Currently Reading. Identical across a
+           source's two events because only the notes after 📚 differ. */}}
+      {{ $label := replaceRE `(?i)^(started|finished) reading:` "" $title }}
+      {{ $label = replaceRE `📚.*$` "" $label }}
+      {{ $label = trim (replaceRE `[[:space:]]+` " " $label) " .,;:" }}
+      {{ $key := lower $label }}
+      {{ $readingMeta = merge $readingMeta (dict $p.Permalink (dict "isbn" $isbn "key" $key "label" $label "title" $title "review" $review)) }}
+      {{/* A category-tagged post with an empty body has no title to render and no key
+           to pair on — it would show as an empty clickable row. Skip it. */}}
+      {{ if $title }}
+        {{ if $isStarted }}{{ $startedPosts = $startedPosts | append $p }}{{ end }}
+        {{ if $isFinished }}{{ $finishedPosts = $finishedPosts | append $p }}{{ end }}
+      {{ end }}
+    {{ end }}
   {{ end }}
 
   {{/* "All …" links must track the configurable category names above, not
@@ -75,6 +116,8 @@
        even "5 " with a trailing space — which would kill the whole home node (page +
        feeds). Never cast raw input: accept digits-only values, otherwise keep the
        fallback (mirrors the config.json defaults; covers blank/missing params too). */}}
+  {{ $readingCount := 8 }}
+  {{ with findRE `^(0|[1-9][0-9]*)$` (trim (printf "%v" .Site.Params.home_reading_count) " ") 1 }}{{ $readingCount = int (index . 0) }}{{ end }}
   {{ $booksCount := 5 }}
   {{ with findRE `^(0|[1-9][0-9]*)$` (trim (printf "%v" .Site.Params.home_books_count) " ") 1 }}{{ $booksCount = int (index . 0) }}{{ end }}
   {{ $moviesCount := 6 }}
@@ -88,16 +131,11 @@
   {{/* `index` errors on an empty slice — and a fault here kills the WHOLE home
        node (page + RSS/JSON feeds), so guard for a Status category with no posts. */}}
   {{ $finishedISBNs := slice }}
+  {{ $finishedKeys := slice }}
   {{ range $finishedPosts }}
-    {{ $p := . }}
-    {{ $isbn := "" }}
-    {{ with $p.Params.books }}{{ $isbn = index . 0 }}{{ end }}
-    {{ if not $isbn }}
-      {{ with findRE `https://micro\.blog/books/[^"'[:space:]<>]+` $p.Content 1 }}
-        {{ $isbn = replaceRE `^.*?/books/([^/?#"'<>\s]+).*$` "$1" (index . 0) }}
-      {{ end }}
-    {{ end }}
-    {{ with $isbn }}{{ $finishedISBNs = $finishedISBNs | append . }}{{ end }}
+    {{ $m := index $readingMeta .Permalink }}
+    {{ with $m.isbn }}{{ $finishedISBNs = $finishedISBNs | append . }}{{ end }}
+    {{ with $m.key }}{{ $finishedKeys = $finishedKeys | append . }}{{ end }}
   {{ end }}
 
   {{ $seen := slice }}
@@ -105,23 +143,112 @@
   {{ if $statusPosts }}{{ $status = index $statusPosts 0 }}{{ end }}
   {{ with $status }}{{ $seen = $seen | append .Permalink }}{{ end }}
 
+  {{/* Currently Reading merges TWO sources into one list of uniform dicts:
+       (1) dated `Started reading:` posts (the website ledger's RSS import, plus any
+           native Micro.blog started-reading posts), newest first; then
+       (2) Micro.blog's own Currently Reading BOOKSHELF — books you moved onto the
+           shelf in the backend without ever writing a post. Shelf books carry no
+           date (only title/author/isbn/cover_url), so they cannot be interleaved
+           chronologically and are appended after the dated entries, in shelf order.
+       Entries are rendered from dicts rather than Pages precisely because a shelf
+       book has no Page behind it. */}}
   {{ $reading := slice }}
+  {{ $readingKeys := slice }}
+  {{ $readingISBNs := slice }}
   {{ range $startedPosts }}
     {{ $p := . }}
-    {{ $isbn := "" }}
-    {{ with $p.Params.books }}{{ $isbn = index . 0 }}{{ end }}
-    {{ if not $isbn }}
-      {{ with findRE `https://micro\.blog/books/[^"'[:space:]<>]+` $p.Content 1 }}
-        {{ $isbn = replaceRE `^.*?/books/([^/?#"'<>\s]+).*$` "$1" (index . 0) }}
-      {{ end }}
-    {{ end }}
-    {{ if and (not (in $seen $p.Permalink)) (or (not $isbn) (not (in $finishedISBNs $isbn))) }}
-      {{ $reading = $reading | append $p }}
+    {{ $m := index $readingMeta $p.Permalink }}
+    {{/* Retire on EITHER signal: ISBN (native book posts) or the normalized
+         title/author key (website ledger entries with only a DOI or URL). */}}
+    {{ $done := false }}
+    {{ if and $m.isbn (in $finishedISBNs $m.isbn) }}{{ $done = true }}{{ end }}
+    {{ if and $m.key (in $finishedKeys $m.key) }}{{ $done = true }}{{ end }}
+    {{ if and (not (in $seen $p.Permalink)) (not $done) }}
+      {{ $cover := "" }}
+      {{ with $m.isbn }}{{ $cover = printf "https://cdn.micro.blog/books/%s/cover.jpg" . }}{{ end }}
+      {{ $coverLink := $p.Permalink }}
+      {{ with $m.isbn }}{{ $coverLink = printf "https://micro.blog/books/%s" . }}{{ end }}
+      {{ $reading = $reading | append (dict
+          "label" $m.label "review" $m.review "cover" $cover "coverLink" $coverLink
+          "link" $p.Permalink "date" $p.Date "dated" true) }}
+      {{ with $m.key }}{{ $readingKeys = $readingKeys | append . }}{{ end }}
+      {{ with $m.isbn }}{{ $readingISBNs = $readingISBNs | append . }}{{ end }}
       {{ $seen = $seen | append $p.Permalink }}
     {{ end }}
   {{ end }}
 
-  {{ $books := first $booksCount (where $finishedPosts "Permalink" "not in" $seen) }}
+  {{/* Micro.blog exposes each bookshelf as .Site.Data.bookshelves.<shelf>, where
+       <shelf> is the shelf name lowercased with spaces removed, and each book has
+       exactly title/author/isbn/cover_url (help.micro.blog/t/bookshelves/515).
+       NOTE ON THE ACCESSOR: `.Site.Data` is deprecated (WARN on 0.164, silent on
+       micro.blog's 0.158) but is the ONLY form that also works on the 0.91 floor —
+       `hugo.Data` is fatal there ("can't evaluate field Data"). A version gate is
+       NOT a workaround: `ge hugo.Version "0.155.0"` returns TRUE on 0.91.2
+       (verified), so the guarded branch still executes and still faults. When
+       micro.blog ships a Hugo that REMOVES .Site.Data, swap this one line to
+       hugo.Data — it kills the home node (page + feeds) otherwise. */}}
+  {{ $shelfKey := .Site.Params.home_shelf_currently_reading | default "currentlyreading" }}
+  {{ with .Site.Data.bookshelves }}
+    {{ with index . $shelfKey }}
+      {{ range . }}
+        {{ $isbn := "" }}
+        {{ with .isbn }}{{ $isbn = printf "%v" . }}{{ end }}
+        {{ $label := "" }}
+        {{ with .title }}{{ $label = printf "%v" . }}{{ end }}
+        {{ with .author }}{{ $label = printf "%s by %v" $label . }}{{ end }}
+        {{ $label = trim (replaceRE `[[:space:]]+` " " $label) " .,;:" }}
+        {{ $key := lower $label }}
+        {{/* Skip a shelf book that a post already covers (the post wins: it has a
+             date, a permalink and notes), and skip one already finished elsewhere —
+             e.g. shelf not yet updated after a "Finished reading:" post. */}}
+        {{ $dupe := false }}
+        {{ if and $isbn (or (in $readingISBNs $isbn) (in $finishedISBNs $isbn)) }}{{ $dupe = true }}{{ end }}
+        {{ if and $key (or (in $readingKeys $key) (in $finishedKeys $key)) }}{{ $dupe = true }}{{ end }}
+        {{ if and $label (not $dupe) }}
+          {{ $link := "" }}
+          {{ with $isbn }}{{ $link = printf "https://micro.blog/books/%s" . }}{{ end }}
+          {{/* Only show a cover when there's an ISBN to link it to — a cover_url with
+               no ISBN would otherwise wrap the image in a link with an empty href. */}}
+          {{ $cover := "" }}
+          {{ if $isbn }}{{ with .cover_url }}{{ $cover = printf "%v" . }}{{ end }}{{ end }}
+          {{ $reading = $reading | append (dict
+              "label" $label "review" "" "cover" $cover "coverLink" $link
+              "link" $link "date" now "dated" false) }}
+          {{ $readingKeys = $readingKeys | append $key }}
+          {{ with $isbn }}{{ $readingISBNs = $readingISBNs | append . }}{{ end }}
+        {{ end }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+
+  {{/* Cap AFTER merging both sources, not before — otherwise a full page of dated
+       posts could crowd out every shelf book, or vice versa depending on order. */}}
+  {{ $reading = first $readingCount $reading }}
+
+  {{/* De-dup Finished Reading by ISBN/key, same as the Currently Reading merge above —
+       renamed website-ledger source folders used to rewrite an RSS item's guid and get
+       re-imported as a duplicate post (fixed at the source in reading.rss.xml, 2026-07-27),
+       but any duplicate already imported, or a future one from a different cause, would
+       otherwise sit right next to its twin here: this list is permalink-distinct, not
+       book-distinct. $finishedPosts is newest-first, so keeping the first occurrence of
+       each key keeps the most recent copy. */}}
+  {{ $finishedDeduped := slice }}
+  {{ $finishedSeenISBNs := slice }}
+  {{ $finishedSeenKeys := slice }}
+  {{ range $finishedPosts }}
+    {{ $p := . }}
+    {{ $m := index $readingMeta $p.Permalink }}
+    {{ $dupe := false }}
+    {{ if and $m.isbn (in $finishedSeenISBNs $m.isbn) }}{{ $dupe = true }}{{ end }}
+    {{ if and $m.key (in $finishedSeenKeys $m.key) }}{{ $dupe = true }}{{ end }}
+    {{ if not $dupe }}
+      {{ $finishedDeduped = $finishedDeduped | append $p }}
+      {{ with $m.isbn }}{{ $finishedSeenISBNs = $finishedSeenISBNs | append . }}{{ end }}
+      {{ with $m.key }}{{ $finishedSeenKeys = $finishedSeenKeys | append . }}{{ end }}
+    {{ end }}
+  {{ end }}
+
+  {{ $books := first $booksCount (where $finishedDeduped "Permalink" "not in" $seen) }}
   {{ range $books }}{{ $seen = $seen | append .Permalink }}{{ end }}
 
   {{ $movies := first $moviesCount (where $moviePosts "Permalink" "not in" $seen) }}
@@ -169,25 +296,26 @@
               </header>
               <ul class="media-list media-list--reading">
                 {{ range . }}
-                  {{ $p := . }}
-                  {{ $isbn := "" }}
-                  {{ with $p.Params.books }}{{ $isbn = index . 0 }}{{ end }}
-                  {{ if not $isbn }}
-                    {{ with findRE `https://micro\.blog/books/[^"'[:space:]<>]+` $p.Content 1 }}
-                      {{ $isbn = replaceRE `^.*?/books/([^/?#"'<>\s]+).*$` "$1" (index . 0) }}
-                    {{ end }}
-                  {{ end }}
-                  {{ $text := trim ($p.Content | plainify | htmlUnescape) "\n\r\t " }}
-                  {{ $title := trim (index (split $text "\n") 0) " " }}
-                  {{ $review := trim (strings.TrimPrefix $title $text) "\n\r\t " }}
+                  {{ $e := . }}
                   <li class="media-entry">
-                    {{ with $isbn }}
-                      <a href="https://micro.blog/books/{{ . }}"><img class="media-cover" src="https://cdn.micro.blog/books/{{ . }}/cover.jpg" alt="{{ $title }}" loading="lazy"></a>
+                    {{/* The cover often links somewhere different from the title (the
+                         Micro.blog book page vs. the post) — so it stays a real,
+                         focusable link, but with its own accessible name instead of
+                         repeating the title text verbatim as a second identical link. */}}
+                    {{ with $e.cover }}
+                      <a href="{{ $e.coverLink }}" aria-label="{{ printf "View %s on Micro.blog" $e.label }}"><img class="media-cover" src="{{ . }}" alt="" loading="lazy"></a>
                     {{ end }}
                     <div class="media-entry-info">
-                      <time class="media-entry-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "January 2, 2006" }}</time>
-                      <a href="{{ $p.Permalink }}">{{ $title }}</a>
-                      {{ with $review }}<span class="media-entry-review">{{ . | truncate 80 }}</span>{{ end }}
+                      {{/* Shelf books have no date — only ledger/post entries do. */}}
+                      {{ if $e.dated }}
+                        <time class="media-entry-date" datetime="{{ $e.date.Format "2006-01-02" }}">{{ $e.date.Format "January 2, 2006" }}</time>
+                      {{ end }}
+                      {{ if $e.link }}
+                        <a href="{{ $e.link }}">{{ $e.label }}</a>
+                      {{ else }}
+                        <span>{{ $e.label }}</span>
+                      {{ end }}
+                      {{ with $e.review }}<span class="media-entry-review">{{ . | truncate 80 }}</span>{{ end }}
                     </div>
                   </li>
                 {{ end }}
@@ -213,22 +341,18 @@
                 {{ range $books }}
                   {{ $p := . }}
                   {{/* Cover + canonical link come from the structured ISBN (.Params.books),
-                       not from scraping an <img> out of .Content. Title/review are still
-                       content-derived (these posts have no title/author front-matter) but
-                       parsed with exact string ops, not regex. */}}
-                  {{ $isbn := "" }}
-                  {{ with $p.Params.books }}{{ $isbn = index . 0 }}{{ end }}
-                  {{ if not $isbn }}
-                    {{ with findRE `https://micro\.blog/books/[^"'[:space:]<>]+` $p.Content 1 }}
-                      {{ $isbn = replaceRE `^.*?/books/([^/?#"'<>\s]+).*$` "$1" (index . 0) }}
-                    {{ end }}
-                  {{ end }}
-                  {{ $text := trim ($p.Content | plainify | htmlUnescape) "\n\r\t " }}
-                  {{ $title := trim (index (split $text "\n") 0) " " }}
-                  {{ $review := trim (strings.TrimPrefix $title $text) "\n\r\t " }}
+                       not from scraping an <img> out of .Content; title/review are the
+                       content-derived values computed once in $readingMeta above. */}}
+                  {{ $m := index $readingMeta $p.Permalink }}
+                  {{ $isbn := $m.isbn }}
+                  {{ $title := $m.title }}
+                  {{ $review := $m.review }}
                   <li class="media-entry">
+                    {{/* The cover links to the Micro.blog book page, the title to this
+                         post — different destinations, so both stay real links, each
+                         with its own accessible name instead of an identical alt/text. */}}
                     {{ with $isbn }}
-                      <a href="https://micro.blog/books/{{ . }}"><img class="media-cover" src="https://cdn.micro.blog/books/{{ . }}/cover.jpg" alt="{{ $title }}" loading="lazy"></a>
+                      <a href="https://micro.blog/books/{{ . }}" aria-label="{{ printf "View %s on Micro.blog" $title }}"><img class="media-cover" src="https://cdn.micro.blog/books/{{ . }}/cover.jpg" alt="" loading="lazy"></a>
                     {{ end }}
                     <div class="media-entry-info">
                       <time class="media-entry-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "January 2, 2006" }}</time>
@@ -262,8 +386,10 @@
                     {{ $posterSrc = replaceRE `(?i)^.*src=(?:"([^"]+)"|([^[:space:]>]+)).*$` "$1$2" (index . 0) }}
                   {{ end }}
                   {{ $movieURL := $p.Permalink }}
+                  {{ $onTMDB := false }}
                   {{ with findRE `https://www\.themoviedb\.org/[^"'[:space:]<>]+` $contentHTML 1 }}
                     {{ $movieURL = index . 0 }}
+                    {{ $onTMDB = true }}
                   {{ end }}
                   {{/* No structured movie data — title (first line) + review (the rest) are
                        still parsed from content, but with exact string ops instead of regex. */}}
@@ -271,8 +397,14 @@
                   {{ $title := trim (index (split $text "\n") 0) " " }}
                   {{ $review := trim (strings.TrimPrefix $title $text) "\n\r\t " }}
                   <li class="media-entry media-entry--movie">
+                    {{/* $movieURL is TMDB when found, else falls back to this same post —
+                         when it IS TMDB it's a different destination than the title link,
+                         so both stay real links with distinct accessible names rather than
+                         an identical alt/text pair. */}}
                     {{ with $posterSrc }}
-                      <a href="{{ $movieURL }}"><img class="media-cover" src="{{ . }}" alt="{{ $title }}" loading="lazy"></a>
+                      {{ $coverLabel := $title }}
+                      {{ if $onTMDB }}{{ $coverLabel = printf "View %s on The Movie Database" $title }}{{ end }}
+                      <a href="{{ $movieURL }}" aria-label="{{ $coverLabel }}"><img class="media-cover" src="{{ . }}" alt="" loading="lazy"></a>
                     {{ end }}
                     <div class="media-entry-info">
                       <time class="media-entry-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "January 2, 2006" }}</time>

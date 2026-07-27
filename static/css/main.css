@@ -361,7 +361,6 @@ pre code {
 .status-label,
 .status-card-meta,
 .media-entry-date,
-.media-entry-sub,
 .media-entry-review {
   font-family: var(--meta-font);
   font-variant-caps: all-small-caps;
@@ -734,7 +733,6 @@ body > .site-header,
 }
 
 .media-entry-date,
-.media-entry-sub,
 .media-entry-review {
   color: var(--secondary);
   font-size: 0.78rem;

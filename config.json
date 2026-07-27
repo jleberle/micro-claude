@@ -18,6 +18,8 @@
     "home_cat_finished_reading": "Finished Reading",
     "home_cat_movies": "Movies",
     "home_cat_highlights": "Highlights",
+    "home_shelf_currently_reading": "currentlyreading",
+    "home_reading_count": 8,
     "home_books_count": 5,
     "home_movies_count": 6,
     "home_highlights_count": 10

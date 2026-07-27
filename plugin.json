@@ -15,6 +15,18 @@
 			"type": "string"
 		},
 		{
+			"field": "params.home_shelf_currently_reading",
+			"label": "Homepage: Micro.blog bookshelf to merge into Currently Reading (shelf name, lowercased, no spaces)",
+			"placeholder": "currentlyreading",
+			"type": "string"
+		},
+		{
+			"field": "params.home_reading_count",
+			"label": "Homepage: number of Currently Reading entries to show (posts + bookshelf combined)",
+			"placeholder": "8",
+			"type": "string"
+		},
+		{
 			"field": "params.home_cat_finished_reading",
 			"label": "Homepage: category for Finished Reading",
 			"placeholder": "Finished Reading",

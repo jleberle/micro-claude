@@ -1,5 +1,5 @@
 # micro-claude theme — Claude session notes
-Last updated: 2026-07-07 (dark theme removed; palette normalized to ~/git/website)
+Last updated: 2026-07-27 (Finished Reading de-dup + reading-feed guid fix at the source)
 
 ## What this repo is
 A custom Hugo theme for Jared Eberle's micro.blog at **eberle.blog**.
@@ -216,8 +216,9 @@ plugin.json                  # micro.blog theme metadata + settings fields
 ## Homepage sections (layouts/index.html)
 1. **Intro card** — avatar + bio + social links (from `intro.html`)
 2. **Status card** — most recent post in "Status" category
-3. **Currently Reading** — imported `Started reading:` posts that do not yet have a matching
-   finished entry
+3. **Currently Reading** — merged: imported `Started reading:` posts with no matching
+   finished entry (dated, newest first), then Micro.blog's Currently Reading bookshelf
+   (`.Site.Data.bookshelves`, undated, shelf order) for books with no post at all
 4. **Finished Reading | Movies** — two-column, recent `Finished reading:`/Movies posts
 5. **Highlights** — recent posts in "Highlights" category
 
@@ -225,8 +226,9 @@ plugin.json                  # micro.blog theme metadata + settings fields
   — then per-section `where ... "Params.categories" "intersect" (slice <name>)`. `where`
   preserves order, so derived slices are NOT re-sorted.
 - **Category names + counts are params.** Names (`home_cat_status/started_reading/
-  finished_reading/movies/highlights`) live in `config.json`. Counts (`home_books_count`/`home_movies_count`/
-  `home_highlights_count`) are `config.json` defaults AND exposed as **backend fields** in
+  finished_reading/movies/highlights`) live in `config.json`. Counts (`home_reading_count`/
+  `home_books_count`/`home_movies_count`/`home_highlights_count`) are `config.json` defaults
+  AND exposed as **backend fields** in
   `plugin.json` so they can be tuned without a push. **Counts are validated, never cast
   raw (2026-06-11):** Hugo's `int` is FATAL on any malformed string — even `"5 "` with a
   trailing space (verified empirically on 0.158) — and a fault in index.html kills the
@@ -244,11 +246,74 @@ plugin.json                  # micro.blog theme metadata + settings fields
 - **Currently Reading is derived from Started/Finished pairs, not the bookshelf plugin.**
   Started-reading posts are detected by either the `Started Reading` category OR a first
   line beginning `Started reading:`; finished-reading posts are detected the same way with
-  `Finished Reading` / `Finished reading:`. Started-reading posts are shown until a
-  finished-reading post with the same ISBN exists. The ISBN comes from `.Params.books` when
-  present, else falls back to parsing a `https://micro.blog/books/<isbn>` link out of the
-  post body. That lets imported RSS posts behave like native Micro.blog book entries
-  without a brittle dependency on exact category labels.
+  `Finished Reading` / `Finished reading:`. Started-reading posts are shown until a matching
+  finished-reading post exists. That lets imported RSS posts behave like native Micro.blog
+  book entries without a brittle dependency on exact category labels.
+- **Currently Reading merges TWO sources (2026-07-27): started-reading POSTS and
+  Micro.blog's Currently Reading BOOKSHELF.** The shelf is the point: a book moved
+  onto it in the Micro.blog backend shows up **without any post existing**. Shelf data
+  is `.Site.Data.bookshelves.<shelf>` where `<shelf>` is the shelf name lowercased with
+  spaces removed (`currentlyreading`), configurable via `home_shelf_currently_reading`
+  (config.json default + plugin.json backend field). Each book has EXACTLY
+  `title`/`author`/`isbn`/`cover_url` — **no date** (confirmed against
+  help.micro.blog/t/bookshelves/515), which is why shelf entries cannot be interleaved
+  chronologically and are appended AFTER the dated post entries, in shelf order.
+  - **The list is built from dicts, not Pages** (`label`/`review`/`cover`/`coverLink`/
+    `link`/`date`/`dated`) — a shelf book has no Page behind it, so the old
+    `range` -over-Pages render loop could not represent one.
+  - **De-dup, both directions:** a shelf book is skipped when a post already covers it
+    (the POST wins — it has a date, permalink and notes) or when it is already finished
+    (shelf not yet updated after a `Finished reading:` post). Matching is by ISBN OR by
+    the same normalized `<title> by <author>` key used for started/finished pairing —
+    the shelf's `title` + `author` normalize to exactly that shape, which is what makes
+    cross-source matching work for ISBN-less academic entries.
+  - **Rows read `<title> by <author>` regardless of source** (the `$label` field: the
+    headline minus the action prefix and minus 📚-onward), so the two sources are
+    visually indistinguishable. The Finished Reading column still shows full headlines
+    (`$m.title`) — deliberate, it has no shelf merge; unify it if that seam bothers you.
+  - Degrades silently when the data is absent (`with` guards): no `data/` dir at all
+    (local `hugo server`), a shelf key that matches nothing, and an empty shelf array
+    all just render the post-derived entries. Verified.
+  - **Capped by `home_reading_count` (default 8, added 2026-07-27) — AFTER merging, not
+    before.** Every other homepage section was already capped; this one wasn't, and it's
+    unbounded on two independent axes now (unfinished started-posts accumulate; shelves
+    grow). Capping before merging would let a full page of one source crowd out the other
+    depending on which was built first; `{{ $reading = first $readingCount $reading }}`
+    runs once, after both sources are appended, same validated-int-or-fallback guard as
+    the other counts.
+  - **Cover links get a real `aria-label`, not a stripped-from-tree treatment.** The cover
+    and title link often point at genuinely DIFFERENT destinations — cover → the Micro.blog
+    book page (`coverLink`), title → the post permalink (`link`) — whenever an ISBN post
+    exists. An earlier draft of this fix used `aria-hidden="true" tabindex="-1"` on the
+    cover anchor to kill the duplicate-announcement problem, which was WRONG: it silently
+    removed keyboard/AT access to that second destination, not just a redundant label.
+    Corrected to `alt=""` on the image + `aria-label="View <label> on Micro.blog"` on the
+    anchor — same fix applied to the Finished Reading and Movies cover links for
+    consistency (same duplicate-link-text pattern existed in both, pre-existing, not new).
+    Movies is conditional: `$movieURL` falls back to the post permalink when no TMDB link
+    is found in the content, so the cover's aria-label only claims "on The Movie Database"
+    when `$onTMDB` is true — otherwise it just repeats the title, matching where the link
+    actually goes.
+  - **A shelf book with a `cover_url` but no ISBN is now cover-less by design.** `coverLink`
+    for a shelf entry is built only from `$isbn`; before this pass, `$cover` was set from
+    `.cover_url` regardless, which — for that particular combination — would have rendered
+    an image inside `<a href="">`. Gated `$cover` on `$isbn` too so the two either both
+    exist or neither does.
+- **Pairing key: ISBN first, normalized "<title> by <author>" second (2026-07-27).** The
+  ISBN comes from `.Params.books` when present, else from a `https://micro.blog/books/<isbn>`
+  link in the body. **ISBN alone is not enough**, because the website ledger only emits that
+  link for `type == "book"` entries that have an `isbn` (`~/git/website`
+  `layouts/reading.rss.xml`) — an academic source with only a `doi`/`access_url` gets none,
+  and the old `or (not $isbn) …` filter then kept it in Currently Reading **forever**, even
+  after its finished event imported (reproduced, then fixed). The fallback key is the title
+  line with the `Started/Finished reading:` prefix and everything from `📚` onward stripped,
+  whitespace-collapsed, lowercased, trailing punctuation trimmed — identical across a
+  source's two events because only the notes after `📚` differ. A started post retires when
+  EITHER signal matches a finished post.
+- **All per-post reading values are computed once into `$readingMeta`** (a dict keyed by
+  permalink: `isbn`/`key`/`title`/`review`), built in the same pass that classifies
+  started/finished. The render loops only look values up — previously the ISBN-extraction
+  block was copy-pasted in four places and drifted-prone.
 - **Status card body is capped** with `.Summary` (HTML-safe, word-bounded by
   summaryLength) instead of full `.Content` — never truncate raw `.Content`, it can sever
   tags. When `.Truncated`, the card's link becomes "Read more →" to the post.
@@ -260,6 +325,14 @@ plugin.json                  # micro.blog theme metadata + settings fields
   reading and movies (these posts have no title/author front matter), but parsed with exact
   string ops — `trim` + `split "\n"` (first line = title) + `strings.TrimPrefix` (rest =
   review) — instead of fragile `replaceRE`/`^Watched:` patterns.
+- **Title/review split falls back to the `📚` marker (2026-07-27).** The newline split above
+  works for native Micro.blog book posts (review on its own line) but NOT for the website
+  ledger, which packs headline + notes into a single `<p>` (`$content := printf "<p>%s</p>"
+  $htmlBody`). With no newline the whole run-on became the title link, untruncated, and
+  `.media-entry-review` never rendered — the two sources visibly diverged in the same list.
+  So: when the newline split yields an empty review, re-split at `findRE "^.*?📚"`. Both
+  shapes carry the `📚`, so one rule covers both. Movies are untouched (Micro.blog-only,
+  already multi-line).
 - **Column balance:** book rows have a cover (taller) and movie rows are text-only, so the
   two columns diverge in height. `.media-columns .media-cover { width: 56px }` shrinks the
   book covers in that grid only (currently-reading keeps 80px) to bring row heights closer;
@@ -277,11 +350,13 @@ plugin.json                  # micro.blog theme metadata + settings fields
   the canonical example — valid on 0.91 AND 0.158, unlike the removed
   `.Site.Author.avatar`. Everything changed in the June 2026 session is
   0.91-compatible.
-- **0.91 compat VERIFIED with a real 0.91.2 binary (2026-06-11):** the whole theme
-  builds clean on Hugo 0.91.2 with exactly ONE exception — `hugo.Data` in
-  index.html:76 is fatal there ("can't evaluate field Data"); that's the known,
-  deliberate trade-off documented below (prod is 0.158 and won't go backwards).
-  Gotcha when testing: 0.91 only reads `config.toml`, not `hugo.toml`.
+- **0.91 compat VERIFIED with a real 0.91.2 binary — now with ZERO exceptions
+  (re-verified 2026-07-27).** The `hugo.Data` call in index.html that used to be the
+  one known 0.91 fault ("can't evaluate field Data") is gone; `grep -rn "hugo\.Data\|
+  \.Site\.Data" layouts/` returns nothing, and 0.91.2 / 0.158 / 0.164 now render
+  byte-comparable homepage output on the same fixture. Gotcha when testing: 0.91 only
+  reads `config.toml`, not `hugo.toml`/`hugo.yaml` — a `hugo.yaml`-only fixture builds
+  "successfully" while silently ignoring your config.
 - **Do NOT migrate to the Hugo 0.146+ "new template system" layout structure.**
   Verified empirically: new-style root-level `layouts/single.html`/`list.html` are
   INVISIBLE to 0.91 (kinds silently get "found no layout file") while working on
@@ -295,8 +370,17 @@ plugin.json                  # micro.blog theme metadata + settings fields
   order).
 - **Future landmines** (deprecated on 0.158, not yet removed — will break the same
   way when micro.blog next bumps Hugo): `.Site.LanguageCode` (→ `.Site.Language.Locale`),
-  config keys `languageCode` (→ `locale`) and `paginate`.
-  (`.Site.Data` was also here but has been switched to `hugo.Data` in index.html.)
+  config keys `languageCode` (→ `locale`) and `paginate`, and — **deliberately
+  re-introduced 2026-07-27** — `.Site.Data` in `index.html` (the bookshelf merge).
+  **`.Site.Data` is the accepted risk, not an oversight:** it is the ONLY accessor
+  that works on both the 0.91 floor and production 0.158, because `hugo.Data`
+  (0.155+) is fatal on 0.91. Deprecated in 0.156; WARNs on 0.164, silent on 0.158.
+  **A version gate does NOT work** — `ge hugo.Version "0.155.0"` returns **TRUE on
+  0.91.2** (verified empirically), so the guarded branch executes anyway and still
+  faults with "can't evaluate field Data". When micro.blog ships a Hugo that removes
+  `.Site.Data`, the fix is a one-line swap to `hugo.Data`; until then this is the
+  single highest-priority line to check on any micro.blog Hugo bump, because it sits
+  in the home node (page + RSS/JSON feeds all die together).
   NOTE: `.Site.LanguageCode` already misbehaves on micro.blog's 0.158 — it returns
   the literal `-`, which is why `og:locale` was rendering `content="-"`. Fixed by
   hardcoding `og:locale` to `en_US` in head.html (single-locale English blog).
@@ -370,6 +454,14 @@ This is what found the full-rebuild bug. Reproduces production far better than
 - Pinned binary: `~/.local/bin/hugo-0.158` (extended; extracted from
   `hugo_extended_0.158.0_darwin-universal.pkg` so it doesn't clash with Homebrew's
   newer hugo). macOS only ships a `.pkg` for darwin now — no `.tar.gz`.
+  **Re-fetch recipe** (the pinned binaries keep disappearing; Homebrew's `hugo` was
+  0.164 as of 2026-07-27):
+  ```bash
+  curl -sL -o h158.pkg https://github.com/gohugoio/hugo/releases/download/v0.158.0/hugo_extended_0.158.0_darwin-universal.pkg
+  pkgutil --expand h158.pkg h158exp && cd h158exp && cat Payload | gunzip -dc | cpio -i   # → ./hugo
+  # 0.91.2 DOES still ship a tarball (name it exactly, there is no darwin-universal):
+  curl -sL https://github.com/gohugoio/hugo/releases/download/v0.91.2/hugo_extended_0.91.2_macOS-ARM64.tar.gz | tar xz -C h091
+  ```
 - Site root: a micro.blog **export** (content + merged config.json + data + static),
   e.g. `~/jleberle_<id>/`, with a `themes/` dir.
 - `theme-blank` IS micro.blog's real default/fallback theme (provides baseof,
@@ -419,6 +511,60 @@ theme-blank
   on meta text; removed dead `.media-entry-content`/`.media-shelf-label` rules
   (leftovers from the old content-scraping homepage).
 - Uninstalled `plugin-archive-months` + `plugin-photos-months` on micro.blog.
+
+## Currently Reading hardening pass (2026-07-27)
+Follow-up to the bookshelf merge above, after profiling the homepage against real
+eberle.blog data (218-post archive) and a synthetic 1500-post stress build — see that
+section for the perf finding (index.html cost is negligible at real scale; not worth
+optimizing further) and the discovery of ~60 duplicate ledger posts (a website/import-side
+issue, not fixed here).
+- **Capped Currently Reading at `home_reading_count`** (default 8) — it was the one
+  homepage section with no limit, on two independent unbounded axes (accumulating
+  unfinished started-posts, growing shelves).
+- **Cover-image links on Currently Reading, Finished Reading, and Movies got real
+  `aria-label`s** instead of duplicating the adjacent title text as their `alt`. The cover
+  and title anchors frequently point at different URLs (Micro.blog book page / TMDB vs. the
+  post permalink) — pruning the cover link from the accessibility tree (`aria-hidden` +
+  `tabindex="-1"`) was considered and rejected, since it would silently remove keyboard/AT
+  access to that second, legitimate destination. Movies' label is conditional
+  (`$onTMDB`) so it doesn't claim a TMDB destination when the cover actually links back to
+  the post.
+- **Shelf books with a `cover_url` but no ISBN no longer render a cover.** `coverLink` is
+  ISBN-derived; before this pass `$cover` wasn't, so that combination would have produced
+  `<img>` wrapped in `<a href="">`.
+- Removed `.media-entry-sub` from `main.css`'s shared selector lists — dead since the
+  pre-RSS bookshelf-shortcode markup it styled was replaced; the shared rules themselves
+  (`.media-entry-date`/`.media-entry-review` etc.) are still live and were kept.
+
+## Finished Reading de-dup + reading-feed guid fix (2026-07-27)
+Root-caused the ~60 duplicate posts found during the profiling pass above: `~/git/website`'s
+`layouts/reading.rss.xml` built each RSS item's guid from `urn:reading-event:<type>:<slug>:
+<event>`, where `<slug>` was the source's **folder name**. Renaming a `content/sources/<key>/`
+folder rewrote every guid it had ever emitted, and Micro.blog re-imported any event still
+inside the 20-item feed window as if it were new — confirmed empirically against the live
+`/archive/`: 45 groups, 60 extra posts, still happening in 2026 (not historical residue).
+- **Fixed at the source** (`~/git/website/layouts/reading.rss.xml`): the guid key is now a
+  sanitized `isbn`/`doi`/`access_url` — the work's own stable identifier — falling back to
+  the folder slug only for the ~2 sources with none of the three (verified: only
+  `gardiner2015` actually reaches the feed window; `wyman2010` has no started/finished
+  dates so it never emits an item regardless). Renaming a folder is now guid-invisible for
+  every source that has an identifier. Verified: built with the feed limit temporarily
+  raised to 200, 46 events, zero guid collisions; `scripts/checks/feed-lint.py` clean. Also
+  updated that repo's `docs/reading.md`, which had documented the old (now largely fixed)
+  rename cost as a blanket warning.
+- **Added a de-dup pass on THIS repo's Finished Reading list** (`layouts/index.html`,
+  before `$books := first $booksCount ...`) as a safety net regardless of what happens
+  upstream — the guid fix prevents NEW duplicates but does nothing for ones already
+  imported, and doesn't protect against a different future duplication cause. Same
+  ISBN-or-`$key` matching as the Currently Reading merge, applied to `$finishedPosts`
+  (newest-first) so the first occurrence of a match — the most recent copy — wins and
+  later duplicates are dropped before the `$booksCount` cap runs, so a duplicate can't
+  waste a slot that a distinct book should have gotten. Verified against both failure
+  modes found on the live site: byte-identical re-imports (same ISBN) and the ISBN-less
+  academic case (matches on the `$key` text, since two `doi`/`access_url` imports of the
+  same work have no ISBN to key on) — both collapse to one row; a `home_books_count`
+  cap test confirmed no cap slot goes to a suppressed duplicate. Confirmed on 0.91.2/0.158/
+  0.164.
 
 ## Accessibility pass (2026-06-22) — PageSpeed/Lighthouse a11y 93 → target 100
 Lighthouse reported 100/100/100 except Accessibility 93. Two flagged audits, both fixed:
