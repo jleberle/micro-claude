@@ -1,16 +1,4 @@
 {
-  "pluralizeListTitles": false,
-  "ignoreLogs": ["warning-goldmark-raw-html"],
-  "minify": {
-    "minifyOutput": true
-  },
-  "markup": {
-    "goldmark": {
-      "renderer": {
-        "unsafe": true
-      }
-    }
-  },
   "params": {
     "archive_months_photos": true,
     "home_cat_status": "Status",

@@ -138,10 +138,23 @@ to handle both micro.blog's default structure and our custom partials.
   (b) Disable GitHub archiving (stops the job, loses the backup) — the only lever
   that silences the book-post WARNs. (c) Clear the log manually and ignore (cosmetic;
   live site unaffected). There is NO config fix available to users for the archive pass.
-- NOTE for LOCAL builds: vanilla Hugo ignores `markup`/`ignoreLogs` from a
-  THEME's config.json (only params/menus/outputFormats/mediaTypes merge —
-  verified empirically; even our `pluralizeListTitles: false` doesn't merge), so
-  add `markup.goldmark.renderer.unsafe: true` to the site-root export config.
+- **`config.json`'s top-level `markup`/`ignoreLogs`/`minify`/`pluralizeListTitles`
+  keys were REMOVED (2026-07-29) — confirmed dead in PRODUCTION, not just local
+  testing.** Vanilla Hugo only merges `params`/`menus`/`outputFormats`/
+  `mediaTypes` from a theme's config.json (verified empirically — even
+  `pluralizeListTitles: false` didn't merge). That was originally logged as a
+  "local builds" footnote, but it isn't local-only: plugins load through the
+  exact same Hugo `--theme` mechanism as themes — the local 0.158 repro command
+  above passes this repo and every installed plugin together in one
+  `--theme=micro-theme,plugin-cc,...` flag. micro.blog's Theme-vs-Plugin
+  distinction only changes whether `opengraph.html` loads and which settings
+  become backend fields; it doesn't change how Hugo merges config.json. So
+  these four keys did nothing in production either, while still reading as if
+  they controlled something (raw-HTML warnings, minification, goldmark safety).
+  For LOCAL testing, set them in the SITE-ROOT export's own `config.json`
+  instead (e.g. `markup.goldmark.renderer.unsafe: true`) — production already
+  runs `unsafe=true` and its own minify/log settings regardless of what this
+  repo ships.
 
 ### micro.blog strips `<style>` tags from theme template output
 - Cannot inject page-scoped CSS via `<style>` tags in layout files
