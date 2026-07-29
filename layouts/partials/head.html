@@ -17,9 +17,15 @@
        images (cdn.micro.blog, avatars, s3 og cards). Allowing all https for those
        resource types avoids breakage on platform changes while still closing the
        cheap, zero-breakage gaps. Loosen further only if something breaks live;
-       tighten (drop 'unsafe-inline'/'unsafe-eval', pin hosts) only after testing
-       against the real platform output — a CSP fault here is silent in the log. */}}
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:; media-src 'self' https:; frame-src https:; connect-src 'self' https:; form-action 'self' https://micro.blog; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
+       tighten 'unsafe-inline' or pin hosts only after testing against the real
+       platform output — a CSP fault here is silent in the log.
+
+       'unsafe-eval' REMOVED from script-src (2026-07-29): nothing documented
+       here or in CLAUDE.md's platform-injected-script inventory needs eval()/
+       Function() access, only inline execution ('unsafe-inline' covers that).
+       If a live full rebuild shows console CSP violations tied to eval, restore
+       'unsafe-eval' and note here what specifically required it. */}}
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:; media-src 'self' https:; frame-src https:; connect-src 'self' https:; form-action 'self' https://micro.blog; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="strict-origin-when-cross-origin">
 
   {{- $hasImage := false -}}
