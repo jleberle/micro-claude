@@ -2,3 +2,4 @@ public/
 .hugo_build.lock
 resources/
 layouts/partials/microblog_head.html
+/testsite/themes/

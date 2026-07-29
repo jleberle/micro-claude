@@ -1,0 +1,5 @@
+{{/* Minimal CI-fixture stand-in for the partial micro.blog injects at the
+     platform level in production (see CLAUDE.md's "microblog_head.html"
+     note). This lives at the fixture SITE level, not in the theme repo, so
+     it doesn't conflict with the theme's own gitignored local-dev stub. */}}
+<link rel="alternate" type="application/rss+xml" href="{{ "index.xml" | absURL }}" title="{{ .Site.Title }}">

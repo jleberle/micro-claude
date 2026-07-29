@@ -496,6 +496,39 @@ theme-blank
   rest — which is why prod showed only home+feed gone. Plugins inject head partials
   via `.Site.Params.plugins_html`; missing ones = "partial X not found".
 
+## CI build check (2026-07-29)
+`.github/workflows/build-check.yml` runs on every push/PR to `main`: installs the
+pinned production Hugo (0.158.0, same binary source as the local repro above) and
+builds this theme standalone against the fixture site in `testsite/`, failing the
+job on any fatal template error or on "error calling"/`executing "` text leaking
+into rendered output.
+- **This is a smoke test, not the faithful repro.** No installed plugins, no
+  theme-blank — it can't catch a cross-plugin conflict (the actual cause of the
+  "Manual full rebuild" incident above). What it DOES catch cheaply, on every
+  push, is a template that's fatally broken on its own — the same blast radius
+  (home node: page + both feeds), just a different trigger. Use the pinned-0.158
+  full-plugin repro above for anything plugin-interaction-shaped.
+- `testsite/config.toml`'s `outputFormats` (ArchiveHTML/PhotosHTML/ArchiveJSON)
+  are a RECONSTRUCTION from the path/baseName facts recorded elsewhere in this
+  file, not micro.blog's actual platform export config — good enough to route
+  Hugo's home-node build through `list.archivehtml.html`/`list.photoshtml.html`/
+  `list.archivejson.json` so a fatal error in any of them still fails CI, which
+  is the point; not a claim that it's byte-identical to production.
+- `testsite/` ships its own `layouts/partials/microblog_head.html` stub — this is
+  fine and NOT the same violation as committing one inside the theme's own
+  `layouts/` (gitignored, see "microblog_head.html" above): `testsite/` is a
+  separate fixture site that happens to load this theme, exactly like the
+  site-root export used for the manual repro, just checked in instead of
+  recreated by hand each time.
+- Verified locally before committing: built clean with the pinned
+  `~/.local/bin/hugo-0.158` binary, checked actual rendered output (not just
+  exit code) — homepage merge/dedup logic, archive/photos grids, and
+  `archive/index.json` all confirmed correct. Caught one real fixture bug this
+  way: `movie.md` originally used a same-paragraph soft line break between
+  title and review, which `plainify` collapses to a space — only an actual
+  blank-line paragraph break (two `<p>` tags) reproduces the "review on its own
+  line" shape `index.html`'s title/review split depends on.
+
 ## Things still outstanding / to watch
 - **footer.html** custom footer — VERIFIED rendering live (2026-06-07). micro.blog
   uses OUR custom header/footer partials, not its default. The copyright name now

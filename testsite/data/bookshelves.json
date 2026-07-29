@@ -1,0 +1,10 @@
+{
+  "currentlyreading": [
+    {
+      "title": "Shelf Fixture Book",
+      "author": "Shelf Fixture Author",
+      "isbn": "9781111111111",
+      "cover_url": "https://example.com/shelf-cover.jpg"
+    }
+  ]
+}

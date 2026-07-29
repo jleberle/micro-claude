@@ -1,0 +1,51 @@
+# Minimal fixture site used ONLY by .github/workflows/build-check.yml to load
+# this theme standalone and build it end-to-end. It is a smoke test, not a
+# faithful production reproduction — it has no installed micro.blog plugins
+# and no theme-blank fallback, and its outputFormats below are a
+# reconstruction (from the path/baseName facts recorded in CLAUDE.md) rather
+# than micro.blog's actual platform export config. For a real, plugin-stack-
+# accurate repro, see CLAUDE.md's "Faithful local 0.158 reproduction" section.
+#
+# Goal here is narrower and cheaper: catch a template that fails outright
+# (the exact failure mode behind the "Manual full rebuild" incident in
+# CLAUDE.md, where a stale `.Site.Author.avatar` took down the home node)
+# before it ever reaches a push to main.
+
+baseURL = "https://example.com/"
+languageCode = "en-us"
+title = "CI Fixture Site"
+theme = "micro-theme"
+themesDir = "themes"
+pluralizeListTitles = false
+
+[markup.goldmark.renderer]
+  unsafe = true
+
+[params]
+  about_me = "A fixture bio, just long enough to exercise the intro card and its truncation in head.html's meta tags."
+  [params.author]
+    name = "Fixture Author"
+    username = "fixtureuser"
+    avatar = "https://example.com/avatar.jpg"
+
+# Reconstructed home-node output formats — see the file header above.
+[outputFormats.ArchiveHTML]
+  mediaType = "text/html"
+  baseName = "index"
+  path = "archive"
+  isHTML = true
+
+[outputFormats.PhotosHTML]
+  mediaType = "text/html"
+  baseName = "index"
+  path = "photos"
+  isHTML = true
+
+[outputFormats.ArchiveJSON]
+  mediaType = "application/json"
+  baseName = "index"
+  path = "archive"
+  isPlainText = true
+
+[outputs]
+  home = ["HTML", "RSS", "JSON", "ArchiveHTML", "ArchiveJSON", "PhotosHTML"]

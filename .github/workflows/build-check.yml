@@ -1,0 +1,65 @@
+name: Build check
+
+# Smoke test, not a faithful production reproduction. Loads this theme
+# standalone against the minimal fixture in testsite/ using the exact Hugo
+# version micro.blog runs in production, and fails the build on any fatal
+# template error. This is exactly the failure mode documented in CLAUDE.md's
+# "Manual full rebuild" incident, where a stale `.Site.Author.avatar` in one
+# template silently took down the home page and both feeds — this check is
+# cheap insurance against a repeat of that class of bug before it ever
+# reaches a push to main. It does NOT install the six real micro.blog plugins
+# or theme-blank, so it can't catch a cross-plugin template conflict; that
+# heavier, plugin-accurate check is CLAUDE.md's manual "Faithful local 0.158
+# reproduction" procedure.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hugo-build:
+    runs-on: ubuntu-latest
+    env:
+      HUGO_VERSION: "0.158.0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install pinned Hugo (matches micro.blog production)
+        run: |
+          set -euo pipefail
+          curl -sSLo hugo.tar.gz \
+            "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz"
+          tar -xzf hugo.tar.gz hugo
+          sudo install -m 0755 hugo /usr/local/bin/hugo
+          rm hugo hugo.tar.gz
+          hugo version
+
+      - name: Load this theme into the fixture site
+        run: |
+          set -euo pipefail
+          mkdir -p testsite/themes
+          ln -s "$GITHUB_WORKSPACE" testsite/themes/micro-theme
+
+      - name: Build
+        run: |
+          set -euo pipefail
+          cd testsite
+          hugo --gc --minify --printPathWarnings
+
+      - name: Fail on error text that leaked into rendered output
+        run: |
+          set -euo pipefail
+          if grep -rIl 'error calling\|executing "' testsite/public/; then
+            echo "Template error text was rendered into output above." >&2
+            exit 1
+          fi
