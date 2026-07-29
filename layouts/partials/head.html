@@ -23,8 +23,9 @@
        'unsafe-eval' REMOVED from script-src (2026-07-29): nothing documented
        here or in CLAUDE.md's platform-injected-script inventory needs eval()/
        Function() access, only inline execution ('unsafe-inline' covers that).
-       If a live full rebuild shows console CSP violations tied to eval, restore
-       'unsafe-eval' and note here what specifically required it. */}}
+       VERIFIED LIVE (2026-07-29): pushed to production, no breakage observed —
+       no plugin/embed on this site needs eval(). If a future plugin regresses
+       this, restore 'unsafe-eval' and note here what specifically required it. */}}
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:; media-src 'self' https:; frame-src https:; connect-src 'self' https:; form-action 'self' https://micro.blog; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="strict-origin-when-cross-origin">
 
