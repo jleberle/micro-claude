@@ -19,6 +19,8 @@
 
 # Micro Claude, a micro.blog theme
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A custom Hugo theme for [eberle.blog](https://eberle.blog) that mirrors the style of
 [jaredeberle.org](https://jaredeberle.org): Solarized Light palette, clean sans-serif
 typography, and dark mode via `prefers-color-scheme`.
