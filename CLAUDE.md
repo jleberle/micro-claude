@@ -1,5 +1,5 @@
 # micro-claude theme — Claude session notes
-Last updated: 2026-08-03 (Mobile-first responsive rewrite: rem layout tokens, em breakpoints)
+Last updated: 2026-08-03 (Structured data: JSON-LD Person/WebSite/BlogPosting)
 
 ## What this repo is
 A custom Hugo theme for Jared Eberle's micro.blog at **eberle.blog**.
@@ -772,6 +772,78 @@ tokens — not broken, but not current best practice either.
   it by only ~1px. Everywhere else these are the theme's only non-exempt
   small tap targets (`.pagination`/`.footer-link-list`/`.site-nav` links are
   inline text-flow links, which 2.5.5 exempts).
+
+## Contrast pass (2026-08-03)
+Follow-up to a full WCAG relative-luminance audit of every color pairing
+actually used in `main.css` (including composited `color-mix()` backgrounds,
+not just the raw tokens) — found one token with no headroom and one
+component with no visible boundary at all.
+- **`--fog-driftgray` (`--secondary`, meta text) darkened `#5b646a` →
+  `#4c545a`.** The old value cleared AA (4.5:1) on `--entry` by only 0.13
+  (4.63:1) — no margin for rounding or a different renderer — despite
+  already being one AA-driven darkening past the main site's own value (see
+  "Dark theme removal" above). New value: 5.91:1 on `--entry` / 6.70:1 on
+  `--theme`, real headroom, short of AAA (7:1) but close.
+- **Added a `prefers-contrast: more` block**, mirroring `~/git/website`'s
+  `01-tokens.css` (`--content:#262f34`, `--secondary:#3f464b`, `--link`/
+  `--accent: var(--tide-deep)`) — light-mode only, since this theme has no
+  dark palette. Verified those exact hex values are safe to reuse: this
+  theme's `--theme`/`--entry` backgrounds are byte-identical to the main
+  site's, so the contrast math the main site already validated carries over
+  unchanged.
+- **`.intro-social a` border swapped `var(--border)` → `color-mix(in srgb,
+  var(--secondary), transparent 20%)`.** `--border` against the page was
+  ~1.3:1 — the pill's boundary was effectively invisible, relying entirely on
+  its faint fill (`color-mix(theme, white 22%)`, itself only ~1.04:1 against
+  the page) and inter-chip spacing to read as a discrete tappable shape. New
+  border resolves to ~4.17:1, clearing WCAG 1.4.11's 3:1 non-text/UI-
+  component target with margin.
+- Verified with the pinned-0.158 build + a standalone Python re-derivation of
+  every ratio above (relative-luminance formula, not eyeballed) against the
+  final token values. No browser available in-session for a live contrast
+  checker cross-check.
+
+## Structured data: JSON-LD (2026-08-03)
+Added schema.org markup via `<script type="application/ld+json">` in
+`head.html` — `Person` + `WebSite` on every page, plus `BlogPosting` on post
+pages (`.IsPage` and `.Type == "post"`, matching the `where ... "Type" "post"`
+convention `index.html`'s homepage sections already use).
+- **Built with `dict`/`jsonify`, not hand-written JSON strings.** Bios and
+  post bodies are free text that can contain quotes or literal
+  `</script>`-shaped substrings; `jsonify` goes through Go's
+  `encoding/json.Marshal`, which HTML-escapes `<`/`>`/`&` by default, so this
+  is safe against both malformed JSON and script-injection from user-authored
+  content without any manual escaping.
+- **`Person` and `WebSite` are `@id`-referenced, not duplicated inline**
+  (`"publisher": {"@id": "...#person"}` etc.) — the standard schema.org
+  pattern for an entity that's shared across every page on the site.
+- **Hit and fixed a real Go `html/template` gotcha**: `jsonify`'s output,
+  interpolated directly into a `<script>` body, came out DOUBLE-encoded — the
+  whole JSON document wrapped in an extra pair of quotes with every internal
+  quote/newline backslash-escaped. Go's contextual autoescaper treats any
+  `<script>` element's content as a JS expression context regardless of its
+  `type` attribute, and re-escapes an untyped string as a quoted JS string
+  literal. Fixed by piping through `| safeJS`, which marks the value as
+  pre-escaped and embeds it verbatim. Caught by actually parsing the
+  rendered output as JSON in the verification step below, not just checking
+  the build exit code — a build succeeds either way, since the malformed
+  output was still valid *inside* its accidental outer string, just not
+  valid JSON-LD once unwrapped.
+- **`BlogPosting.image` prefers `.Params.photos[0]` over the site avatar**
+  when present (mirrors the OG-image fallback logic already in this file) —
+  verified against the `photo-post.md` fixture, which has its own photo and
+  correctly does NOT fall back to the avatar.
+- **`headline` falls back to a truncated `.Summary`** for posts with no
+  `.Title` (native Micro.blog posts routinely have none) — same
+  `$fallbackTitle` pattern already used for `twitter:title`/`og:title`
+  higher up in this file, reused rather than reinvented.
+- Verified against the `testsite/` fixture with the pinned-0.158 build:
+  parsed the rendered `<script type="application/ld+json">` block as actual
+  JSON (not just checked it renders) on the homepage, four different post
+  fixtures (untitled, photo, both reading-flow shapes), and `/about/` (a
+  `Type: page`, not `Type: post`) — confirmed `BlogPosting` appears only on
+  the post pages, headline fallback and image-source selection both resolve
+  correctly, and the `/about/` page correctly gets `Person`+`WebSite` only.
 
 ## What was fixed in the June 2026 session
 - Removed `opengraph.html` (was breaking feed generation on 0.158)

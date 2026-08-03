@@ -103,5 +103,65 @@
   <meta name="fediverse:creator" content="{{ . }}">
   {{- end }}
 
+  {{/* Structured data (schema.org via JSON-LD), for search-result rich
+       snippets. Built with dict/jsonify rather than hand-written JSON so
+       Hugo's encoder handles escaping (bios/titles can contain quotes or
+       "</script>"-shaped text) — jsonify uses Go's encoding/json, which
+       HTML-escapes <, >, and & by default, so this is safe to embed as-is.
+       Person and WebSite are @id-referenced rather than duplicated inline,
+       the standard schema.org pattern for shared entities across pages. */}}
+  {{- $personID := printf "%s#person" .Site.BaseURL -}}
+  {{- $websiteID := printf "%s#website" .Site.BaseURL -}}
+
+  {{- $person := dict
+        "@type" "Person"
+        "@id" $personID
+        "name" (.Site.Params.author.name | default .Site.Title)
+  -}}
+  {{- with .Site.Params.author.avatar }}{{ $person = merge $person (dict "image" .) }}{{ end -}}
+  {{- with .Site.Params.social_website_url }}{{ $person = merge $person (dict "url" .) }}{{ end -}}
+
+  {{- $website := dict
+        "@type" "WebSite"
+        "@id" $websiteID
+        "url" .Site.BaseURL
+        "name" .Site.Title
+        "description" (.Site.Params.about_me | plainify | truncate 160)
+        "publisher" (dict "@id" $personID)
+        "inLanguage" "en-US"
+  -}}
+
+  {{- $graph := slice $person $website -}}
+
+  {{- if and .IsPage (eq .Type "post") }}
+    {{- $articleImage := .Site.Params.author.avatar -}}
+    {{- if .Params.photos }}{{ $articleImage = index .Params.photos 0 }}{{ end -}}
+    {{- $fallbackTitle := .Summary | plainify | truncate 70 -}}
+    {{- $blogPosting := dict
+          "@type" "BlogPosting"
+          "@id" (printf "%s#article" .Permalink)
+          "headline" (.Title | default $fallbackTitle)
+          "url" .Permalink
+          "mainEntityOfPage" (dict "@type" "WebPage" "@id" .Permalink)
+          "datePublished" (.Date.Format "2006-01-02T15:04:05Z07:00")
+          "dateModified" (.Lastmod.Format "2006-01-02T15:04:05Z07:00")
+          "author" (dict "@id" $personID)
+          "publisher" (dict "@id" $personID)
+          "isPartOf" (dict "@id" $websiteID)
+          "image" $articleImage
+          "description" (.Summary | plainify | truncate 160)
+          "inLanguage" "en-US"
+    -}}
+    {{- $graph = $graph | append $blogPosting -}}
+  {{- end }}
+
+  <script type="application/ld+json">
+  {{/* Go's html/template treats any <script> body as a JS expression
+       context and, without this, re-escapes the already-valid JSON string
+       into a quoted JS string literal (backslash-escaped, wrapped in
+       quotes) — safeJS marks it as pre-escaped output to embed verbatim. */}}
+  {{ (dict "@context" "https://schema.org" "@graph" $graph) | jsonify (dict "indent" "  ") | safeJS }}
+  </script>
+
   {{ partial "microblog_head.html" . }}
 </head>
