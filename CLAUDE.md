@@ -1,5 +1,5 @@
 # micro-claude theme — Claude session notes
-Last updated: 2026-07-27 (Finished Reading de-dup + reading-feed guid fix at the source)
+Last updated: 2026-08-03 (Self-hosted Charter body font, mirroring ~/git/website)
 
 ## What this repo is
 A custom Hugo theme for Jared Eberle's micro.blog at **eberle.blog**.
@@ -690,6 +690,47 @@ Lighthouse reported 100/100/100 except Accessibility 93. Two flagged audits, bot
   micro.blog export rebuild, since this was a pure CSS variable change with no
   template/logic touched. Re-run the full pinned-0.158 repro (see "Faithful
   local 0.158 reproduction") if a future change here touches templates.
+
+## Self-hosted Charter body font (2026-08-03)
+- **Reverses the 2026-07-07 "system serif stack" decision** (see the palette
+  section above) — the user explicitly asked to mirror `~/git/website`'s fonts,
+  not just its color tokens, so shipping the font files through the plugin
+  moved back into scope.
+- Copied `charter-400-latin.woff2`, `charter-400i-latin.woff2`, and
+  `charter-LICENSE.txt` from `~/git/website/static/fonts/` into this repo's
+  `static/fonts/` (alongside the Fraunces files already there). Same XCharter
+  build, same subsetted unicode-range — byte-identical files, not re-exported.
+- `main.css` now declares Charter (regular + italic) and a metrics-matched
+  `'Charter Fallback'` `@font-face` (Georgia-based `size-adjust`/`ascent-
+  override`/`descent-override`), copied verbatim from the main site's
+  `03-fonts.css` — same computed values, so no re-derivation needed. Body
+  `font-family` updated to `Charter, "Charter Fallback", Georgia, Cambria,
+  "Times New Roman", Times, serif`, matching the main site's stack exactly
+  (previously: system-only `Charter, "Iowan Old Style", "Palatino Linotype",
+  "Book Antiqua", "URW Palladio L", Georgia, serif` — the `Charter` name was
+  already there but nothing actually served that face, so it silently always
+  fell through to the system fallback).
+- `head.html` preloads `fonts/charter-400-latin.woff2` alongside the existing
+  Fraunces preload, mirroring `~/git/website`'s `extend_head.html`. Italic
+  Charter is not preloaded (the main site only preloads it on pages with an
+  above-the-fold `.Description`, which this theme's templates don't set) —
+  loads on demand via `font-display: swap` wherever `font-style: italic` is
+  used (e.g. Currently Reading title links).
+- Fraunces was already self-hosted identically to the main site (same file,
+  same fallback metrics) — untouched by this pass.
+- Deliberately NOT touched: base `html { font-size }` (106.25% here vs. the
+  main site's unset 16px + `body { font-size: 1.125rem }`) and meta-text
+  `letter-spacing` (0.03em here vs. 0.015em there). Both are sizing/spacing
+  choices this theme's own component rem-values are already tuned around
+  (see "Accessibility pass" and the homepage sections above for the values
+  those rems assume) — changing the base would cascade through every
+  rem-sized rule in the file for a cosmetic delta, not a font-identity one.
+  Revisit only if a future pass is specifically about matching those metrics
+  too, not as a side effect of a font-swap.
+- Verified with the pinned-0.158 CI-style build (this repo's theme loaded
+  standalone against `testsite/`, per the "CI build check" section): build
+  clean, `static/fonts/charter-*.woff2` present in output, preload `<link>`
+  and `@font-face` `src` both resolve to `fonts/charter-400-latin.woff2`.
 
 ## What was fixed in the June 2026 session
 - Removed `opengraph.html` (was breaking feed generation on 0.158)
