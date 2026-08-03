@@ -1,5 +1,5 @@
 # micro-claude theme — Claude session notes
-Last updated: 2026-08-03 (Self-hosted Charter body font, mirroring ~/git/website)
+Last updated: 2026-08-03 (Mobile-first responsive rewrite: rem layout tokens, em breakpoints)
 
 ## What this repo is
 A custom Hugo theme for Jared Eberle's micro.blog at **eberle.blog**.
@@ -731,6 +731,47 @@ Lighthouse reported 100/100/100 except Accessibility 93. Two flagged audits, bot
   standalone against `testsite/`, per the "CI build check" section): build
   clean, `static/fonts/charter-*.woff2` present in output, preload `<link>`
   and `@font-face` `src` both resolve to `fonts/charter-400-latin.woff2`.
+
+## Mobile-first responsive rewrite (2026-08-03)
+Follow-up to a responsive-sizing review (root sizing, breakpoints, tap targets)
+that found the CSS was desktop-first with `px` breakpoints and `px` layout
+tokens — not broken, but not current best practice either.
+- **`--gap`/`--nav-width`/`--main-width`/`--radius` converted `px` → `rem`**
+  (same numbers, divided by 16: `24px→1.5rem`, `1080px→67.5rem`,
+  `700px→43.75rem`, `10px→0.625rem`). This is NOT a sync to `~/git/website`'s
+  own rem values (still deliberately different — see the "Dark theme removal"
+  section above) — only the unit changed, so these now scale with
+  `html { font-size }` (100%/106.25%, see below) exactly like the type scale
+  already does. Before this, a reader bumping their root text-size preference
+  got bigger type in a layout column that stayed pixel-fixed — the measure
+  benefit of a wider column doesn't materialize if the column itself can't
+  grow.
+- **Every `@media (max-width: ...px)` block rewritten mobile-first**
+  (`@media (min-width: ...em)`, narrow-viewport values promoted to the
+  unprefixed base rule). Breakpoints converted at a 16px reference
+  (`560px→35em`, `720px→45em`, `900px→56.25em`) — deliberately NOT re-derived
+  from the new rem tokens, since media-query length units resolve against the
+  browser's initial font-size (spec-defined ~16px), not the page's actual
+  root size, so `em` there and `rem` in layout tokens are solving two
+  different problems (breakpoints shift with root-size preference; layout
+  dimensions scale with it) that happen to share a unit family.
+  **`html`'s own `font-size` (100%/106.25%) is itself now mobile-first** —
+  base is 100%, `@media (min-width: 35em)` promotes to 106.25% — so the root
+  scale itself follows the same pattern as everything depending on it.
+  Verified byte-for-byte equivalent at every documented breakpoint by tracing
+  each overridden property's mobile/tablet/desktop value from the OLD
+  desktop-first cascade before rewriting (the footer grid has three tiers —
+  mobile/≤900 tablet/>900 desktop — each needed explicit values in two
+  `min-width` blocks, not one, since `justify-self` differs at all three).
+  No browser available in-session to screenshot-diff; verification was build
+  success (pinned 0.158) + brace-balance check + manual value tracing, not a
+  pixel comparison — re-verify visually in a real browser before relying on
+  this for a visually load-bearing change.
+- **`.intro-social a` padding bumped `4px 9px` → `0.45rem 0.65rem`** — the
+  pill was ~25px tall against WCAG 2.5.5's 24px minimum target size, clearing
+  it by only ~1px. Everywhere else these are the theme's only non-exempt
+  small tap targets (`.pagination`/`.footer-link-list`/`.site-nav` links are
+  inline text-flow links, which 2.5.5 exempts).
 
 ## What was fixed in the June 2026 session
 - Removed `opengraph.html` (was breaking feed generation on 0.158)
