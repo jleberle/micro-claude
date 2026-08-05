@@ -1,0 +1,25 @@
+{{/*
+  Books finished in a year: {{< readinggoals 2026 >}}
+  Progress against this year's goal: {{< readinggoals progress >}}  -> "12 of 30"
+
+  WHY THIS NAME EXISTS, and why /reading/ should call it instead of the older
+  `bookgoals`: micro.blog appears to RE-INSTALL microdotblog/plugin-bookgoals
+  whenever content calls `{{< bookgoals >}}` — uninstalling it and reloading the
+  Plugins page puts it straight back (observed 2026-08-05). That makes sense:
+  an unknown shortcode is a fatal Hugo error, so the platform reinstates the
+  plugin that provides the name. And while the plugin is installed, ITS
+  shortcode wins over the theme's, so our version never renders.
+
+  Renaming sidesteps the whole fight rather than trying to win it. Nothing owns
+  `readinggoals`, so there is no plugin to reinstate and nothing to shadow us.
+  shortcodes/bookgoals.html is kept as a fallback for the day the plugin is
+  really gone; both are thin callers over partials/reading-goals.html so the
+  logic lives once.
+*/}}
+{{- $param := "" -}}
+{{- if .IsNamedParams -}}
+  {{- $param = .Get "year" | default "" -}}
+{{- else -}}
+  {{- $param = .Get 0 | default "" -}}
+{{- end -}}
+{{- partial "reading-goals.html" (dict "param" $param "data" .Site.Data.bookgoals) -}}

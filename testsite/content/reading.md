@@ -21,7 +21,7 @@ date: 2026-01-12T00:00:00Z
 
 ## 2026
 
-{{< bookgoals 2026 >}}
+{{< readinggoals 2026 >}}
 
 ## 2025
 
@@ -29,8 +29,15 @@ date: 2026-01-12T00:00:00Z
 
 ## Progress
 
-Read {{< bookgoals progress >}} this year.
+Read {{< readinggoals progress >}} this year.
 
 ## Empty year falls through silently
 
 {{< bookgoals 1999 >}}
+
+## Legacy shortcode name still works
+
+<!-- Both names must keep rendering identically: readinggoals is what content
+     should call, bookgoals is the fallback for when plugin-bookgoals is truly
+     gone. If these two ever diverge, the shared partial has been bypassed. -->
+{{< bookgoals 2025 >}}

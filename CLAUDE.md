@@ -217,6 +217,14 @@ static/
 layouts/
   robots.txt               # MUST be layouts/, not static/ — micro.blog ships a
                            #   default robots.txt and only a layout overrides it
+  shortcodes/
+    readinggoals.html      # PREFERRED name in content — micro.blog re-installs
+                           #   plugin-bookgoals whenever content calls the
+                           #   `bookgoals` name, and the plugin then wins
+    bookgoals.html         # fallback under the plugin's own name
+    bookshelf.html         # bookshelf embed, absorbed from the plugin
+  partials/
+    reading-goals.html     # shared logic behind both goals shortcodes
   _default/
     baseof.html              # page skeleton (may be overridden by micro.blog)
     list.html                # category/section list pages
@@ -244,10 +252,6 @@ content/
   search.md                # /search/ page + nav entry, absorbed from
                            #   plugin-search-page (see that section)
 static/js/search.js        # the only JS this theme owns; powers /search/
-layouts/shortcodes/
-  bookshelf.html           # {{< bookshelf >}}, absorbed from the plugin
-  bookgoals.html           # {{< bookgoals 2026 >}} / progress, absorbed from
-                           #   plugin-bookgoals (bookcalendar deliberately not)
 static/css/main.css          # all styling — Northeaster palette (light-only,
                              #   shared token names/values with ~/git/website)
 config.json                  # Hugo config + local dev params
@@ -966,6 +970,22 @@ why the homepage shows one more book than `/reading/` does.
 - **`layouts/shortcodes/bookshelf.html` — call signature is IDENTICAL**, so
   existing content needs no edit: positional `{{< bookshelf "shelf" >}}`, named
   `shelf=`, and `variant="list"|"grid"`, same `currentlyreading`/`list` defaults.
+- **micro.blog RE-INSTALLS a plugin whose shortcode your content calls
+  (2026-08-05).** Uninstalling `plugin-bookgoals` and reloading the Plugins page
+  put it straight back, repeatedly, while `/reading/` still contained
+  `{{< bookgoals 2026 >}}`. That is coherent platform behaviour — an unknown
+  shortcode is a FATAL Hugo error, so the platform reinstates whatever provides
+  the name. Combined with the next point (an installed plugin's shortcode wins),
+  absorbing a shortcode under the plugin's own name can never take effect.
+  - **Fix: rename, don't fight.** `layouts/shortcodes/readinggoals.html` is the
+    same output under a name nothing owns, so there is no plugin to reinstate
+    and nothing to shadow it. **`/reading/` content must be edited to call
+    `{{< readinggoals 2026 >}}` / `{{< readinggoals progress >}}`** — that
+    content lives on micro.blog, not in this repo, so it is a manual step.
+  - `shortcodes/bookgoals.html` is kept as a fallback for the day the plugin is
+    genuinely gone. Both are thin callers over `partials/reading-goals.html`, so
+    the logic lives once; a `testsite` fixture asserts both names render
+    byte-identically.
 - **CORRECTED 2026-08-05 — an installed PLUGIN's shortcode BEATS the theme's.**
   The original claim here ("leftmost theme wins, so ours shadows the plugin
   before it is uninstalled, no transition window") was extrapolated from a local
@@ -983,6 +1003,9 @@ why the homepage shows one more book than `/reading/` does.
   - The same caution applies to the static-file ordering test in the robots.txt
     section: local `--theme` ordering results have now been wrong twice about
     production. Treat them as suggestive, not decisive.
+  - Note what made this confusing to diagnose: the plugin kept re-installing
+    itself, so "I uninstalled it and the plugin's markup is still rendering"
+    looked like a stale build when it was actually a live, re-installed plugin.
 - **Class names are `bookshelf-*` (single dash), NOT the plugin's `bookshelf__*`.**
   Deliberate: micro.blog loads plugin CSS AFTER `main.css`, so any rule sharing
   the plugin's selectors loses every specificity tie — that is exactly why this
