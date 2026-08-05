@@ -940,7 +940,7 @@ Other changes:
 - Books with no `cover_url` are skipped; a book with no `post_url` renders as a
   bare image rather than `<a href="">`. A bare `{{< bookgoals >}}` now defaults to
   the current year (upstream rendered nothing).
-- **DE-DUPED by normalized title (+author when present), added 2026-08-05.**
+- **DE-DUPED by normalized title, added 2026-08-05, strengthened the same day.**
   Micro.blog's goal data lists the same WORK twice when two editions have been
   recorded. Verified live: 6 repeated titles across 2025/2026, **every pair with
   two different but adjacent ISBNs** (Ghosts of Crook County as 9780807012994 and
@@ -952,6 +952,23 @@ Other changes:
   books sharing a title AND author would collapse. The real fix is removing the
   duplicate edition from the year's goal in Micro.blog — this is a display-level
   safety net, the same role the Finished Reading de-dup plays in `index.html`.
+  - **An exact title match was NOT enough** — the first version caught nothing in
+    production. The two records of a work rarely share a title string: live 2026
+    had "The Blood Countess: Murder, Betrayal, and the Making of a Monster" vs
+    "The Blood Countess", "Blood in Winter" vs "The Blood in Winter", "Hated by
+    All the Right People: Tucker Carlson…" vs the bare title. The key now strips
+    the subtitle after a colon, a leading article, and punctuation.
+  - **Volume suffixes are deliberately NOT stripped.** It would merge
+    "Chronicles Vol. 1" with "Chronicles Vol. 2", and hiding a distinct volume is
+    worse than showing one duplicate. Cost: "Chronicles" / "Chronicles Vol. 1",
+    a real pair in the 2026 goal, still renders twice — fix that one in
+    Micro.blog.
+  - **Author was REMOVED from the key.** It was in the first version, and it is
+    what stopped the merge from ever firing: the two records of a work disagree
+    about metadata too, so requiring a matching author guaranteed a miss. The
+    accepted cost is that two genuinely different books with the same normalized
+    title would collapse; titles differing by volume or subtitle still stay
+    separate, which covers the realistic case.
 - **Fixtures:** `testsite/data/bookgoals.json` (two years, a coverless book, a
   book with no post_url, two editions of one work, and two same-title books by
   different authors) and four more sections in `testsite/content/reading.md`. Verified in the build: 3 covers render, all lazy

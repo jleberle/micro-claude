@@ -4,21 +4,35 @@
     "value": 30,
     "books": [
       {
-        "title": "Goal Fixture One",
-        "author": "Fixture Author",
+        "title": "The Blood Countess: Murder, Betrayal, and the Making of a Monster",
+        "author": "Shelley Puhak",
         "cover_url": "https://example.com/g1.jpg",
         "post_url": "https://micro.blog/books/9780000000001"
       },
       {
-        "title": "Goal Fixture One",
-        "author": "Fixture Author",
+        "title": "The Blood Countess",
         "cover_url": "https://example.com/g1b.jpg",
         "post_url": "https://micro.blog/books/9780000000002"
       },
       {
-        "title": "Goal Fixture Two",
+        "title": "Blood in Winter",
         "cover_url": "https://example.com/g2.jpg",
-        "post_url": ""
+        "post_url": "https://micro.blog/books/9780000000005"
+      },
+      {
+        "title": "The Blood in Winter",
+        "cover_url": "https://example.com/g2b.jpg",
+        "post_url": "https://micro.blog/books/9780000000006"
+      },
+      {
+        "title": "Chronicles Vol. 1",
+        "cover_url": "https://example.com/g6.jpg",
+        "post_url": "https://micro.blog/books/9780000000007"
+      },
+      {
+        "title": "Chronicles Vol. 2",
+        "cover_url": "https://example.com/g7.jpg",
+        "post_url": "https://micro.blog/books/9780000000008"
       },
       {
         "title": "Coverless Goal Fixture",
@@ -26,16 +40,9 @@
         "post_url": "https://example.com/post/plain/"
       },
       {
-        "title": "Same Title Different Author",
-        "author": "Author A",
-        "cover_url": "https://example.com/g4.jpg",
-        "post_url": "https://micro.blog/books/9780000000003"
-      },
-      {
-        "title": "Same Title Different Author",
-        "author": "Author B",
-        "cover_url": "https://example.com/g5.jpg",
-        "post_url": "https://micro.blog/books/9780000000004"
+        "title": "Unlinked Goal Fixture",
+        "cover_url": "https://example.com/g3.jpg",
+        "post_url": ""
       }
     ]
   },

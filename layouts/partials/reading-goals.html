@@ -39,7 +39,32 @@
         {{- $seen := slice -}}
         <div class="bookgoals">
           {{- range . -}}
-            {{- $key := lower (trim (replaceRE `[[:space:]]+` " " (printf "%v|%v" (.title | default "") (.author | default ""))) " .,;:") -}}
+            {{/* Normalize before comparing. Verified against the live 2026 goal:
+                 the two records of a work rarely share a title string —
+                 "The Blood Countess: Murder, Betrayal, and the Making of a
+                 Monster" vs "The Blood Countess", "Blood in Winter" vs "The
+                 Blood in Winter", "Hated by All the Right People: Tucker
+                 Carlson…" vs the bare title. Subtitle after a colon, leading
+                 article, and punctuation are therefore all stripped.
+
+                 Volume suffixes are deliberately NOT stripped: it would collapse
+                 "Chronicles Vol. 1" and "Chronicles Vol. 2" into one book, and
+                 hiding a distinct volume is worse than showing one duplicate.
+                 The cost is that "Chronicles" / "Chronicles Vol. 1" — a real
+                 pair in the 2026 goal — still shows twice; fix that one in
+                 Micro.blog.
+
+                 AUTHOR IS NOT IN THE KEY. It was, until the live data showed the
+                 two records of a work also disagree about metadata, so requiring
+                 a matching author stopped the merge from ever happening. The
+                 accepted cost is that two DIFFERENT books with the same
+                 normalized title would collapse. Titles differing by volume or
+                 subtitle still stay separate, which covers the realistic case. */}}
+            {{- $key := lower (printf "%v" (.title | default "")) -}}
+            {{- $key = index (split $key ":") 0 -}}
+            {{- $key = replaceRE `[^a-z0-9 ]` " " $key -}}
+            {{- $key = replaceRE `^(the|a|an) ` "" $key -}}
+            {{- $key = trim (replaceRE `[[:space:]]+` " " $key) " " -}}
             {{- if in $seen $key -}}
               {{/* already rendered this work under another edition's ISBN */}}
             {{- else -}}
