@@ -1,7 +1,15 @@
 {{ $bio := .Site.Params.about_me }}
 {{ if $bio }}
 <article class="intro h-card">
-  <img class="intro-avatar u-photo" src="https://micro.blog/{{ .Site.Params.author.username }}/avatar.jpg" alt="{{ .Site.Params.author.name | default .Site.Title }}" width="80" height="80">
+  {{/* alt="" — decorative here, not unlabelled: the .intro-title h2 directly
+       beside it announces exactly the same name, so alt text would make a
+       screen reader say it twice. u-photo is unaffected (it reads src).
+       width/height carry the 1:1 aspect ratio and the size at the default
+       root (the CSS box is 7.75rem, 8.5rem above 45em, so it scales with a
+       reader's text-size preference); fetchpriority marks it as the
+       above-the-fold LCP candidate — it is the only image in the homepage's
+       initial viewport, and the only one not lazy-loaded. */}}
+  <img class="intro-avatar u-photo" src="https://micro.blog/{{ .Site.Params.author.username }}/avatar.jpg" alt="" width="124" height="124" decoding="async" fetchpriority="high">
   <div class="intro-body">
     <p class="intro-kicker">From the notebook of</p>
     <h2 class="intro-title p-name">{{ .Site.Params.author.name | default .Site.Title }}</h2>

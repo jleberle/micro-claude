@@ -1,0 +1,80 @@
+{{/*
+  Embed a Micro.blog bookshelf: {{< bookshelf >}}
+
+  Absorbed from kottkrig/microdotblog-bookshelf-shortcode (2026-08-05) so that
+  plugin can be uninstalled. The call signature is deliberately IDENTICAL, so
+  existing content keeps working untouched:
+
+    {{< bookshelf >}}                        shelf "currentlyreading", list view
+    {{< bookshelf "read2026" >}}             positional shelf name
+    {{< bookshelf shelf="read2026" >}}       named shelf
+    {{< bookshelf variant="grid" >}}         cover grid instead of rows
+
+  Shortcode lookup follows the same leftmost-theme-wins rule as static files
+  (verified empirically on 0.158), and micro.blog loads this theme before
+  plugins — so this file already shadows the plugin's copy even before it is
+  uninstalled. No transition window.
+
+  Differences from the original, all deliberate:
+  - Class names are `bookshelf-*` (single dash), NOT the plugin's `bookshelf__*`
+    BEM names, so the plugin's own stylesheet cannot half-style our markup while
+    both are installed. Styling lives in main.css.
+  - The plugin put `title="<title> by <author>"` on each row, which produces a
+    browser tooltip duplicating the visible text (see the screenshot that
+    prompted this). Dropped — `title` is not an accessibility feature.
+  - Covers get alt="" plus an aria-label on the link, matching how index.html
+    handles book covers: the cover and the title point at the SAME URL here, so
+    without this the row announces the destination twice.
+  - A book with no ISBN renders WITHOUT a cover link rather than an <a href="">;
+    same rule index.html already applies to shelf entries.
+  - An unknown `variant` warns and falls back to "list". The original called
+    errorf, which is FATAL in Hugo — a typo in a post would have failed the whole
+    build, and on this platform a build fault is expensive (see CLAUDE.md).
+*/}}
+
+{{- $shelf := "currentlyreading" -}}
+{{- if .IsNamedParams -}}
+  {{- $shelf = .Get "shelf" | default $shelf -}}
+{{- else -}}
+  {{- with .Get 0 }}{{ $shelf = . }}{{ end -}}
+{{- end -}}
+
+{{- $variant := .Get "variant" | default "list" -}}
+{{- if not (in (slice "list" "grid") $variant) -}}
+  {{- warnf "bookshelf: unknown variant %q at %s — falling back to \"list\"" $variant .Position -}}
+  {{- $variant = "list" -}}
+{{- end -}}
+
+{{/* .Site.Data, NOT hugo.Data: the latter is fatal on the 0.91 compatibility
+     floor micro.blog asks authors to target. See "Future landmines" in
+     CLAUDE.md — this is the same accepted trade index.html already makes. */}}
+{{- with .Site.Data.bookshelves -}}
+  {{- with index . $shelf -}}
+    <ul class="bookshelf bookshelf--{{ $variant }}">
+      {{- range $i, $book := . -}}
+        {{- $title := $book.title | default "" -}}
+        {{- $author := $book.author | default "" -}}
+        {{- $isbn := $book.isbn | default "" -}}
+        {{- $url := "" -}}
+        {{- with $isbn }}{{ $url = printf "https://micro.blog/books/%s" . }}{{ end -}}
+        <li class="bookshelf-item">
+          {{- if and $isbn $book.cover_url -}}
+            <a class="bookshelf-cover-link" href="{{ $url }}"
+               aria-label="{{ printf "View %s on Micro.blog" $title }}">
+              {{/* The shelf is at the top of /reading/, so the first cover is a
+                   plausible LCP element and is not deferred; the rest are. */}}
+              <img class="bookshelf-cover" src="{{ $book.cover_url }}" alt=""
+                   decoding="async"{{ if gt $i 0 }} loading="lazy"{{ end }}>
+            </a>
+          {{- end -}}
+          <div class="bookshelf-meta">
+            <h3 class="bookshelf-title">
+              {{- with $url }}<a href="{{ . }}">{{ $title }}</a>{{ else }}{{ $title }}{{ end -}}
+            </h3>
+            {{- with $author }}<p class="bookshelf-author">by {{ . }}</p>{{ end -}}
+          </div>
+        </li>
+      {{- end -}}
+    </ul>
+  {{- end -}}
+{{- end -}}

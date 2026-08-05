@@ -5,6 +5,22 @@
    the homepage structure centered on status -> media -> highlights.
    ========================================================= */
 
+/* UNIT POLICY (audited 2026-08-05, see CLAUDE.md "Units audit")
+   - rem for anything sized against the page: layout tokens, spacing, type,
+     component dimensions (avatars, covers, thumbs, grid gaps). These track the
+     reader's root text-size preference, which is the whole point.
+   - em where a value belongs to its own element rather than the page: icons
+     inside a text link, padding inside prose tables, heading padding.
+   - em for @media breakpoints — they resolve against the browser's initial
+     font-size, not the page's root, so they are a different axis from rem
+     layout values and deliberately do not share their numbers.
+   - px is kept ONLY for graphical hairlines and non-scaling ornament:
+     1px borders, text-decoration-thickness, the focus outline (2px/3px),
+     small border-radii (2-4px) and the 999px pill, box-shadow offsets, and
+     the .visually-hidden clip idiom. These are device-pixel-oriented; scaling
+     them yields fractional pixels and blurry edges, and none of them are
+     content sizing. Nothing else in this file should be px. */
+
 /* --- Reset ------------------------------------------------ */
 *, *::before, *::after { box-sizing: border-box; }
 
@@ -29,11 +45,19 @@
      AA by only 0.13, no margin for rounding) to #4c545a (5.91:1 on --entry
      / 6.70:1 on --theme — real headroom, still short of AAA 7:1). */
   --fog-driftgray: #4c545a;
-  --fog-haze: #9da5a5;
-  --fog-pale-haze: #c7cac6;
+  /* Hairlines are blue-dominant slate, not green — matched to the painting's
+     mid-tones (~/git/website fc13a1a). Relative luminance is unchanged from
+     the previous #9da5a5/#c7cac6, so every contrast ratio holds. */
+  --fog-haze: #9ba5ab;
+  --fog-pale-haze: #c5c9cd;
   --driftwood: #5d6f76;
-  --tide: #24566a;
-  --tide-deep: #173f50;
+  /* Accent pinned to the hue of the *sea* in Northeaster (LCH hue ~220),
+     not its sky — repointed from #24566a/#173f50 holding L and C fixed, so
+     contrast is untouched (link on --theme 6.98:1 -> 6.95:1, on --entry
+     6.16:1 -> 6.13:1; accent 9.79 -> 9.73 / 8.64 -> 8.59). Keep any future
+     tuning on the hue axis for the same reason. */
+  --tide: #1c5863;
+  --tide-deep: #0e414a;
 
   --theme: var(--fog-mist);
   --entry: var(--fog-granite);
@@ -134,7 +158,15 @@
 html {
   font-size: 100%;
   -webkit-text-size-adjust: 100%;
-  overflow-y: scroll;
+  /* Reserve the scrollbar's space so short pages (a single untitled post) and
+     long ones (the archive) don't shift horizontally between navigations.
+     Preferred over `overflow-y: scroll`, which forces a permanently visible
+     track even on platforms with overlay scrollbars. */
+  scrollbar-gutter: stable;
+}
+
+@supports not (scrollbar-gutter: stable) {
+  html { overflow-y: scroll; }
 }
 
 @media (min-width: 35em) {
@@ -231,6 +263,61 @@ h6,
   border-radius: 2px;
 }
 
+/* Headings/labels that exist for document structure and assistive tech but
+   have no visual role — e.g. the h1 on an untitled post, where the visible
+   "title" is the date in the post meta. Clip rather than display:none, which
+   would remove it from the accessibility tree too. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Everything animated here is a decorative color fade (link hover and the
+   social pills, the only two left) — nothing conveys state
+   that only motion communicates, so honoring the preference costs nothing.
+   Near-zero rather than 0s keeps transitionend handlers (micro.blog's or a
+   plugin's) firing instead of silently never completing. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Forced-colors mode (Windows High Contrast et al.) replaces the palette with
+   the user's own, dropping every color-mix()/box-shadow boundary this theme
+   leans on. Re-express those edges with the system color keywords so the
+   discrete shapes survive; text and link colors are deliberately left to the
+   user's palette. */
+@media (forced-colors: active) {
+  :focus-visible { outline-color: Highlight; }
+
+  .intro-social a,
+  .post-category,
+  .media-cover,
+  .photos-grid a img,
+  .intro-avatar,
+  .archive-entry-thumb {
+    border: 1px solid ButtonBorder;
+  }
+
+  .skip-link {
+    color: HighlightText;
+    background: Highlight;
+  }
+}
+
 /* --- Plugins --------------------------------------------- */
 .bookgoals {
   display: flex;
@@ -238,62 +325,131 @@ h6,
   gap: 0.5rem;
 }
 
+/* plugin-bookgoals ships `.bookgoals .cover { max-width: 100px }` and its
+   stylesheet loads AFTER main.css, so the cap survives our width unless it is
+   cleared — without this, the rem width above silently clamped back to 100px
+   at the 106.25% root. Our selector out-specifies the plugin's (0,2,1 vs
+   0,2,0), so the width itself does win. */
 .bookgoals img.cover {
   display: inline-block;
-  width: 100px;
+  width: 6.25rem;
+  max-width: none;
   height: auto;
 }
 
-ul.bookshelf.bookshelf {
-  margin: 0;
+/* --- Bookshelf (layouts/shortcodes/bookshelf.html) -------- */
+/* Styles OUR shortcode's markup, absorbed from the bookshelf plugin. The class
+   names are deliberately `bookshelf-*`, not the plugin's `bookshelf__*`, so
+   while both are installed the plugin's stylesheet (which micro.blog loads
+   AFTER main.css and which would therefore win every specificity tie) cannot
+   touch these rules. That ordering is exactly why the theme's previous
+   `bookshelf__*` overrides never applied — don't reintroduce those names. */
+.bookshelf {
+  margin: 1.2rem 0;
   padding: 0;
-  list-style-type: none !important;
+  list-style: none;
 }
 
-ul.bookshelf.bookshelf li {
-  margin: 0;
-  padding: 0;
+.bookshelf-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.9rem;
+  align-items: start;
+  padding: 0.95rem 0;
+  border-top: 1px solid var(--border);
 }
 
-ul.bookshelf.bookshelf li img.bookshelf__cover {
+.bookshelf-item:last-child {
+  border-bottom: 1px solid var(--border);
+}
+
+.bookshelf-cover-link {
   display: block;
-  margin: 0;
-  padding: 0;
-  aspect-ratio: 4 / 6;
+  grid-row: span 2;
 }
 
-h3.bookshelf__title {
-  margin: 0;
-  padding: 0;
+.bookshelf-cover {
+  width: 4.5rem;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border: 1px solid color-mix(in srgb, var(--border), var(--rule) 35%);
+  border-radius: 4px;
+  box-shadow: 0 6px 14px rgb(29 41 47 / 8%);
 }
 
-.bookshelf.bookshelf--variant-list {
+.bookshelf-meta {
+  min-width: 0;
+}
+
+/* The visible defect this replaced: these titles are h3, so `.post-content h2,
+   h3` gave every one of them a full-width bottom rule that ran out past the
+   text and collided with the covers. Reset the inherited heading treatment —
+   a book title is a row label, not a document section break. */
+.post-content .bookshelf-title {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 1.05rem;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.bookshelf-title a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.bookshelf-title a:hover,
+.bookshelf-title a:focus-visible {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.bookshelf-author {
+  margin: 0.15rem 0 0;
+  color: var(--secondary);
+  font-family: var(--meta-font);
+  font-variant-caps: all-small-caps;
+  text-transform: lowercase;
+  letter-spacing: 0.03em;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+/* variant="grid" — covers only, titles beneath. */
+.bookshelf--grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(5rem, 8rem));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
+  gap: 1.2rem;
 }
 
-.bookshelf--variant-list .bookshelf__item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+@media (min-width: 35em) {
+  .bookshelf--grid {
+    grid-template-columns: repeat(auto-fill, minmax(6rem, 8rem));
+  }
 }
 
-.bookshelf--variant-list img.bookshelf__cover.bookshelf__cover {
+.bookshelf--grid .bookshelf-item {
+  display: block;
+  padding: 0;
+  border: 0;
+}
+
+.bookshelf--grid .bookshelf-item:last-child {
+  border: 0;
+}
+
+.bookshelf--grid .bookshelf-cover {
   width: 100%;
-  margin: 0;
-  padding: 0;
-  aspect-ratio: 4 / 6;
 }
 
-.bookshelf.bookshelf--variant-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(5rem, 8rem));
-  gap: 1rem;
+.bookshelf--grid .bookshelf-meta {
+  margin-top: 0.4rem;
 }
 
-.bookshelf--variant-grid .bookshelf__meta { display: none; }
-.bookshelf--variant-grid .bookshelf__cover { width: 100%; }
+.post-content .bookshelf--grid .bookshelf-title {
+  font-size: 0.9rem;
+}
 
 /* --- Prose / markdown ------------------------------------ */
 hr {
@@ -397,7 +553,11 @@ pre code {
 .page-content > .wrapper,
 #main {
   max-width: calc(var(--main-width) + var(--gap) * 2);
+  /* dvh tracks the mobile browser's collapsing toolbar; 100vh is taller than
+     the visible viewport there and pushes the footer off-screen. vh first as
+     the fallback for engines without dynamic viewport units. */
   min-height: calc(100vh - 14rem);
+  min-height: calc(100dvh - 14rem);
   margin: 0 auto;
   padding: clamp(1.5rem, 3vw, 2.15rem) var(--gap) 3rem;
 }
@@ -413,7 +573,6 @@ pre code {
 .home-section-meta,
 .post-entry-meta,
 .post-meta,
-.post-kicker,
 .post-categories-label,
 .archive-cats-label,
 .archive-entry-date,
@@ -532,12 +691,6 @@ body > .site-header,
 }
 
 /* --- Page headers ---------------------------------------- */
-.page-header {
-  margin-bottom: 1.45rem;
-  padding-bottom: 0.9rem;
-  border-bottom: 1px solid var(--rule);
-}
-
 .page-title {
   margin: 0 0 1.45rem;
   font-size: clamp(2rem, 4.2vw, 2.85rem);
@@ -566,8 +719,8 @@ body > .site-header,
 }
 
 .intro-avatar {
-  width: 124px;
-  height: 124px;
+  width: 7.75rem;
+  height: 7.75rem;
   flex-shrink: 0;
   object-fit: cover;
   border: 1px solid color-mix(in srgb, var(--border), var(--rule) 38%);
@@ -577,8 +730,8 @@ body > .site-header,
 
 @media (min-width: 45em) {
   .intro-avatar {
-    width: 136px;
-    height: 136px;
+    width: 8.5rem;
+    height: 8.5rem;
   }
 }
 
@@ -653,8 +806,11 @@ body > .site-header,
 }
 
 .intro-social svg {
-  width: 12px;
-  height: 12px;
+  /* em, not rem: the icon belongs to its label and should track that link's
+     own font-size, not the root. 1em resolves to ~11.8px at the pill's
+     0.74rem — indistinguishable from the 12px it replaces. */
+  width: 1em;
+  height: 1em;
   flex-shrink: 0;
 }
 
@@ -813,7 +969,7 @@ body > .site-header,
 }
 
 .media-cover {
-  width: 72px;
+  width: 4.5rem;
   flex-shrink: 0;
   align-self: flex-start;
   aspect-ratio: 2 / 3;
@@ -824,7 +980,7 @@ body > .site-header,
 }
 
 .media-list--reading .media-cover {
-  width: 66px;
+  width: 4.125rem;
 }
 
 .media-entry-info {
@@ -974,29 +1130,6 @@ body > .site-header,
   border-bottom: 1px solid var(--rule);
 }
 
-.post-kicker {
-  margin: 0 0 0.55rem;
-  color: var(--secondary);
-  font-size: 0.79rem;
-  line-height: 1.45;
-}
-
-.post-kicker a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.post-kicker a:hover,
-.post-kicker a:focus-visible {
-  color: var(--accent);
-  text-decoration: underline;
-}
-
-.post-kicker-sep {
-  margin: 0 0.28rem;
-  opacity: 0.65;
-}
-
 .post-title {
   margin: 0 0 0.45rem;
   font-size: clamp(2rem, 4vw, 3rem);
@@ -1035,10 +1168,74 @@ body > .site-header,
 .post-content > :first-child { margin-top: 0; }
 .post-content > :last-child { margin-bottom: 0; }
 
+/* MEASURE. The post body was the one prose surface in this theme with no
+   line-length cap: it filled the whole --main-width column (43.75rem), which
+   at the 1rem body size is a 43.75em measure — roughly 99 characters per line
+   (derived from charter-400-latin.woff2's own advance widths, frequency-
+   weighted over English prose, not the 0.5em rule of thumb). The comfortable
+   range for sustained reading is 45-75.
+
+   60ch is not a new number: it is exactly what .intro-body and
+   .post-entry-summary already use, and .status-card-body uses 58ch — every
+   OTHER text block here was already capped at ~33em and only the primary one
+   was missed. It also lands on ~/git/website's settled measure, which caps
+   prose at 640px against a 1.2rem body = 33.33em (see its 20-content.css).
+   ch resolves against each element's own font-size, so this holds for the
+   0.96rem .post-entry .post-content on list/replies pages too.
+
+   Applied to the text-level children rather than .post-content itself so
+   photos, embeds and figures still use the full column — this is a blog where
+   photo posts are a first-class type, and capping the container would have
+   shrunk every image by a quarter. Paragraphs carrying an image are exempted
+   for the same reason (micro.blog wraps post images in <p>).
+
+   KNOWN CONSEQUENCE, accepted: micro.blog puts the caption in the SAME <p> as
+   the image (verified on the live 2026-02-16 post: `<p><img ...>\ncaption`),
+   so an exempted paragraph's caption runs the full column rather than the
+   60ch measure. The trade is one short caption line against every photo losing
+   a quarter of its width; CSS can't cap the text and free the image inside one
+   paragraph without extra markup we don't control. */
+.post-content p,
+.post-content ul,
+.post-content ol,
+.post-content blockquote,
+.post-content h2,
+.post-content h3,
+.post-content h4,
+.post-content h5,
+.post-content h6 {
+  max-width: 60ch;
+}
+
+.post-content figure,
+.post-content p:has(> img),
+.post-content p:has(> a > img),
+.post-content p:has(> video),
+.post-content p:has(> iframe) {
+  max-width: none;
+}
+
 .post-content p,
 .post-content li {
   text-wrap: pretty;
   hyphens: auto;
+  /* Refines the auto-hyphenation for the narrow end of the range (phones):
+     only break words of 6+ letters, never strand fewer than 3 either side.
+     Same values as ~/git/website's 20-content.css. Progressive enhancement —
+     Firefox ignores it and falls back to plain hyphens: auto. */
+  hyphenate-limit-chars: 6 3 3;
+}
+
+/* The other prose surfaces — homepage bio, status card, list summaries, the
+   colophon blurb — get the same widow control as the post body. They are all
+   already measure-capped (60ch/58ch/32ch), so only the ragged edge was left
+   to tidy. Ignored where unsupported. */
+.intro-bio p,
+.status-card-body p,
+.post-entry-summary,
+.archive-entry-summary,
+.footer-about-text p {
+  text-wrap: pretty;
 }
 
 .post-content blockquote { hanging-punctuation: none; }
@@ -1085,44 +1282,106 @@ body > .site-header,
   vertical-align: baseline;
 }
 
-.post-content sup a.footnote-ref,
-.post-content sup a.footnote-ref:hover {
-  text-underline-offset: 0.15em;
-  text-decoration-thickness: 1px;
+/* NO goldmark footnote styling here on purpose (removed 2026-08-05): the
+   `.footnotes` / `.footnote-ref` / `.footnote-backref` / `[id^="fn:"]` rules
+   had never applied — zero footnotes across all 187 posts in
+   /archive/index.json — and micro.blog posting doesn't lend itself to them.
+   The generic `.post-content sup` rule above stays; it is not footnote-specific.
+   If a post ever uses `[^1]`, goldmark's default markup renders unstyled but
+   perfectly readable. */
+
+/* --- Search page ----------------------------------------- */
+/* Replaces the inline <style> block that microdotblog/plugin-search-page put in
+   its content file (hardcoded #eee borders, px sizes, a fixed 270px field).
+   Theme tokens instead, and the field fills the measure. */
+.search-form {
+  margin: 0 0 1.2rem;
 }
 
-.post-content .footnotes {
-  margin-top: 2.5em;
+/* Visible, not placeholder-only: the plugin's input had no <label> at all,
+   which fails WCAG 1.3.1/4.1.2 (a placeholder is not an accessible name). */
+.search-label {
+  display: block;
+  margin-bottom: 0.4rem;
   color: var(--secondary);
-  font-size: 0.9em;
+  font-family: var(--meta-font);
+  font-variant-caps: all-small-caps;
+  text-transform: lowercase;
+  letter-spacing: 0.03em;
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
 
-.post-content .footnotes hr { margin: 0 0 1.2em; }
-.post-content .footnotes li { margin-bottom: 0.5em; }
+.search-input {
+  width: 100%;
+  max-width: 32ch;
+  padding: 0.5rem 0.75rem;
+  color: var(--content);
+  background: color-mix(in srgb, var(--entry), white 20%);
+  border: 1px solid color-mix(in srgb, var(--secondary), transparent 20%);
+  border-radius: var(--radius);
+  /* 1rem so iOS doesn't zoom the page on focus (it does below ~16px). */
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+}
 
-.post-content a.footnote-backref {
-  margin-inline-start: 0.3em;
+.search-input::placeholder {
   color: var(--secondary);
-  text-decoration: none;
+  opacity: 1;
 }
 
-.post-content a.footnote-backref:hover,
-.post-content a.footnote-backref:focus-visible {
-  color: var(--accent);
+.search-status {
+  margin: 0 0 1rem;
+  color: var(--secondary);
+  font-family: var(--meta-font);
+  font-variant-caps: all-small-caps;
+  text-transform: lowercase;
+  letter-spacing: 0.03em;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  /* Reserve the line so results don't jump when the count appears. */
+  min-height: 1.2em;
 }
 
-.post-content li[id^="fn:"],
-.post-content sup[id^="fnref:"] {
-  scroll-margin-top: 2rem;
+.search-results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.post-content sup[id^="fnref:"] {
-  transition: background-color 0.4s ease;
+.search-result {
+  padding: 0.95rem 0;
+  border-top: 1px solid var(--border);
 }
 
-.post-content sup[id^="fnref:"]:target {
-  background: var(--entry);
-  border-radius: 3px;
+.search-result:last-child {
+  border-bottom: 1px solid var(--border);
+}
+
+.search-result-meta {
+  color: var(--secondary);
+  font-family: var(--meta-font);
+  font-variant-caps: all-small-caps;
+  text-transform: lowercase;
+  letter-spacing: 0.03em;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.search-result-title {
+  margin: 0.1rem 0 0.25rem;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+
+.search-result-summary {
+  max-width: 60ch;
+  margin: 0;
+  color: var(--content);
+  font-size: 0.96rem;
+  line-height: 1.66;
+  text-wrap: pretty;
 }
 
 /* --- Categories / pagination / nav ----------------------- */
@@ -1301,8 +1560,16 @@ body > .site-header,
 }
 
 .archive-entry-thumb {
+  /* aspect-ratio (not `width: auto`) so the box matches the 1:1 the HTML
+     width/height attributes declare — with auto width the reserved box was
+     square before the lazy image loaded and the image's real ratio after, so
+     the row shifted sideways on load. Square + cover also matches how
+     .photos-grid already crops. object-fit was previously inert here: with an
+     auto width the box always took the image's own ratio, so there was nothing
+     to cover. */
   width: auto;
-  height: 72px;
+  aspect-ratio: 1;
+  height: 4.5rem;
   flex-shrink: 0;
   object-fit: cover;
   border: 1px solid color-mix(in srgb, var(--border), var(--rule) 35%);
@@ -1310,13 +1577,13 @@ body > .site-header,
 }
 
 @media (min-width: 45em) {
-  .archive-entry-thumb { height: 60px; }
+  .archive-entry-thumb { height: 3.75rem; }
 }
 
 .photos-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: 0.75rem;
   margin-top: 0.95rem;
 }
 
@@ -1472,3 +1739,94 @@ body > .site-footer,
    `em`, not `px`, so the whole layout — not just the type scale — shifts
    in step with a reader's root text-size preference, not just raw
    viewport width. */
+
+/* --- Print ------------------------------------------------ */
+/* Paper is a reading surface too, and this theme had no print rules at all:
+   a printed post carried the site header, footer colophon, pagination, the
+   micro.blog reply form, and a light-on-dark code block that empties an ink
+   cartridge. Mirrors the approach of ~/git/website's 99-print.css, reduced to
+   the components that exist here. Ink-efficient light palette, chrome removed,
+   link underlines kept so they still read as links on paper. */
+@media print {
+  :root {
+    --theme: #fff;
+    --entry: #fff;
+    --primary: #000;
+    --content: #1a1a1a;
+    --secondary: #444;
+    --code-bg: #f3f3f3;
+    --code-block-bg: #f3f3f3;
+    --border: #ccc;
+    --rule: #999;
+    --quote-rule: #999;
+    --link: #000;
+    --accent: #000;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  /* `pre` hardcodes light-on-dark text for the screen treatment above; the
+     print palette flips its background, so the text needs a dark colour of
+     its own or the block prints blank. */
+  pre {
+    color: #111;
+    border: 1px solid var(--border);
+  }
+
+  .skip-link,
+  .site-header,
+  #site-header,
+  .site-footer,
+  #site-footer,
+  .site-nav,
+  .intro-social,
+  .pagination,
+  .post-nav,
+  .read-more,
+  .section-more,
+  .media-col-more,
+  /* micro.blog's injected reply FORM only — the conversation itself is
+     content and stays, since printed replies are part of the post's record. */
+  .microblog_reply_form {
+    display: none !important;
+  }
+
+  /* The on-screen measure cap and column width are screen ergonomics; paper
+     has its own margins, so let content use the printable width. */
+  .page-content > .wrapper,
+  #main {
+    max-width: 100%;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .post-content p,
+  .post-content ul,
+  .post-content ol,
+  .post-content blockquote,
+  .post-content h2,
+  .post-content h3,
+  .post-content h4,
+  .post-content h5,
+  .post-content h6 {
+    max-width: none;
+  }
+
+  a {
+    text-decoration: underline;
+  }
+
+  .post-content h2,
+  .post-content h3 {
+    break-after: avoid;
+  }
+
+  .post-content img,
+  .post-content figure,
+  .post-content pre,
+  .post-content blockquote {
+    break-inside: avoid;
+  }
+}

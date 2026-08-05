@@ -1,8 +1,26 @@
 {{ define "main" }}
   <article class="h-entry">
     <header class="post-header">
+      {{/* Untitled short posts are the norm on micro.blog, and without this
+           branch such a page has NO h1 at all — its first heading is the
+           footer's h2 (verified in the testsite build). The date is what the
+           archive and the browser tab already use to name these posts, so it
+           is the honest label; hidden visually because the same date is
+           immediately below in .post-meta. Deliberately NOT tagged p-name:
+           in microformats an h-entry with no p-name takes its name from the
+           content, which is the correct reading for a note. */}}
+      {{/* The zero-date branch is unreachable on micro.blog (post permalinks are
+           date-derived, so a post always has a date), but the guard keeps this
+           from ever emitting the Go zero time, "January 1, 0001", the way the
+           page template did before it was fixed. NOTE: `{{ else if }}` is NOT
+           valid after `{{ with }}` on this Go/Hugo version ("unexpected <if> in
+           input", caught by the pinned-0.158 build) — hence the variable. */}}
+      {{ $label := "" }}
+      {{ if not .Date.IsZero }}{{ $label = .Date.Format "January 2, 2006" }}{{ else }}{{ $label = .Site.Title }}{{ end }}
       {{ with .Title }}
         <h1 class="post-title p-name">{{ . }}</h1>
+      {{ else }}
+        <h1 class="visually-hidden">{{ $label }}</h1>
       {{ end }}
       <div class="post-meta">
         <a href="{{ .Permalink }}" class="u-url">
@@ -40,6 +58,15 @@
   </article>
 
   {{ if .Site.Params.include_conversation }}
-    <script type="text/javascript" src="https://micro.blog/conversation.js?url={{ .Permalink }}"></script>
+    {{/* DO NOT add defer/async/type=module here, and do not move this script.
+         micro.blog's conversation.js builds the reply form and comment list
+         with document.write() (verified by fetching it live, 2026-08-05) —
+         document.write() after the parser has finished BLOWS AWAY the whole
+         document, so any attribute that delays execution past parse time
+         replaces the rendered post with just the comment widget. The legacy
+         `type="text/javascript"` attribute was dropped (the default since
+         HTML5); that part is inert either way. Nothing else in this theme
+         ships JS, so this is the only render-blocking script we control. */}}
+    <script src="https://micro.blog/conversation.js?url={{ .Permalink }}"></script>
   {{ end }}
 {{ end }}

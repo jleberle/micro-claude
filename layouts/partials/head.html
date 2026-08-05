@@ -1,6 +1,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  {{/* Both are single-valued (no `media` variants) because this theme ships a
+       light palette only — see "Dark theme removal" in CLAUDE.md. color-scheme
+       here rather than only in main.css's :root so the browser knows before
+       the stylesheet loads, which is what prevents the white flash for readers
+       whose OS is set to dark. theme-color is --fog-mist, the page background. */}}
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#efefed">
 
   {{/* Security headers via <meta>. micro.blog hosted blogs are isolated from the
        dynamic platform, so per-blog HTTP response headers are NOT possible (per
@@ -84,7 +91,11 @@
   <meta property="og:site_name" content="{{ .Site.Title }}">
   <meta property="og:locale" content="en_US">
 
-  {{- if .IsPage }}
+  {{/* Gated on a non-zero date: a page with no date in front matter (posts always
+       have one, ordinary pages need not) was emitting the Go zero time,
+       content="0001-01-01T00:00:00Z", as its publish AND modified timestamps —
+       worse than omitting them, since consumers read it as a real date. */}}
+  {{- if and .IsPage (not .Date.IsZero) }}
   <meta property="article:published_time" content="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">
   <meta property="article:modified_time" content="{{ .Lastmod.Format "2006-01-02T15:04:05Z07:00" }}">
   <meta property="article:author" content="{{ .Site.Params.author.name | default .Site.Title }}">
@@ -92,6 +103,15 @@
 
   <link rel="canonical" href="{{ .Permalink }}">
   <link rel="author" href="{{ .Site.Params.social_website_url | default .Site.BaseURL }}">
+  {{/* Absorbs microdotblog/plugin-cc (2026-08-05), whose entire payload was this
+       one tag. Same param name (`cc_license_url`) and same CC BY 4.0 default, so
+       a value already set in that plugin's backend field carries over to ours.
+       UNINSTALL plugin-cc — with both installed the page emits the tag twice.
+       Wrapped in `with` (the plugin was not): blanking the field now hides the
+       link instead of emitting href="". */}}
+  {{- with .Site.Params.cc_license_url }}
+  <link rel="license" href="{{ . }}">
+  {{- end }}
   {{/* Self-hosted body (Charter) and heading (Fraunces) fonts, preloaded so
        both are available when main.css is parsed. Mirrors ~/git/website's
        extend_head.html preload list. */}}
@@ -131,6 +151,15 @@
         "inLanguage" "en-US"
   -}}
 
+  {{/* schema.org `license` from the same param as the rel="license" tag above.
+       This goes BEYOND what plugin-cc did (it only emitted the link) — it is
+       additive and safe to delete if you'd rather match the plugin exactly.
+       Merged conditionally so a blank field omits the key rather than
+       publishing an empty string. */}}
+  {{- with .Site.Params.cc_license_url }}
+    {{- $website = merge $website (dict "license" .) -}}
+  {{- end -}}
+
   {{- $graph := slice $person $website -}}
 
   {{- if and .IsPage (eq .Type "post") }}
@@ -152,6 +181,7 @@
           "description" (.Summary | plainify | truncate 160)
           "inLanguage" "en-US"
     -}}
+    {{- with .Site.Params.cc_license_url }}{{ $blogPosting = merge $blogPosting (dict "license" .) }}{{ end -}}
     {{- $graph = $graph | append $blogPosting -}}
   {{- end }}
 

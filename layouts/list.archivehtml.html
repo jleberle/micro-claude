@@ -33,7 +33,7 @@
         {{ with .Summary }}<div class="archive-entry-summary">{{ . | plainify | htmlUnescape | truncate 120 }}</div>{{ end }}
       </div>
       {{ if and .Site.Params.archive_months_photos .Params.photos }}
-        <img class="archive-entry-thumb" src="{{ index .Params.photos 0 }}" alt="" width="60" height="60" loading="lazy">
+        <img class="archive-entry-thumb" src="{{ index .Params.photos 0 }}" alt="" width="60" height="60" loading="lazy" decoding="async">
       {{ end }}
     </div>
   {{ end }}

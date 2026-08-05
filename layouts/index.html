@@ -55,7 +55,13 @@
       {{ if in . $catStartedReading }}{{ $isStarted = true }}{{ end }}
       {{ if in . $catFinishedReading }}{{ $isFinished = true }}{{ end }}
     {{ end }}
-    {{ if and (not $isStarted) (findRE `(?i)^Started reading:` $titleLine 1) }}{{ $isStarted = true }}{{ end }}
+    {{/* "Started reading:" AND "Currently reading:" both count. Micro.blog has
+         used both wordings, and a live post (currently-reading-the-night-manager,
+         tagged only `Books`) matched neither the Started Reading category nor the
+         old Started-only pattern, so a book actively being read never reached the
+         Currently Reading section. If you widen this list again, widen the $label
+         prefix strip below to match or the pairing key breaks. */}}
+    {{ if and (not $isStarted) (findRE `(?i)^(Started|Currently) reading:` $titleLine 1) }}{{ $isStarted = true }}{{ end }}
     {{ if and (not $isFinished) (findRE `(?i)^Finished reading:` $titleLine 1) }}{{ $isFinished = true }}{{ end }}
     {{ if or $isStarted $isFinished }}
       {{/* Native Micro.blog book posts put the review on its own line; the website's
@@ -84,7 +90,11 @@
            entries with no ISBN, i.e. the website ledger's DOI/URL sources, which
            would otherwise never leave Currently Reading. Identical across a
            source's two events because only the notes after 📚 differ. */}}
-      {{ $label := replaceRE `(?i)^(started|finished) reading:` "" $title }}
+      {{/* MUST list every prefix the detector above accepts. A "Currently
+           reading:" post whose prefix survived here would both display the verb
+           in its row and produce a $key that no "Finished reading:" post can
+           match — so it would never retire from Currently Reading. */}}
+      {{ $label := replaceRE `(?i)^(started|currently|finished) reading:` "" $title }}
       {{ $label = replaceRE `📚.*$` "" $label }}
       {{ $label = trim (replaceRE `[[:space:]]+` " " $label) " .,;:" }}
       {{ $key := lower $label }}
@@ -303,7 +313,7 @@
                          focusable link, but with its own accessible name instead of
                          repeating the title text verbatim as a second identical link. */}}
                     {{ with $e.cover }}
-                      <a href="{{ $e.coverLink }}" aria-label="{{ printf "View %s on Micro.blog" $e.label }}"><img class="media-cover" src="{{ . }}" alt="" loading="lazy"></a>
+                      <a href="{{ $e.coverLink }}" aria-label="{{ printf "View %s on Micro.blog" $e.label }}"><img class="media-cover" src="{{ . }}" alt="" loading="lazy" decoding="async"></a>
                     {{ end }}
                     <div class="media-entry-info">
                       {{/* Shelf books have no date — only ledger/post entries do. */}}
@@ -352,7 +362,7 @@
                          post — different destinations, so both stay real links, each
                          with its own accessible name instead of an identical alt/text. */}}
                     {{ with $isbn }}
-                      <a href="https://micro.blog/books/{{ . }}" aria-label="{{ printf "View %s on Micro.blog" $title }}"><img class="media-cover" src="https://cdn.micro.blog/books/{{ . }}/cover.jpg" alt="" loading="lazy"></a>
+                      <a href="https://micro.blog/books/{{ . }}" aria-label="{{ printf "View %s on Micro.blog" $title }}"><img class="media-cover" src="https://cdn.micro.blog/books/{{ . }}/cover.jpg" alt="" loading="lazy" decoding="async"></a>
                     {{ end }}
                     <div class="media-entry-info">
                       <time class="media-entry-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "January 2, 2006" }}</time>
@@ -404,7 +414,7 @@
                     {{ with $posterSrc }}
                       {{ $coverLabel := $title }}
                       {{ if $onTMDB }}{{ $coverLabel = printf "View %s on The Movie Database" $title }}{{ end }}
-                      <a href="{{ $movieURL }}" aria-label="{{ $coverLabel }}"><img class="media-cover" src="{{ . }}" alt="" loading="lazy"></a>
+                      <a href="{{ $movieURL }}" aria-label="{{ $coverLabel }}"><img class="media-cover" src="{{ . }}" alt="" loading="lazy" decoding="async"></a>
                     {{ end }}
                     <div class="media-entry-info">
                       <time class="media-entry-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "January 2, 2006" }}</time>
@@ -444,7 +454,10 @@
                 <time datetime="{{ $page.Date.Format "2006-01-02" }}">{{ $page.Date.Format "January 2, 2006" }}</time>
               </div>
               <p class="post-entry-summary">{{ $page.Summary | plainify | htmlUnescape | truncate 200 }}</p>
-              <a class="read-more" href="{{ $page.Permalink }}">{{ if $page.Title }}Read more{{ else }}Permalink{{ end }} &rarr;</a>
+              {{/* Names the destination for out-of-context link lists — same
+                   reasoning as _default/list.html, see the comment there. */}}
+              <a class="read-more" href="{{ $page.Permalink }}"
+                 aria-label="{{ if $page.Title }}Read more: {{ $page.Title }}{{ else }}Permalink to the post from {{ $page.Date.Format "January 2, 2006" }}{{ end }}">{{ if $page.Title }}Read more{{ else }}Permalink{{ end }} &rarr;</a>
             </li>
           {{ end }}
         </ul>

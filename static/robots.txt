@@ -1,0 +1,81 @@
+# robots.txt for eberle.blog — served from this theme's static/ directory.
+#
+# WHY IT LIVES HERE: verified with the pinned Hugo 0.158 that a theme's
+# static/robots.txt beats BOTH Hugo's generated robots.txt (enableRobotsTXT)
+# and another theme/plugin's static copy, and that among themes the leftmost
+# in the --theme list wins. micro.blog loads this theme first, so this file is
+# what gets served. It replaces the separate AI-blocking plugin; remove that
+# plugin so there is only one source of truth.
+
+# ----------------------------------------------------------------------
+# Ordinary crawlers: welcome. Nothing here is disallowed.
+# ----------------------------------------------------------------------
+User-agent: *
+Disallow:
+
+Sitemap: https://eberle.blog/sitemap.xml
+
+# ----------------------------------------------------------------------
+# AI crawlers: blocked. Two distinct categories, both blocked here to match
+# the intent of the plugin this replaces (which blocked GPTBot AND
+# ChatGPT-User, i.e. training and user-initiated fetches alike).
+#
+#   TRAINING / BULK CORPUS — content used to train models.
+#   RETRIEVAL / AI SEARCH — fetched to answer a specific user's question,
+#     often with a citation back. Blocking these removes the site from AI
+#     search results; unblock any you would rather be cited in.
+# ----------------------------------------------------------------------
+
+# OpenAI — training, search index, user-initiated
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+Disallow: /
+
+# Anthropic
+User-agent: ClaudeBot
+User-agent: Claude-User
+User-agent: Claude-SearchBot
+User-agent: anthropic-ai
+User-agent: Claude-Web
+Disallow: /
+
+# Google & Apple: opt-out tokens for AI training only. These do NOT affect
+# Googlebot/Applebot search indexing, which stay allowed by the rule above.
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+# Perplexity
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+Disallow: /
+
+# Meta
+User-agent: meta-externalagent
+User-agent: Meta-ExternalAgent
+User-agent: FacebookBot
+Disallow: /
+
+# Common Crawl — a public corpus most model trainers ingest
+User-agent: CCBot
+Disallow: /
+
+# Amazon, ByteDance, Cohere, DuckDuckGo AI, Diffbot, Omgili, You.com
+User-agent: Amazonbot
+User-agent: Bytespider
+User-agent: cohere-ai
+User-agent: cohere-training-data-crawler
+User-agent: DuckAssistBot
+User-agent: Diffbot
+User-agent: omgili
+User-agent: omgilibot
+User-agent: YouBot
+Disallow: /
+
+# Image scrapers used to build training sets
+User-agent: ImagesiftBot
+User-agent: AI2Bot
+Disallow: /

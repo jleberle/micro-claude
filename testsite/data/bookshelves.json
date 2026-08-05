@@ -5,6 +5,20 @@
       "author": "Shelf Fixture Author",
       "isbn": "9781111111111",
       "cover_url": "https://example.com/shelf-cover.jpg"
+    },
+    {
+      "title": "No ISBN Fixture",
+      "author": "Coverless Author",
+      "isbn": "",
+      "cover_url": "https://example.com/orphan-cover.jpg"
+    }
+  ],
+  "read2026": [
+    {
+      "title": "Grid Fixture",
+      "author": "Grid Author",
+      "isbn": "9782222222222",
+      "cover_url": "https://example.com/grid.jpg"
     }
   ]
 }

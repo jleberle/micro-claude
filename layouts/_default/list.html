@@ -17,7 +17,12 @@
           </a>
         </div>
         <p class="post-entry-summary p-summary">{{ $page.Summary | plainify | htmlUnescape | truncate 200 }}</p>
-        <a class="read-more" href="{{ $page.Permalink }}">{{ if $page.Title }}Read more{{ else }}Permalink{{ end }} &rarr;</a>
+        {{/* "Read more"/"Permalink" repeat once per entry, so out of context —
+             a screen reader's link list — they're indistinguishable. The
+             aria-label names the destination; it contains the visible text as
+             a prefix, satisfying WCAG 2.5.3 label-in-name. */}}
+        <a class="read-more" href="{{ $page.Permalink }}"
+           aria-label="{{ if $page.Title }}Read more: {{ $page.Title }}{{ else }}Permalink to the post from {{ $page.Date.Format "January 2, 2006" }}{{ end }}">{{ if $page.Title }}Read more{{ else }}Permalink{{ end }} &rarr;</a>
       </li>
     {{ end }}
   </ul>

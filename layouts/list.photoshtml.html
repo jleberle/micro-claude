@@ -23,7 +23,7 @@
     {{ range .Params.photos }}
       {{/* alt is empty (no per-photo text exists), so the link needs an
            aria-label or it has no accessible name at all. */}}
-      <a href="{{ $permalink }}" aria-label="{{ $label }}"><img src="{{ . }}" alt="" loading="lazy"></a>
+      <a href="{{ $permalink }}" aria-label="{{ $label }}"><img src="{{ . }}" alt="" loading="lazy" decoding="async"></a>
     {{ end }}
   {{ end }}
   {{ if ne $currentMonth "" }}</div>{{ end }}

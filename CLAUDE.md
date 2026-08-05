@@ -1,5 +1,5 @@
 # micro-claude theme — Claude session notes
-Last updated: 2026-08-03 (Structured data: JSON-LD Person/WebSite/BlogPosting)
+Last updated: 2026-08-05 (bookshelf + search-page + cc plugins absorbed; robots.txt/security.txt self-served; audits: bug sweep, dead-code, units, readability, web standards; palette sync)
 
 ## What this repo is
 A custom Hugo theme for Jared Eberle's micro.blog at **eberle.blog**.
@@ -106,8 +106,24 @@ to handle both micro.blog's default structure and our custom partials.
 - **Template-winner fingerprints** for /archive/index.json (who actually rendered it):
   theme-blank → `content_text` truncated to 100 chars; plugin-search-page → fatal
   on 0.158 (`.Site.Author.avatar`); OUR override → full-text `.Plain` +
-  `Params.author.avatar` icon. The live file is full-text, so our override IS
-  winning the lookup — confirmed.
+  `Params.author.avatar` icon + `feed_url` ending `archive/index.json`.
+- **CORRECTION 2026-08-05: "our override IS winning — confirmed" was NOT confirmed;
+  current evidence says it is NOT winning.** The live file serves
+  `"feed_url":"https://eberle.blog/photos/index.json"`, a string our committed
+  template CANNOT emit (ours says `archive/`), and `git rev-parse HEAD origin/main`
+  matches, so the fix is deployed. The full-text fingerprint that the original
+  claim rested on is simply not unique — it rules out theme-blank, nothing more.
+  Live `<meta name=generator>` confirms micro.blog is still on **Hugo 0.158.0**.
+  Most likely explanation: micro.blog renders ArchiveJSON at the platform level,
+  outside the theme/plugin lookup — which also fits the "ArchiveJSON output lags
+  builds" observation below better than a template race does.
+  - **No user-facing impact:** the index content is CURRENT and complete — 187
+    items, matching the 187 post links on `/archive/`, newest `2026-08-03`. Only
+    the `feed_url` metadata is wrong, and it is cosmetic.
+  - **Consequence for the full-rebuild landmine:** the protection our override was
+    believed to provide is unverified. Uninstalling plugin-search-page removes its
+    broken template from the build outright, which is a stronger guarantee than
+    shadowing it. Do not treat the override as proven mitigation.
 - **theme-blank is the ORIGIN of the `feed_url: photos/index.json` copy-paste bug**
   (its own `list.archivejson.json` has it; plugin-search-page copied it, and so did
   our first override).
@@ -195,6 +211,11 @@ to handle both micro.blog's default structure and our custom partials.
 
 ## File structure
 ```
+static/
+  robots.txt               # self-served, replaces the AI-blocking plugin (see
+                           #   "robots.txt + security.txt now served from the theme")
+  .well-known/
+    security.txt           # RFC 9116; unsigned copy of ~/git/website's, +eberle.blog Canonical
 layouts/
   _default/
     baseof.html              # page skeleton (may be overridden by micro.blog)
@@ -219,6 +240,12 @@ layouts/
     replies.html             # /replies/ page
   index.html                 # HOMEPAGE: intro + status + currently reading +
                              #           books/movies + highlights
+content/
+  search.md                # /search/ page + nav entry, absorbed from
+                           #   plugin-search-page (see that section)
+static/js/search.js        # the only JS this theme owns; powers /search/
+layouts/shortcodes/
+  bookshelf.html           # {{< bookshelf >}}, absorbed from the plugin
 static/css/main.css          # all styling — Northeaster palette (light-only,
                              #   shared token names/values with ~/git/website)
 config.json                  # Hugo config + local dev params
@@ -347,9 +374,14 @@ plugin.json                  # micro.blog theme metadata + settings fields
   shapes carry the `📚`, so one rule covers both. Movies are untouched (Micro.blog-only,
   already multi-line).
 - **Column balance:** book rows have a cover (taller) and movie rows are text-only, so the
-  two columns diverge in height. `.media-columns .media-cover { width: 56px }` shrinks the
-  book covers in that grid only (currently-reading keeps 80px) to bring row heights closer;
-  the movie count is also backend-tunable to fill remaining space.
+  two columns diverge in height. Cover width is trimmed in that grid to bring row heights
+  closer; the movie count is also backend-tunable to fill remaining space.
+  **Corrected 2026-08-05:** this used to say `.media-columns .media-cover { width: 56px }`
+  and "currently-reading keeps 80px". Neither `.media-columns` nor those px values exist —
+  the live rules are `.media-cover { width: 4.5rem }` with
+  `.media-list--reading .media-cover { width: 4.125rem }` (so it is the *reading* list that
+  is narrower, the opposite of what was written). Verified against `main.css` and the live
+  homepage's rendered classes.
 
 ## Hugo version compatibility notes
 ### The 0.91-vs-0.158 tension (root of the full-rebuild class of bugs)
@@ -487,10 +519,18 @@ This is what found the full-rebuild bug. Reproduces production far better than
 microdotblog-bookshelf-shortcode,plugin-search-page,mbplugin-youtube-nocookie,\
 theme-blank
 ```
-- Installed plugins (clone each into themes/): plugin-cc, wayback-link-preserver,
+- Installed plugins (clone each into themes/): wayback-link-preserver,
   plugin-bookgoals, kottkrig/microdotblog-bookshelf-shortcode, plugin-search-page,
   flschr/mbplugin-youtube-nocookie. (plugin-archive-months and plugin-photos-months
   were uninstalled 2026-06-10 — superseded by this theme's root-level templates.)
+  **Pending removal 2026-08-05:** `plugin-cc` (absorbed into `head.html`),
+  `plugin-search-page` (absorbed into `content/search.md` + `static/js/search.js`),
+  `microdotblog-bookshelf-shortcode` (absorbed into
+  `layouts/shortcodes/bookshelf.html`) and the AI-blocking robots.txt plugin
+  (superseded by `static/robots.txt`). Drop each from this list and from the
+  `--theme=` flag above once uninstalled — until then keep them in the repro so
+  it still matches production. Remaining after that: `plugin-bookgoals`,
+  `wayback-link-preserver`, `mbplugin-youtube-nocookie`.
 - The local `hugo` CLI aborts the WHOLE build on the first render error (so
   public/ ends up empty); micro.blog tolerates per-node failures and ships the
   rest — which is why prod showed only home+feed gone. Plugins inject head partials
@@ -803,6 +843,621 @@ component with no visible boundary at all.
   final token values. No browser available in-session for a live contrast
   checker cross-check.
 
+## bookshelf shortcode absorbed into the theme (2026-08-05)
+Absorbed `kottkrig/microdotblog-bookshelf-shortcode` so it can be uninstalled.
+It drives exactly one thing on the live site: the **"Currently Reading" block on
+`/reading/`** (the per-year sections below it are `plugin-bookgoals`, which
+stays). Note the homepage's Currently Reading is NOT this — that is
+`index.html`'s own merge of started-reading posts + the same shelf data, which is
+why the homepage shows one more book than `/reading/` does.
+
+- **`layouts/shortcodes/bookshelf.html` — call signature is IDENTICAL**, so
+  existing content needs no edit: positional `{{< bookshelf "shelf" >}}`, named
+  `shelf=`, and `variant="list"|"grid"`, same `currentlyreading`/`list` defaults.
+- **Shortcode lookup follows the same leftmost-theme-wins rule as static files**
+  (verified empirically on 0.158 with a throwaway second theme, both orderings).
+  micro.blog loads this theme before plugins, so ours shadows the plugin's copy
+  *before* it is uninstalled — no transition window, no half-styled flash.
+- **Class names are `bookshelf-*` (single dash), NOT the plugin's `bookshelf__*`.**
+  Deliberate: micro.blog loads plugin CSS AFTER `main.css`, so any rule sharing
+  the plugin's selectors loses every specificity tie — that is exactly why this
+  theme's previous `bookshelf__*` overrides never applied (see the dead-code
+  audit). Different names sidestep the ordering problem entirely. Don't
+  reintroduce the BEM names.
+- **The visible defect that prompted this:** the plugin's titles are `<h3>`, so
+  `.post-content h2, h3 { border-bottom }` drew a full-width rule through every
+  book title, running past the text and colliding with the covers. `.post-content
+  .bookshelf-title` (0,2,0, beats the 0,1,1 heading rule) resets border/margin —
+  a book title is a row label, not a section break. Headings stay `h3` so the
+  page outline is unchanged: verified `/reading/` renders `h1,h2,h3,h3,h2,h3,…`
+  with **no level skips**.
+- Other fixes over the original: dropped `title="<title> by <author>"` from each
+  row (a tooltip duplicating visible text; `title` is not an accessibility
+  feature — it is what shows in the screenshot that prompted this); covers get
+  `alt=""` + an `aria-label` on the link, since cover and title point at the SAME
+  URL and would otherwise announce twice; a book with no ISBN renders with no
+  cover instead of `<a href="">` (same rule `index.html` already applies);
+  `loading="lazy"` on every cover but the first (the shelf is top-of-page, so the
+  first is an LCP candidate); an unknown `variant` **warns and falls back** where
+  the original called `errorf`, which is FATAL — a typo in a post would have
+  failed the whole build.
+- **Regression fixtures:** `testsite/content/reading.md` exercises all three
+  paths (default list, `variant="grid"`, invalid variant), and
+  `testsite/data/bookshelves.json` gained a second `currentlyreading` entry with
+  an empty ISBN plus a `read2026` shelf. Verified in the build: correct markup for
+  all three, the no-ISBN book renders coverless with a plain (unlinked) title, and
+  the bad variant logs the warning and renders as a list. **CI will print
+  `WARN bookshelf: unknown variant "nonsense"` on every run — that is the
+  assertion, not a problem.** It does not fail the build (build-check.yml only
+  fails on fatal errors and leaked error text); the fixture carries a comment
+  saying so.
+
+## plugin-search-page absorbed into the theme (2026-08-05)
+**The reason is the landmine, not the feature.** That plugin also shipped
+`layouts/list.archivejson.json` using `.Site.Author.avatar` (removed in Hugo
+0.156) — the exact template that killed the home node (page + RSS + JSON) on a
+full rebuild in June 2026, still unfixed upstream two months after we reported
+it. Uninstalling removes it from the build entirely, which is a stronger
+guarantee than shadowing it — and see the CORRECTION above: our shadowing was
+probably never winning anyway.
+
+**Reviewed the other four plugins at the same time; all four stay external.**
+YouTube No-Cookie (731-line shortcode, actively maintained) and Wayback Link
+Preserver (486 lines of JS doing live Wayback API calls) are real software.
+Book reading goals is only 27 lines, but its `bookcalendar` shortcode pulls
+`micro.blog/css/calendar.css?v=20260710.5` and `js/calendar.js?v=20260711.1` —
+version strings micro.blog bumps, which we would then hand-track. Bookshelf
+shortcode is 27 lines over `.Site.Data.bookshelves`, data `index.html` already
+reads, so it is the easy one — but absorbing adds another `.Site.Data` call site
+to the deprecation landmine for no user-visible gain. Reconsider only if you want
+the cover-grid layout on `/reading/` that we deleted; owning the shortcode is the
+clean way to get it, instead of losing specificity ties to the plugin's CSS.
+
+**What was absorbed, and what changed:**
+- `content/search.md` — the page, its `/search/` URL and its `menu: main` nav
+  entry. See the "Removed content/ directory" note above: a theme's `content/` IS
+  merged, so this works the same way the plugin's did.
+- `static/js/search.js` — the logic, moved out of an inline `<script>` in the
+  markdown and into the theme's only owned JS file. `static/css/main.css` gained a
+  Search page section, replacing the plugin's inline `<style>` (hardcoded `#eee`
+  borders, px sizes, a fixed 270px field).
+- **KEEP `layouts/list.archivejson.json`.** Search fetches `/archive/index.json`
+  and needs the full-text `.Plain` body; that template is now load-bearing for a
+  feature, not just a shadow of the plugin's broken copy.
+- Fixes over the original: a real `<label>` (it had none — placeholder-only, which
+  fails WCAG 1.3.1/4.1.2); rows built with DOM nodes instead of `innerHTML`
+  (post text was being re-parsed as markup); `input` listeners instead of inline
+  `onChange`, so it searches as you type rather than only on blur/Enter; a `catch`
+  on the fetch (a failure previously left "Loading posts..." on screen forever);
+  untitled posts fall back to their date for link text instead of rendering an
+  empty anchor; `?q=` uses `replaceState` so search doesn't spam history; a
+  `<noscript>` pointing at `/archive/`.
+- `_default/single.html` now drops the whole `.post-meta` line when `.Date.IsZero`
+  rather than half-rendering it. `/search/` has no date, so the old code showed a
+  bare "1 min read"; the live plugin page showed **"January 1, 0001"** — a real,
+  currently-visible defect that the zero-date fix in the bug sweep resolves.
+- **Verified functionally, not just built:** 15 assertions against the rendered
+  page in a real DOM (jsdom) — label association, AND-matching across title+body,
+  status counts, `?q=` write and restore-on-load, empty/no-match states, invalid
+  dates, snippet truncation, failed-fetch error path, and that hostile markup in
+  post text is escaped rather than parsed. All pass. The harness was scratch, not
+  committed; CI has no JS test infra.
+
+## plugin-cc absorbed into the theme (2026-08-05)
+`microdotblog/plugin-cc`'s entire payload was one partial —
+`<link rel="license" href="{{ .Site.Params.cc_license_url }}">` — injected into
+`<head>` via its `plugin.json` `"includes"`, with a single backend field and a
+CC BY 4.0 default. All of that now lives here:
+- `head.html` emits the tag next to `rel="canonical"` / `rel="author"`.
+- `config.json` carries the same default; `plugin.json` exposes the same
+  `params.cc_license_url` field, so **a value already set in plugin-cc's backend
+  field carries over to ours** — same param name, no migration.
+- **UNINSTALL plugin-cc.** With both installed the page emits `rel="license"`
+  twice. Live value was the CC BY 4.0 default on every page (checked before the
+  change), so behavior is identical after removal.
+- **Two deliberate improvements over the plugin:**
+  1. Wrapped in `{{ with }}` — the plugin was not, so blanking its field emitted
+     `href=""`. Blank now omits the tag. Verified both ways in the build.
+  2. `license` added to the JSON-LD `WebSite` and `BlogPosting` nodes from the
+     same param (also `with`-guarded, so a blank field omits the key rather than
+     publishing an empty string). This goes BEYOND plugin-cc, which only ever
+     emitted the link tag — delete those two merges if exact parity is wanted.
+- Also corrected `plugin.json`'s `description`, which still read "A clean
+  Solarized Light theme" — stale since the Northeaster palette port, and
+  user-visible in micro.blog's plugin listing.
+
+## robots.txt + security.txt now served from the theme (2026-08-05)
+Both are plain files under `static/`, which micro.blog serves from the site root
+(same mechanism as `css/main.css` and `fonts/` — proven in production).
+
+### static/robots.txt — replaces the AI-blocking plugin
+**Precedence verified empirically on the pinned 0.158, not assumed:**
+- A theme's `static/robots.txt` **beats Hugo's generated one** (built with
+  `enableRobotsTXT = true`; the static file was what landed in `public/`).
+- Among themes, **the leftmost `--theme` entry wins** (tested both orderings with
+  a throwaway second theme; the winner flipped with the order). micro.blog loads
+  this theme first, then plugins, then theme-blank — so this file wins over a
+  plugin's copy whether that plugin ships a static file OR a `layouts/robots.txt`
+  template.
+- Content: the old plugin blocked only `GPTBot` + `ChatGPT-User`. The replacement
+  keeps that intent and extends it to ~28 agents across OpenAI, Anthropic,
+  Perplexity, Meta, Common Crawl, Amazon, ByteDance, Cohere, Diffbot, You.com and
+  the image-scraper bots, plus the `Google-Extended` / `Applebot-Extended`
+  training opt-outs (which do NOT affect Googlebot/Applebot search indexing).
+  Ordinary crawlers stay fully allowed and a `Sitemap:` line was added — the
+  plugin's file had none.
+- **Training vs. retrieval is deliberately NOT split.** `OAI-SearchBot`,
+  `Claude-SearchBot`, `Perplexity-User`, `DuckAssistBot` etc. are user-initiated
+  retrieval, and blocking them removes the site from AI search answers where it
+  would otherwise be cited. Both categories are blocked here because the plugin
+  being replaced already blocked `ChatGPT-User` (retrieval) alongside `GPTBot`
+  (training). Unblock individual agents if that trade isn't wanted.
+- **Deploy order:** push the theme, confirm `/robots.txt` serves this content,
+  THEN uninstall the AI-blocking plugin, then re-check. No unprotected window in
+  either outcome. Not verifiable before deploy — micro.blog could in principle
+  serve robots.txt outside Hugo, in which case neither file wins and the plugin
+  must stay.
+- llms.txt is intentionally NOT added: the point of llms.txt is to help LLM
+  crawlers, which this file blocks.
+
+### static/.well-known/security.txt
+Based on `~/git/website`'s copy. Hugo does copy the dot-directory into `public/`
+(verified). **Differences from the original, both deliberate:**
+- Adds `Canonical: https://eberle.blog/.well-known/security.txt` ahead of the
+  jaredeberle.org one. RFC 9116 allows multiple Canonical fields, and a file whose
+  Canonical doesn't include where it was retrieved from "should not be trusted"
+  (§2.5.2) — so a verbatim copy would have been self-invalidating here.
+- **Not PGP-signed.** The original is clearsigned; the signature covers exact
+  bytes, so adding the Canonical line necessarily breaks it. The file carries the
+  `gpg --clearsign` command to re-sign in place — that needs the key, so it is the
+  user's step, not something to fake.
+- `Expires: 2027-05-26` is carried over unchanged so both copies expire together.
+  **An expired security.txt is treated as invalid** — refresh both at once.
+- Whether micro.blog serves a dot-path at all is UNVERIFIED until deployed. Check
+  `https://eberle.blog/.well-known/security.txt` after the push.
+
+## "Currently reading:" posts now reach Currently Reading (fixed 2026-08-05)
+A real live post, `currently-reading-the-night-manager.html`, is tagged **only**
+`['Books']` and opens `Currently reading: The Night Manager by John le Carré 📚`.
+The started-reading detection accepted only the `Started Reading` category or
+`(?i)^Started reading:`, so it matched **neither** and a book actively being read
+never appeared in the Currently Reading section.
+- **Two edits, and they MUST stay in sync**: the detector is now
+  `(?i)^(Started|Currently) reading:`, and the `$label` prefix strip is now
+  `(?i)^(started|currently|finished) reading:`. Widening only the detector would
+  add the row but leave "Currently reading:" in the visible label AND produce a
+  `$key` no "Finished reading:" post can match — so it would never retire.
+  Comments at both sites point at each other.
+- **Regression fixtures added** to `testsite/content/post/`: `currently-active.md`
+  (Books-only, "Currently reading:" — the previously invisible shape),
+  `currently-done.md` + `currently-done-finished.md` (proves the pair still
+  retires through the normalized title/author key). Verified in the build: the new
+  row renders as "Night Manager Fixture by Fixture Author" with no verb prefix,
+  and the retired one is absent.
+
+## Final bug sweep (2026-08-05)
+Ran after the four audits below. Method: pinned-0.158 build of `testsite/`, then
+every generated page parsed with html5lib (structure, duplicate ids, heading
+order), every `application/ld+json` block parsed as JSON, and a scan for
+template-artifact strings (`error calling`, `executing "`, `<no value>`,
+`ZgotmplZ`, `&lt;nil&gt;`, empty `href`/`src`/`aria-label`, `0001`). Added a
+throwaway title-less, date-less page fixture to probe the edge case, then removed
+it.
+
+**Three bugs found and fixed:**
+1. **Zero-date leak, mine.** The new untitled-page `<h1>` fallback used
+   `.Date.Format` unguarded, so a page with no date in front matter rendered
+   `<h1>January 1, 0001</h1>` — and the same zero time in `_default/single.html`'s
+   `<time datetime>` and the `<article aria-label>`. All date-derived strings in
+   that template are now gated on `.Date.IsZero`, with `.Site.Title` as the
+   last-resort label. Posts are unaffected (micro.blog permalinks are
+   date-derived), but the same guard was added to `post/single.html` for safety.
+2. **Zero-date leak, pre-existing.** `head.html` emitted
+   `article:published_time` / `article:modified_time` as
+   `content="0001-01-01T00:00:00Z"` on any dateless page — worse than omitting
+   them, since consumers read it as a real date. Now gated on
+   `and .IsPage (not .Date.IsZero)`.
+3. **`{{ else if }}` is not valid after `{{ with }}`** on this Go/Hugo version —
+   `unexpected <if> in input`, a FATAL build error, caught by the pinned-0.158
+   build. Rewritten with a `$label` variable. Worth remembering: this is exactly
+   the class of fault that kills the whole home node in production.
+
+**Clean:** zero html5lib parse errors, zero duplicate ids, **zero heading-level
+skips**, and every page has an `<h1>` except Hugo's own `page/1/` pagination
+alias stubs (meta-refresh redirects, not theme output). JSON-LD parses on every
+page. All 19 spot-checks of this session's changes verified in rendered output.
+
+**Known consequence recorded, not a bug:** the measure cap exempts paragraphs
+containing an image, and micro.blog puts the caption in the SAME `<p>` as the
+image (verified on the live 2026-02-16 post: `<p><img ...>\ncaption`), so those
+captions run the full column instead of 60ch. Accepted trade — the alternative
+is every photo losing a quarter of its width. Noted in `main.css`.
+
+**Content-side finding (not theme-fixable):** **13 of 14 photo posts on the live
+site have no alt text** on their body image (`<img src=... alt>`). The 22 book
+covers in the recent feed are platform-injected and decorative, so their empty
+alt is correct — this is specifically the user-authored photos. micro.blog's
+editor supports alt text; nothing in the theme can supply it.
+
+## Dead code audit (2026-08-05)
+Method: extracted every class/id selector in `main.css` and diffed against (a) the
+classes the templates emit and (b) the classes actually present in **live**
+eberle.blog HTML (home, archive, photos, replies, a post, a category page,
+/about/, /reading/, /search/) — the live side matters because micro.blog injects
+markup and plugins render their own. Also diffed template `.Site.Params.*` reads
+against `config.json` + `plugin.json`. CSS classes went 98 → 87.
+
+**Removed (verified dead, zero visual change):**
+- `.page-header`, `.post-kicker`, `.post-kicker-sep` (+ `.post-kicker` in the
+  shared meta-typography selector list) — emitted by no template and present in no
+  live page.
+- `.list` in the print block — my own import error from `~/git/website`'s
+  `99-print.css`, where `.list` is a body class. This theme has no such class.
+- **The entire `.bookshelf*` block.** See below — none of it had ever applied.
+
+**Not firing — the significant finding.** micro.blog loads plugin stylesheets
+**after** `main.css` (verified in live `<head>` order: `main.css`, `custom.css`,
+`bookgoals.css`, `bookshelf.css`, `wayback-link-preserver.css`). At equal
+specificity the plugin therefore wins. Consequences on `/reading/`, which does use
+the bookshelf shortcode live:
+- Our `ul.bookshelf.bookshelf`, its `li`, `h3.bookshelf__title`, and both
+  `--variant-grid` rules were **byte-identical duplicates** of plugin-bookshelf's
+  own — pure redundancy.
+- Our three `--variant-list` rules **conflicted** and silently lost: the theme
+  asked for a `repeat(auto-fill, minmax(5rem,8rem))` cover grid with vertical-flex
+  items and `width:100%` covers; the plugin's vertical list with `5rem 1fr` item
+  grids is what has always rendered. Removed at the user's direction (2026-08-05)
+  rather than out-specified, so `/reading/` is unchanged.
+- `.bookgoals img.cover` DID win (0,2,1 vs the plugin's 0,2,0) — but the plugin's
+  `max-width: 100px` was still capping it, which would have silently swallowed the
+  units-audit rem conversion at the 106.25% root. Added `max-width: none`.
+- **If you ever restyle a plugin's markup, out-specify it deliberately** (e.g.
+  prefix `ul.bookshelf`) instead of matching its selectors — a comment in the
+  Plugins section of `main.css` now says so.
+
+**Not firing — reported, left alone by the user's choice:**
+- **Archive photo thumbnails have never rendered in production.** Posts carrying
+  `.Params.photos` (they appear on `/photos/`) render in `/archive/` with no
+  `<img class="archive-entry-thumb">`, so `.Site.Params.archive_months_photos` is
+  falsy live despite `config.json` defaulting it to `true`. Our
+  `list.archivehtml.html` IS winning the lookup (the live page carries our
+  `archive-entry`/`archive-month`/`archive-cats` classes), so the condition itself
+  is false — the `plugin.json` boolean field was sitting unchecked in the
+  micro.blog backend and overriding the config default. Note the earlier
+  verification of this feature was done in the LOCAL repro, where `config.json`'s
+  `true` applies.
+  - **RESOLVED 2026-08-05: the user enabled the setting and thumbnails render.**
+    The template and CSS were correct all along; only the backend checkbox was off.
+    **Takeaway for any future boolean setting: a `plugin.json` boolean field left
+    unchecked OVERRIDES a `true` default in `config.json`, silently disabling the
+    feature in production while the local repro still shows it working.** That
+    combination is why this went unnoticed. Don't treat a `config.json` boolean
+    default as the effective production value once the same key is exposed as a
+    backend field.
+  - **Consequence now that it is on:** the `aspect-ratio: 1` added to
+    `.archive-entry-thumb` in the units audit is live-visible for the first time —
+    archive thumbnails crop to square (matching `/photos/`). Drop that one line if
+    uncropped thumbs are wanted.
+
+**Dead but deliberate — keep:**
+- `#site-header` / `#site-footer` / `#main` — live HTML confirms micro.blog renders
+  OUR `baseof`/partials (`class="site-header"`, `class=page-content`,
+  `<main class=wrapper id=main-content>`, `class=site-footer`), so these ID
+  selectors never match today. They are the documented fallback for micro.blog's
+  default base template (see "How micro.blog renders this theme") and cost nothing.
+- `custom_footer.html` (one comment line) — an intentional blank override that
+  shadows any theme-blank/plugin `custom_footer.html`. Functional, not dead.
+- `.microblog_reply_form` in the print block — injected at runtime by
+  conversation.js, so it can never appear in fetched HTML; class name verified
+  against the live script source.
+
+**Removed at the user's direction (2026-08-05): all goldmark footnote styling** —
+`.footnotes`, `.footnote-ref`, `.footnote-backref`, the `[id^="fn:"]` /
+`[id^="fnref:"]` scroll-margin and `:target` highlight. **Zero footnotes across
+all 187 posts in `/archive/index.json`**, and micro.blog posting doesn't lend
+itself to them. If a post ever uses `[^1]`, goldmark's default markup renders
+unstyled but perfectly readable. The generic `.post-content sup` rule was KEPT —
+it is superscript styling, not footnote-specific. Side effect: the reduced-motion
+block now covers only two transitions (link hover, social pills); its comment was
+updated to match.
+
+**Unstyled markup hooks** (harmless, noted so they aren't mistaken for bugs):
+`.home-status`, `.home-feed`, `.footer-about` are structural grid children
+positioned by their parents; `.media-entry--movie` is a BEM modifier that was
+emitted but never given a rule.
+
+**Params audit — clean.** Every `config.json` param is read by a template; every
+`plugin.json` field is read. The `.Site.Params.*` reads with no local definition
+are all platform-supplied (`about_me`, `author.*`, `plugins_js`, `theme_seconds`,
+`include_conversation`), and the `social_*_url` fields having no `config.json`
+default is the documented 2026-06-06 decision. One inconsistency:
+**`home_cat_books` was the only `home_cat_*` with no `config.json` default** — its
+only definition was the inline `| default "Books"` on `index.html:10`.
+**FIXED 2026-08-05:** added `"home_cat_books": "Books"` to `config.json`, so all
+six category names now live in one place. Backend-field exposure is still uneven
+and deliberately left that way (only the two reading categories are tunable
+without a push):
+
+| param | config.json | backend field |
+|---|---|---|
+| `home_cat_status` | yes | no |
+| `home_cat_books` | yes (added) | no |
+| `home_cat_started_reading` | yes | yes |
+| `home_cat_finished_reading` | yes | yes |
+| `home_cat_movies` | yes | no |
+| `home_cat_highlights` | yes | no |
+
+### Category NAMES vs. SLUGS — do not confuse them (verified 2026-08-05)
+The live URLs are `/categories/finished/` and `/categories/started/`, which reads
+as though the categories were named "finished"/"started". **They are not.** Those
+are micro.blog custom SLUGS; the category names carried on posts are the full
+strings. Verified from `feed.json`'s per-item `tags` on the live site:
+`'Movies'` (13), `'Books'` (9), `'Finished Reading'` (6), `'Started Reading'` (2),
+`'Status'` (2), `'Highlights'` (1) — exactly the `config.json` values, which are
+therefore correct and must NOT be changed to the slugs.
+- What would break if they were: `where ... "Params.categories" "intersect"` would
+  match nothing, so `$finishedTaggedPosts` would empty out, the Books fallback on
+  `index.html:113` would fire and send "All books →" to `/categories/books/`, and
+  the Finished/Started sections would silently fall back to text-pattern detection
+  only.
+- The slug/name split is exactly why `$categoryURLs` resolves each link by term
+  TITLE → `.RelPermalink` (`index.html:27-34`) instead of `urlize`-ing the name:
+  `urlize "Finished Reading"` yields `/categories/finished-reading/`, which **404s
+  on this site**.
+
+What `home_cat_books` actually drives: it names the BROAD "Books" archive used as
+a **fallback destination** for the homepage's "All books →" link. Imported RSS
+reading posts land on that category before micro.blog's narrower Started/Finished
+Reading categories populate, so `index.html:113` retargets the link to the Books
+archive when — and only when — the Finished Reading category has zero posts and
+Books has some. It is a link-destination fallback only; it never selects which
+posts a section shows.
+
+**Currently dormant on eberle.blog** (verified 2026-08-05): "Finished Reading" is
+populated, so the branch never fires and "All books →" points at
+`/categories/finished/`. Failure mode if the "Books" category were ever renamed in
+the backend: `$bookFallbackPosts` silently goes empty and the fallback simply
+never triggers — no error, no broken link, the link just stays on Finished
+Reading. That is why this is a tidiness issue, not a bug.
+
+**Adjacent, and NOT hypothetical — micro.blog uses custom category slugs.** Live:
+"Finished Reading" → `/categories/finished/`, "Started Reading" →
+`/categories/started/`; the conventional `urlize` paths `/categories/finished-reading/`
+and `/categories/started-reading/` both **404**. The `$categoryURLs` title →
+`.RelPermalink` resolution (`index.html:27-34`) is what makes the homepage links
+correct, and it is working live. But the `| default (printf "/categories/%s" ...
+| urlize)` fallback on lines 103-108 would emit those 404 URLs if a term page were
+ever unavailable at build time. Fine as a last resort, worth knowing it is not a
+safe path on this site.
+
+## Units audit (2026-08-05)
+Full sweep of every length in `main.css`. The **unit policy is now written at the
+top of the file** — read it before adding a px value. Summary of what changed and
+what deliberately did not:
+
+- **Converted px → rem** (component dimensions, which should track the reader's
+  root text-size preference exactly like the layout tokens converted in the
+  mobile-first pass): `.intro-avatar` `124px`/`136px` → `7.75rem`/`8.5rem`,
+  `.media-cover` `72px` → `4.5rem`, `.media-list--reading .media-cover` `66px` →
+  `4.125rem`, `.archive-entry-thumb` `72px`/`60px` → `4.5rem`/`3.75rem`,
+  `.photos-grid` `gap: 12px` → `0.75rem`, `.bookgoals img.cover` `100px` →
+  `6.25rem`. **These render 6.25% larger above the 35em breakpoint**, where the
+  root is 106.25% — that is the intended effect (the whole reason for the unit
+  change), and it is the same trade the `--gap`/`--nav-width`/`--main-width`
+  conversion already accepted. Numbers are the old px ÷ 16.
+- **Converted px → em** (belongs to its element, not the page): `.intro-social
+  svg` `12px` → `1em`, so the icon tracks its own label's 0.74rem instead of the
+  root. Resolves to ~11.8px — visually identical to the 12px it replaced.
+- **Kept as px, deliberately** — 1px borders, `text-decoration-thickness`, the
+  focus `outline: 2px` / `outline-offset: 3px`, small `border-radius` (2-4px) and
+  the `999px` pill, `box-shadow` offsets/blurs, the blockquote's `3px` rule, and
+  `.visually-hidden`'s 1px clip idiom. All are device-pixel-oriented ornament;
+  scaling them produces fractional device pixels and blurry edges, and none is
+  content sizing. Browser *page* zoom scales them anyway — only the text-size-only
+  preference doesn't, which is the correct behavior for a hairline.
+- **Already correct, verified**: no `pt`/`cm`/`mm`/`in`/`pc` anywhere; every
+  `line-height` is unitless (inherits as a ratio, not a frozen length); every
+  `letter-spacing` is `em`; `vw` appears only as the middle term of a `clamp()`
+  with `rem` bounds, so a text-size preference still moves the floor and ceiling;
+  `@media` breakpoints are all `em` (a different axis from the rem layout values —
+  see the file-top policy); prose measures are `ch`; table/footnote/code padding
+  and margins are `em`, correctly scaling with their own font-size.
+
+**Found and deliberately NOT changed:**
+- **`.post-content h2/h3` mixes `margin: 1.7rem` with `padding-bottom: 0.28em`.**
+  `~/git/website` converted its equivalent heading margins to `em` on the argument
+  that spacing should track the heading's own size. Here both margins are rem, so
+  they at least scale together under root changes — the mismatch is only that they
+  don't scale with the heading. Converting properly means splitting the shared
+  h2/h3 rule per level (h2 is 1.5em, h3 1.17em, so one em value can't serve both)
+  and re-tuning the vertical rhythm, which is a typographic redesign with no
+  browser here to check it against. Worth doing in a pass that is about heading
+  rhythm specifically.
+
+**Adjacent fix made while measuring:** `.archive-entry-thumb` declared
+`width: auto` while its HTML carries `width="60" height="60"`, so the reserved box
+was square before the lazy image loaded and the photo's true ratio after — the
+archive row shifted sideways on every thumbnail load. Added `aspect-ratio: 1`, so
+the box matches the declared attributes and the existing `object-fit: cover`
+(previously inert — with an auto width the box always took the image's own ratio)
+finally does something. **Visual consequence: archive thumbnails now crop to
+square**, matching how `.photos-grid` already treats photos. Revert the
+`aspect-ratio` line if uncropped thumbs were wanted.
+
+Verified: pinned-0.158 build clean, tinycss2 re-parse 0 errors. No browser
+in-session — the 6.25% growth above 35em and the square thumbs are reasoned, not
+screenshot-diffed.
+
+## Readability audit (2026-08-05)
+Measured, not eyeballed: character-per-line counts were derived from
+`static/fonts/charter-400-latin.woff2`'s own `hmtx` advance widths (fontTools),
+frequency-weighted over English letter distribution plus spaces — an effective
+average of **0.4395em per character** (vs. the conventional 0.5em rule of thumb,
+which undercounts by ~14%). `1ch` in Charter = 0.5560em.
+
+- **THE finding: the post body had no measure cap.** `.post-content` filled the
+  whole `--main-width` column — a **43.75em measure, ~99 characters per line**
+  against the 45-75 comfortable range. Every *other* prose block in the theme was
+  already capped (`.intro-body` 60ch, `.post-entry-summary` 60ch,
+  `.status-card-body` 58ch, `.footer-about-text` 32ch), so the primary reading
+  surface was the one that got missed, not a deliberate exception.
+  - Fixed with `max-width: 60ch` — **the theme's own existing number**, not a new
+    one — which also lands on `~/git/website`'s settled measure (640px prose at
+    1.2rem = 33.33em; see its `20-content.css`, which documents the reasoning).
+    Result: **33.36em / ~76 chars**, identical at desktop root (17px), mobile root
+    (16px), and for the 0.96rem `.post-entry .post-content` on list/replies pages,
+    since `ch` resolves against each element's own font-size.
+  - **Applied to text-level children, NOT to `.post-content` itself.** Capping the
+    container would have shrunk every photo by a quarter on a blog where photo
+    posts are a first-class type. Paragraphs holding only an image are exempted
+    via `:has()` (micro.blog wraps post images in `<p>`), as are `figure`, and
+    `table`/`pre` were left out of the capped list entirely — tabular data and
+    code want the full column.
+  - Note the two conventions disagree on the label: `~/git/website` calls the same
+    33.33em measure "~66-67 characters" using the 0.5em heuristic; the font's real
+    metrics make it 76. Same physical measure either way — don't "fix" one number
+    to match the other.
+- **`hyphenate-limit-chars: 6 3 3`** added alongside the existing `hyphens: auto`
+  (only break 6+ letter words, never strand fewer than 3 either side) — same
+  values as the main site, which tuned them for exactly this narrow-measure case.
+- **`text-wrap: pretty`** extended to the other prose surfaces (intro bio, status
+  card, list/archive summaries, colophon). It was already on `.post-content p/li`.
+- **Print stylesheet added** — the theme had none, so a printed post carried the
+  header, footer colophon, pagination, post-nav, micro.blog's reply *form*, and a
+  light-on-dark code block. Mirrors `~/git/website`'s `99-print.css` reduced to
+  the components that exist here. The conversation itself is kept (printed replies
+  are part of the post's record); only `.microblog_reply_form` is hidden. `pre`
+  needs its own dark `color` in print because the screen rule hardcodes
+  `#edf3f6` light-on-dark.
+
+**Found, deliberately NOT changed** (both are documented boundaries, not oversights):
+- **Prose is 1rem = 17px** at the desktop root vs. the main site's 19.2px. Capping
+  the measure makes the two identical in *ems* and character count; only the
+  physical size differs. Changing the base is what "Self-hosted Charter body font"
+  explicitly rules out as a side effect — every component rem-value in this file is
+  tuned around 106.25%.
+- **Smallest meta text is 0.74rem (~12.6px)** (`.home-section-*`, footer headings).
+  On the small side, but it is furniture, it already carries the darkened
+  AA-cleared `--secondary`, and moving it cascades through the same tuned scale.
+- `.archive-entry-summary` and `.media-entry-review` are uncapped but structurally
+  constrained (a flex row beside a date/thumb; a half-width grid column), and both
+  render truncated blurbs — no cap needed.
+
+Verified: pinned-0.158 build clean, `main.css` re-parsed with tinycss2 (0 parse
+errors, top-level and nested). **No browser available in-session** — the measure
+math and CSS validity are checked, the visual result is not screenshot-diffed.
+
+## Web-standards audit (2026-08-05)
+Audited against **The Website Specification** (`https://specification.website`,
+36 `required` + 81 `recommended` items) plus general practice. The spec is
+exposed as an MCP server at `https://mcp.specification.website/mcp` — note it is
+registered in `~/.claude.json` under the **`~/git/website` project only**, so in
+THIS repo's sessions its tools aren't loaded; it was queried directly over
+JSON-RPC with `curl` (`tools/call` → `get_checklist`). Register it for this
+project too if you want the tools natively.
+
+**Fixed in this pass:**
+- **Untitled posts had no `<h1>` at all** (heading-hierarchy, `required`) — the
+  most common page type on a micro.blog. `post/single.html` only emitted the h1
+  `{{ with .Title }}`, and `header.html` deliberately renders the masthead as a
+  `<span>` off the home node (see "Accessibility pass"), so such a page's first
+  heading was the *footer's* `<h2>`. Verified in the `testsite/` build before and
+  after. Now falls back to a `.visually-hidden` h1 carrying the post date — the
+  same label the archive and `<title>` already use. Not tagged `p-name`: in
+  microformats an h-entry without one takes its name from the content, which is
+  the correct reading for a note. Same fix in `_default/single.html`.
+- **`prefers-reduced-motion` block** (`required`) — the theme had three
+  decorative transitions (link hover, social pills, footnote `:target` fade) and
+  no block. Uses `0.01ms`, not `0s`, so `transitionend` handlers still fire.
+- **Generic link text** (`required`) — `Read more →` / `Permalink →` repeat once
+  per entry in `_default/list.html` and `index.html`'s highlights, so they're
+  indistinguishable in a screen reader's link list. Added `aria-label`s naming
+  the destination, with the visible text as a prefix (WCAG 2.5.3 label-in-name).
+- **`<meta name="color-scheme">` + `<meta name="theme-color">`** (`recommended`)
+  — both were missing. Single-valued (no `media` variants) since this theme is
+  light-only. `color-scheme` in the head, not just `main.css`'s `:root`, is what
+  actually prevents the pre-stylesheet white flash for dark-OS readers.
+- **`forced-colors: active` block** (`recommended`) — every boundary in this
+  theme is a `color-mix()` border or a `box-shadow`, both of which forced-colors
+  discards; the social pills, covers, photo grid and avatar would have lost their
+  shapes entirely. Re-expressed with system color keywords (`ButtonBorder`,
+  `Highlight`/`HighlightText`).
+- **`100vh` → `100dvh`** on the main column's `min-height` (`recommended`), vh
+  retained as the preceding fallback declaration.
+- **`overflow-y: scroll` → `scrollbar-gutter: stable`** (`recommended`), with an
+  `@supports not` fallback to the old declaration. Same anti-shift effect without
+  forcing a permanently visible track on overlay-scrollbar platforms.
+- **`decoding="async"` on every `<img>`**; avatar got `fetchpriority="high"` (it
+  is the only image in the homepage's initial viewport and the LCP candidate) and
+  its `width`/`height` corrected `80` → `124` to match the CSS box.
+- **Avatar `alt` → `""`** — it sits directly beside `.intro-title`, an `<h2>` with
+  the identical name, so the alt text was a duplicate announcement. Decorative,
+  not unlabelled; `u-photo` is unaffected (it reads `src`).
+
+**Checked and already correct** (don't "fix" these): CLS is handled by
+`aspect-ratio` on `.media-cover`/`.photos-grid a img` rather than width/height
+attributes, so those images need none; `:focus-visible` (not `:focus`) throughout;
+skip link; landmarks; `text-wrap: balance`/`pretty`; self-hosted subset WOFF2 +
+`font-display: swap` + preload; `loading="lazy"` on everything below the fold and
+on nothing above it; canonical, OG, JSON-LD, `rel=me`; `<html lang=en>` renders
+correctly in production (unlike `.Site.LanguageCode` — see "Future landmines").
+
+- **`conversation.js` MUST NOT get `defer`/`async`.** It builds the reply form
+  with `document.write()` (verified by fetching it live, 2026-08-05), which
+  destroys the document if it runs after parse. This is the obvious-looking
+  "render-blocking script" fix and it would break every post page; a comment in
+  `post/single.html` now says so. The legacy `type="text/javascript"` was dropped
+  (inert either way).
+
+**Platform-side, NOT theme-fixable** (probed live on eberle.blog, 2026-08-05):
+- **No compression at all.** `Accept-Encoding: gzip, br, zstd` returns no
+  `content-encoding` for either HTML or CSS — `main.css` ships ~30 KB
+  uncompressed where gzip would be ~6 KB. `required` tier. Worth reporting to
+  micro.blog; nothing a theme can do.
+- **No security response headers** (HSTS, `nosniff`, `Referrer-Policy`,
+  `Permissions-Policy`, CSP-as-header) and **no `Cache-Control`** on HTML or CSS
+  — consistent with the head.html note that per-blog headers are impossible.
+  `ETag` + `Last-Modified` ARE sent, so conditional requests work. Server is
+  Caddy, HTTP/2 with h3 advertised.
+- Good already: `/humans.txt` (the footer link) returns 200, `/robots.txt` and
+  `/sitemap.xml` are served by the platform, and an unknown path returns a real
+  `404` status.
+- **`/.well-known/security.txt` and `/llms.txt` 404.** Both are theme-shippable
+  in principle (`static/` lands at the site root, as `css/` and `fonts/` prove),
+  but both were left alone deliberately: security.txt needs a contact address
+  that's the user's call and an RFC 9116 `Expires` under a year out, which a
+  hardcoded file in a theme silently outlives; llms.txt needs curation and
+  micro.blog already serves feeds plus a full archive. Ask before adding either.
+
+## Palette hue sync (2026-08-05)
+Mirrors `~/git/website` commit `fc13a1a` ("Tune palette hues against the Homer
+paintings"), which retuned four light-mode tokens on the **hue axis only**:
+- `--tide` `#24566a` → `#1c5863`, `--tide-deep` `#173f50` → `#0e414a` — the accent
+  is now pinned to the hue of the *sea* in Northeaster (LCH hue ~220) rather than
+  its sky/foam band (was 238.8). L and C held fixed, so contrast is essentially
+  unchanged: link on `--theme` 6.98→6.95, on `--entry` 6.16→6.13; accent 9.79→9.73
+  / 8.64→8.59. Re-derived here with the relative-luminance formula, not assumed
+  from the upstream commit message. Keep future accent tuning on the hue axis.
+- `--fog-haze` `#9da5a5` → `#9ba5ab`, `--fog-pale-haze` `#c7cac6` → `#c5c9cd` —
+  the hairlines were green-peaked; corrected toward the painting's blue-dominant
+  slate. Relative luminance unchanged (0.3679→0.3682, 0.5846→0.5805), so the
+  `color-mix()`-composited rules/borders that derive from them hold too.
+- **Deliberately NOT synced:** `--fog-driftgray`. The main site is at `#585f65`;
+  this theme keeps `#4c545a` because it uses that color at smaller meta-text sizes
+  (see "Contrast pass" below — this is the second AA-driven divergence on that one
+  token, not drift).
+- **Dark mode still NOT ported.** `~/git/website` re-gained a
+  `prefers-color-scheme: dark` palette in `c976527` (before this commit), so the
+  "the main site has no dark theme" rationale in "Dark theme removal" below is now
+  STALE as a fact about the main site — but the removal here was not reverted: this
+  pass was a color sync, and re-adding a dark palette means re-auditing every
+  component in this theme (composited `color-mix()` backgrounds, the intro-social
+  pill, book covers), which is its own piece of work. If you do it, the upstream
+  dark tokens + the `prefers-color-scheme: dark and prefers-contrast: more` block
+  in `01-tokens.css` are the source to copy.
+- Verified: pinned-0.158 build against `testsite/` clean, `main.css` served with
+  the new values.
+
 ## Structured data: JSON-LD (2026-08-03)
 Added schema.org markup via `<script type="application/ld+json">` in
 `head.html` — `Person` + `WebSite` on every page, plus `BlogPosting` on post
@@ -849,6 +1504,12 @@ convention `index.html`'s homepage sections already use).
 - Removed `opengraph.html` (was breaking feed generation on 0.158)
 - Fixed `list.archivehtml.html` Date.Format syntax for 0.158
 - Removed `content/` directory (was injecting unwanted bio text)
+  **SUPERSEDED 2026-08-05:** a `content/` dir exists again, holding exactly one
+  file — `content/search.md`, absorbed from plugin-search-page. The June removal
+  was about that directory's *contents*, not the mechanism; a theme's `content/`
+  IS merged by micro.blog, which is what made the stray bio text appear in the
+  first place and is what makes the search page work now. Don't delete the
+  directory on the strength of this line.
 - Removed `theme.json` (potential conflict with plugin.json)
 - Reverted `microblog_head.html` to direct call (no templates.Exists guard)
 - Fixed `.Site.Author.avatar` → `.Site.Params.author.avatar`

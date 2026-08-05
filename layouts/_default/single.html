@@ -1,15 +1,30 @@
 {{ define "main" }}
-  <article aria-label="{{ with .Title }}{{ . }}{{ else }}{{ .Date.Format "January 2, 2006" }}{{ end }}">
+  {{/* This template serves PAGES as well as posts, and a page can legitimately
+       have no date at all — an undated one used to render the Go zero time,
+       "January 1, 0001", in the heading, the aria-label and the <time>. Every
+       date-derived string here is therefore gated on .Date.IsZero, with the
+       site title as the last-resort label. */}}
+  {{ $label := .Title }}
+  {{ if and (not $label) (not .Date.IsZero) }}{{ $label = .Date.Format "January 2, 2006" }}{{ end }}
+  {{ if not $label }}{{ $label = .Site.Title }}{{ end }}
+  <article aria-label="{{ $label }}">
     <header class="post-header">
+      {{/* Same no-h1-on-untitled-pages fix as post/single.html — see the
+           comment there for why the date is the label. */}}
       {{ with .Title }}
         <h1 class="post-title">{{ . }}</h1>
+      {{ else }}
+        <h1 class="visually-hidden">{{ $label }}</h1>
       {{ end }}
+      {{/* No date means a standing utility page (/search/, an undated About) —
+           a bare "1 min read" with nothing to date it is noise, so the whole
+           meta line is dropped rather than half-rendered. */}}
+      {{ if not .Date.IsZero }}
       <div class="post-meta">
         <time datetime="{{ .Date.Format "2006-01-02T15:04:05-07:00" }}">{{ .Date.Format "January 2, 2006" }}</time>
-        {{ with .ReadingTime }}
-          &nbsp;&middot;&nbsp; {{ . }} min read
-        {{ end }}
+        {{ with .ReadingTime }}&nbsp;&middot;&nbsp; {{ . }} min read{{ end }}
       </div>
+      {{ end }}
     </header>
 
     <div class="post-content">
