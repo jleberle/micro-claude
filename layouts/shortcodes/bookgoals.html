@@ -1,0 +1,75 @@
+{{/*
+  Books finished in a year: {{< bookgoals 2026 >}}
+  Progress against this year's goal: {{< bookgoals progress >}}  -> "12 of 30"
+
+  Absorbed from microdotblog/plugin-bookgoals (2026-08-05) so that plugin can be
+  uninstalled. Call signature is unchanged, so existing content needs no edit.
+  Only its `bookgoals` shortcode is reproduced — `bookcalendar` is deliberately
+  NOT, since it is unused here and pins versioned micro.blog asset URLs
+  (calendar.css?v=…, calendar.js?v=…) that only an upstream plugin update can
+  refresh. If you ever want the calendar view, reinstall the plugin rather than
+  copying that shortcode in.
+
+  Data is platform-generated: .Site.Data.bookgoals.<year> = { progress, value,
+  books: [{ title, cover_url, post_url }] }. .Site.Data (not hugo.Data) for the
+  0.91 floor — see "Future landmines" in CLAUDE.md.
+
+  Why this exists rather than just styling the plugin's output: both of its real
+  defects live in markup and are unreachable from CSS.
+  - NO lazy loading. /reading/ carries 44 covers averaging ~38 KB — about 1 MB
+    fetched eagerly, essentially all of it below the fold.
+  - width="100" height="120" hardcoded on every cover, a 0.833 ratio. Measured
+    covers are 0.667, 0.667, 0.667, 0.737, 0.657 — so with height:auto the
+    browser reserved a wrong-shaped box and reflowed on load, 44 times over.
+    Replaced with a CSS aspect-ratio + object-fit, matching .media-cover and
+    .bookshelf-cover.
+*/}}
+
+{{- $param := "" -}}
+{{- if .IsNamedParams -}}
+  {{- $param = .Get "year" | default "" -}}
+{{- else -}}
+  {{- $param = .Get 0 | default "" -}}
+{{- end -}}
+
+{{- with .Site.Data.bookgoals -}}
+  {{- if eq $param "progress" -}}
+    {{- with index . (string now.Year) -}}
+      {{- printf "%v of %v" .progress .value -}}
+    {{- end -}}
+  {{- else -}}
+    {{/* Bare {{< bookgoals >}} rendered nothing upstream; default it to the
+         current year, which is the only thing it could sensibly mean. Existing
+         calls all pass a year, so nothing changes for them. */}}
+    {{- $year := $param | default (string now.Year) -}}
+    {{- with index . (string $year) -}}
+      {{- with .books -}}
+        {{/* EVERY cover is lazy here, unlike the bookshelf shortcode which
+             leaves its first eager. A year-in-review grid is 20-40 covers deep
+             and is never the LCP element — on /reading/ it sits below the
+             Currently Reading shelf. Revisit only if a page ever opens with
+             this shortcode as its first content. */}}
+        <div class="bookgoals">
+          {{- range . -}}
+            {{- if .cover_url -}}
+              {{- if .post_url -}}
+                <a class="bookgoals-link" href="{{ .post_url }}">
+                  {{/* The anchor wraps ONLY this image, so the alt text IS the
+                       link's accessible name — the right place for the title
+                       here, unlike the cover links in index.html and the
+                       bookshelf shortcode, which sit beside visible title text
+                       and therefore use alt="" plus an aria-label. */}}
+                  <img class="bookgoals-cover" src="{{ .cover_url }}"
+                       alt="{{ .title }}" loading="lazy" decoding="async">
+                </a>
+              {{- else -}}
+                <img class="bookgoals-cover" src="{{ .cover_url }}"
+                     alt="{{ .title }}" loading="lazy" decoding="async">
+              {{- end -}}
+            {{- end -}}
+          {{- end -}}
+        </div>
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}

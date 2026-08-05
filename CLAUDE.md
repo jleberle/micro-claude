@@ -1,5 +1,5 @@
 # micro-claude theme — Claude session notes
-Last updated: 2026-08-05 (bookshelf + search-page + cc plugins absorbed; robots.txt/security.txt self-served; audits: bug sweep, dead-code, units, readability, web standards; palette sync)
+Last updated: 2026-08-05 (RSS re-import landmine diagnosed; bookgoals + bookshelf + search-page + cc plugins absorbed; robots.txt/security.txt self-served; audits: bug sweep, dead-code, units, readability, web standards; palette sync)
 
 ## What this repo is
 A custom Hugo theme for Jared Eberle's micro.blog at **eberle.blog**.
@@ -107,23 +107,21 @@ to handle both micro.blog's default structure and our custom partials.
   theme-blank → `content_text` truncated to 100 chars; plugin-search-page → fatal
   on 0.158 (`.Site.Author.avatar`); OUR override → full-text `.Plain` +
   `Params.author.avatar` icon + `feed_url` ending `archive/index.json`.
-- **CORRECTION 2026-08-05: "our override IS winning — confirmed" was NOT confirmed;
-  current evidence says it is NOT winning.** The live file serves
+- **2026-08-05, resolved — our override IS winning, but the file can be stale by
+  a build.** Mid-session the live file served
   `"feed_url":"https://eberle.blog/photos/index.json"`, a string our committed
-  template CANNOT emit (ours says `archive/`), and `git rev-parse HEAD origin/main`
-  matches, so the fix is deployed. The full-text fingerprint that the original
-  claim rested on is simply not unique — it rules out theme-blank, nothing more.
-  Live `<meta name=generator>` confirms micro.blog is still on **Hugo 0.158.0**.
-  Most likely explanation: micro.blog renders ArchiveJSON at the platform level,
-  outside the theme/plugin lookup — which also fits the "ArchiveJSON output lags
-  builds" observation below better than a template race does.
-  - **No user-facing impact:** the index content is CURRENT and complete — 187
-    items, matching the 187 post links on `/archive/`, newest `2026-08-03`. Only
-    the `feed_url` metadata is wrong, and it is cosmetic.
-  - **Consequence for the full-rebuild landmine:** the protection our override was
-    believed to provide is unverified. Uninstalling plugin-search-page removes its
-    broken template from the build outright, which is a stronger guarantee than
-    shadowing it. Do not treat the override as proven mitigation.
+  template cannot emit (ours says `archive/`) with `HEAD == origin/main`, which
+  looked like proof the override was losing. After a fresh build later the same
+  day it serves `archive/index.json` — so all three fingerprints (full-text
+  `.Plain`, `Params.author.avatar` icon, correct `feed_url`) now line up and the
+  override is confirmed. The earlier reading was the documented "ArchiveJSON
+  output lags builds" behaviour, just lagging by longer than one build.
+  - **Lesson: do not diagnose this file from a single fetch.** Its content can be
+    current while its metadata is a generation behind. Force a rebuild, then
+    re-check.
+  - **Still true regardless:** uninstalling plugin-search-page removes its broken
+    `.Site.Author.avatar` template from the build outright, which is a stronger
+    guarantee than shadowing it.
 - **theme-blank is the ORIGIN of the `feed_url: photos/index.json` copy-paste bug**
   (its own `list.archivejson.json` has it; plugin-search-page copied it, and so did
   our first override).
@@ -246,6 +244,8 @@ content/
 static/js/search.js        # the only JS this theme owns; powers /search/
 layouts/shortcodes/
   bookshelf.html           # {{< bookshelf >}}, absorbed from the plugin
+  bookgoals.html           # {{< bookgoals 2026 >}} / progress, absorbed from
+                           #   plugin-bookgoals (bookcalendar deliberately not)
 static/css/main.css          # all styling — Northeaster palette (light-only,
                              #   shared token names/values with ~/git/website)
 config.json                  # Hugo config + local dev params
@@ -526,11 +526,12 @@ theme-blank
   **Pending removal 2026-08-05:** `plugin-cc` (absorbed into `head.html`),
   `plugin-search-page` (absorbed into `content/search.md` + `static/js/search.js`),
   `microdotblog-bookshelf-shortcode` (absorbed into
-  `layouts/shortcodes/bookshelf.html`) and the AI-blocking robots.txt plugin
-  (superseded by `static/robots.txt`). Drop each from this list and from the
-  `--theme=` flag above once uninstalled — until then keep them in the repro so
-  it still matches production. Remaining after that: `plugin-bookgoals`,
-  `wayback-link-preserver`, `mbplugin-youtube-nocookie`.
+  `layouts/shortcodes/bookshelf.html`), `plugin-bookgoals` (absorbed into
+  `layouts/shortcodes/bookgoals.html`, minus its unused `bookcalendar`) and the
+  AI-blocking robots.txt plugin (superseded by `static/robots.txt`). Drop each
+  from this list and from the `--theme=` flag above once uninstalled — until then
+  keep them in the repro so it still matches production. Remaining after that,
+  and staying external: `wayback-link-preserver`, `mbplugin-youtube-nocookie`.
 - The local `hugo` CLI aborts the WHOLE build on the first render error (so
   public/ ends up empty); micro.blog tolerates per-node failures and ships the
   rest — which is why prod showed only home+feed gone. Plugins inject head partials
@@ -842,6 +843,101 @@ component with no visible boundary at all.
   every ratio above (relative-luminance formula, not eyeballed) against the
   final token values. No browser available in-session for a live contrast
   checker cross-check.
+
+## LANDMINE: deleted RSS-import posts come back (diagnosed 2026-08-05)
+**Micro.blog re-creates any feed item it cannot find a post for.** Deleting an
+imported post does NOT tell the importer to forget it — on the next poll the item
+is still in the feed, there is no matching post, so it is imported again. A
+deletion only sticks once the item has aged out of the feed window.
+
+**Dedup is on `<link>`, NOT `<guid>`** (documented in `~/git/website`'s
+`layouts/reading.rss.xml` header, found when a started+finished pair sharing one
+link silently dropped the second). This is why the 2026-07 guid fix was necessary
+but not sufficient: **a published `<link>` must be treated as immutable.** Any
+change to it — a URL-scheme change, a folder rename for a source with no
+isbn/doi/access_url, adding or removing a `#started`/`#finished` suffix — creates
+a NEW post for every affected item then inside the window.
+
+**State on 2026-08-05:** 8 works duplicated, **15 extra posts**, all 2012-2015
+`finished` events (down from 45 groups / 60 extras in the 2026-07 cleanup — so
+that cleanup mostly held, and these are the ones that returned).
+
+**The slug generations are the fingerprint of how many times each was imported.**
+Micro.blog cannot reuse a slug, so each re-import falls back further:
+`000000.html`/`010000.html` (untitled post at midnight — the oldest import) →
+6-char hex `ae5528.html` (collision fallback) → `finished-reading-<title>.html`
+(newest scheme). Three slug styles for one book = three separate imports at three
+different times, which lines up with the ledger's URL-scheme changes (cite-key →
+`/sources/` taxonomy in b8fce17, then the `#started`/`#finished` suffix work in
+d060262/9cc9c99).
+
+**Safe to delete now:** all 8 works are OUTSIDE the current 20-item window, which
+spans **2025-01-05 → 2026-08-01** (checked against the live
+`jaredeberle.org/reading/index.xml`). Nothing in the feed can resurrect them.
+- **Before deleting any future duplicate, check whether its item is in the
+  current 20.** If it is, deletion will not stick — fix the link first, or wait
+  for it to age out. This is the check that was missing.
+- Keep the title-slug copy where one exists; it is the newest import and the only
+  one with a readable URL.
+
+**Prevention (not yet implemented, `~/git/website` is a separate repo):** commit a
+snapshot of every `<link>` the feed has emitted and have
+`scripts/checks/feed-lint.py` fail when a previously-published link changes or
+disappears while still inside the window. The guid is already stable; the link is
+the one that actually controls duplication and nothing currently guards it.
+
+**Theme-side exposure:** `index.html`'s Finished Reading de-dup (2026-07-27) hides
+these on the homepage, but `/archive/`, `/search/` and the feeds all still show
+every copy — the theme can only paper over this, not fix it.
+
+## plugin-bookgoals absorbed into the theme (2026-08-05)
+Absorbed `microdotblog/plugin-bookgoals` — the per-year finished-books grids on
+`/reading/`. `layouts/shortcodes/bookgoals.html`, same call signature
+(`{{< bookgoals 2026 >}}`, `{{< bookgoals progress >}}`), so content needs no
+edit; ours wins the lookup before the plugin is uninstalled (leftmost theme).
+
+**Only `bookgoals` was reproduced. `bookcalendar` was deliberately NOT** — it is
+unused here and pins versioned micro.blog assets (`calendar.css?v=20260710.5`,
+`calendar.js?v=20260711.1`) that only an upstream plugin update can refresh. If
+the month-by-month calendar view is ever wanted, reinstall the plugin rather than
+copying that shortcode in; it is also undocumented (absent from the plugin's
+README and plugin.json), so treat it as unsupported.
+
+**The case for absorbing was two markup defects that CSS cannot reach**
+(measured on the live page, not assumed):
+- **No lazy loading at all.** `/reading/` carries **44 covers averaging ~38 KB —
+  about 1 MB fetched eagerly**, essentially all below the fold. `loading` can
+  only be set in markup.
+- **`width="100" height="120"` on every cover — a 0.833 ratio that is wrong for
+  all of them.** Sampled real covers: 0.667, 0.667, 0.667, 0.737, 0.657. With
+  `height: auto` the browser reserved a wrong-shaped box and reflowed on load,
+  44 times. Replaced with CSS `aspect-ratio: 2/3` + `object-fit: cover`,
+  matching `.media-cover` / `.bookshelf-cover`.
+
+Other changes:
+- **Every cover is lazy here, unlike `bookshelf.html` which leaves its first
+  eager.** A year-in-review grid is 20-40 covers deep and never the LCP element;
+  on `/reading/` it sits below the Currently Reading shelf. Revisit only if a
+  page ever opens with this shortcode as its first content.
+- **`alt` keeps the book title here** — the anchor wraps only the image, so the
+  alt IS the link's accessible name. This is the opposite of the `alt=""` +
+  `aria-label` pattern used in `index.html` and `bookshelf.html`, where a visible
+  title sits beside the cover and alt text would double-announce. Both are
+  correct; the difference is whether adjacent text already names the link.
+- Class is `bookgoals-cover`, not the plugin's `cover`, so its stylesheet cannot
+  reach our markup while both are installed. **This retires the `max-width: none`
+  workaround** that existed only to defeat its `.bookgoals .cover
+  { max-width: 100px }`, which had been silently clamping the rem width set in
+  the units audit.
+- Books with no `cover_url` are skipped; a book with no `post_url` renders as a
+  bare image rather than `<a href="">`. A bare `{{< bookgoals >}}` now defaults to
+  the current year (upstream rendered nothing).
+- **Fixtures:** `testsite/data/bookgoals.json` (two years, plus a coverless book
+  and a book with no post_url) and four more sections in
+  `testsite/content/reading.md`. Verified in the build: 3 covers render, all lazy
+  + `decoding="async"`, no `width`/`height` attributes, coverless book skipped,
+  unlinked book has no empty anchor, `progress` renders "12 of 30", an unknown
+  year renders nothing. `/reading/` heading levels still have no skips.
 
 ## bookshelf shortcode absorbed into the theme (2026-08-05)
 Absorbed `kottkrig/microdotblog-bookshelf-shortcode` so it can be uninstalled.

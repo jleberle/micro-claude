@@ -1,0 +1,18 @@
+{
+  "2026": {
+    "progress": 12,
+    "value": 30,
+    "books": [
+      { "title": "Goal Fixture One", "cover_url": "https://example.com/g1.jpg", "post_url": "https://example.com/post/finished-isbn/" },
+      { "title": "Goal Fixture Two", "cover_url": "https://example.com/g2.jpg", "post_url": "" },
+      { "title": "Coverless Goal Fixture", "cover_url": "", "post_url": "https://example.com/post/plain/" }
+    ]
+  },
+  "2025": {
+    "progress": 28,
+    "value": 25,
+    "books": [
+      { "title": "Last Year Fixture", "cover_url": "https://example.com/g3.jpg", "post_url": "https://example.com/post/highlight/" }
+    ]
+  }
+}

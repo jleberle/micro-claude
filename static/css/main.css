@@ -319,22 +319,31 @@ h6,
 }
 
 /* --- Plugins --------------------------------------------- */
+/* Styles OUR bookgoals shortcode. The image class is `bookgoals-cover`, not the
+   plugin's `cover`, so plugin-bookgoals' stylesheet (loaded after main.css, and
+   therefore winner of any tie) cannot reach it while both are installed — the
+   same naming rule as .bookshelf-*. This also retires the `max-width: none`
+   workaround that existed purely to defeat its `.bookgoals .cover
+   { max-width: 100px }`. */
 .bookgoals {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.6rem;
+  margin: 1.2rem 0;
 }
 
-/* plugin-bookgoals ships `.bookgoals .cover { max-width: 100px }` and its
-   stylesheet loads AFTER main.css, so the cap survives our width unless it is
-   cleared — without this, the rem width above silently clamped back to 100px
-   at the 106.25% root. Our selector out-specifies the plugin's (0,2,1 vs
-   0,2,0), so the width itself does win. */
-.bookgoals img.cover {
-  display: inline-block;
+.bookgoals-link {
+  display: block;
+}
+
+.bookgoals-cover {
   width: 6.25rem;
-  max-width: none;
-  height: auto;
+  /* Replaces the plugin's hardcoded width="100" height="120" (0.833). Real
+     covers measure 0.657-0.737, so that box was wrong for every one of them and
+     reflowed on load. 2/3 + cover matches .media-cover and .bookshelf-cover. */
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 4px;
 }
 
 /* --- Bookshelf (layouts/shortcodes/bookshelf.html) -------- */
