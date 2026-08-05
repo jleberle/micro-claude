@@ -7,42 +7,53 @@
         "title": "The Blood Countess: Murder, Betrayal, and the Making of a Monster",
         "author": "Shelley Puhak",
         "cover_url": "https://example.com/g1.jpg",
-        "post_url": "https://micro.blog/books/9780000000001"
+        "post_url": "https://micro.blog/books/1"
       },
       {
         "title": "The Blood Countess",
+        "author": "Shelley Puhak",
         "cover_url": "https://example.com/g1b.jpg",
-        "post_url": "https://micro.blog/books/9780000000002"
+        "post_url": "https://micro.blog/books/2"
       },
       {
         "title": "Blood in Winter",
+        "author": "Jonathan Healey",
         "cover_url": "https://example.com/g2.jpg",
-        "post_url": "https://micro.blog/books/9780000000005"
+        "post_url": "https://micro.blog/books/3"
       },
       {
         "title": "The Blood in Winter",
         "cover_url": "https://example.com/g2b.jpg",
-        "post_url": "https://micro.blog/books/9780000000006"
+        "post_url": "https://micro.blog/books/4"
       },
       {
         "title": "Chronicles Vol. 1",
+        "author": "Bob Dylan",
         "cover_url": "https://example.com/g6.jpg",
-        "post_url": "https://micro.blog/books/9780000000007"
+        "post_url": "https://micro.blog/books/5"
       },
       {
         "title": "Chronicles Vol. 2",
+        "author": "Bob Dylan",
         "cover_url": "https://example.com/g7.jpg",
-        "post_url": "https://micro.blog/books/9780000000008"
+        "post_url": "https://micro.blog/books/6"
+      },
+      {
+        "title": "Ambiguous Title",
+        "author": "Author A",
+        "cover_url": "https://example.com/g8.jpg",
+        "post_url": "https://micro.blog/books/7"
+      },
+      {
+        "title": "Ambiguous Title",
+        "author": "Author B",
+        "cover_url": "https://example.com/g9.jpg",
+        "post_url": "https://micro.blog/books/8"
       },
       {
         "title": "Coverless Goal Fixture",
         "cover_url": "",
         "post_url": "https://example.com/post/plain/"
-      },
-      {
-        "title": "Unlinked Goal Fixture",
-        "cover_url": "https://example.com/g3.jpg",
-        "post_url": ""
       }
     ]
   },

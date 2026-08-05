@@ -963,12 +963,49 @@ Other changes:
     worse than showing one duplicate. Cost: "Chronicles" / "Chronicles Vol. 1",
     a real pair in the 2026 goal, still renders twice — fix that one in
     Micro.blog.
-  - **Author was REMOVED from the key.** It was in the first version, and it is
-    what stopped the merge from ever firing: the two records of a work disagree
-    about metadata too, so requiring a matching author guaranteed a miss. The
-    accepted cost is that two genuinely different books with the same normalized
-    title would collapse; titles differing by volume or subtitle still stay
-    separate, which covers the realistic case.
+  - **Author is a TIE-BREAKER, not part of the key.** A hard `title|author` key
+    was the first version and matched nothing — it only takes ONE record with the
+    field blank for a pair to miss. Dropping author entirely was the second, and
+    over-corrected. Current rule: same normalized title merges UNLESS both
+    records carry an author and they disagree. Missing metadata no longer blocks
+    a merge; conflicting metadata still prevents one, so two different books that
+    happen to share a title stay apart. `author` IS a documented field
+    (help.micro.blog/t/bookshelves/515), so it is worth using — just not as a
+    requirement.
+
+### Where the duplicate book records actually come from
+The goals page has no editor — a goal is DERIVED from Micro.blog's book records,
+so there is nothing to de-duplicate in the UI, which is why the CSV export and
+the currently-reading shelf both look clean while the goal grid does not. The
+duplicates are two separate BOOK RECORDS for one work, each with its own ISBN.
+
+**Root cause, confirmed by ISBN (2026-08-05):** `~/git/website`'s reading feed
+emits `https://micro.blog/books/<isbn>` using the `isbn` in that source's front
+matter, and Micro.blog associates an imported post with a book by that link. When
+the ledger's ISBN names a DIFFERENT EDITION than the record Micro.blog already
+holds, a second book record is created and both land in the year's goal:
+
+| work | ledger ISBN (feed guid) | Micro.blog record ISBN |
+|---|---|---|
+| Puhak, *The Blood Countess* | 9781639732159 | 9781639732166 |
+
+Same book, adjacent ISBNs, two records. That also explains the title variance the
+de-dup has to cope with: the ledger carries the full title with subtitle, the
+Micro.blog record the short one.
+
+**Durable fix is source-side and in your control:** set each `content/sources/*`
+`isbn` to the edition Micro.blog already tracks, and no new pair can form. Worth
+doing before adding a book to the ledger, since correcting it afterwards changes
+the feed `<link>` only if the source folder moves — the ISBN itself is not part
+of the link, so an ISBN correction is safe (it changes the guid, but Micro.blog
+dedupes on link; see the link-immutability section).
+
+**Micropub is the formal path and the RSS import cannot use it.**
+help.micro.blog/t/books-books-books/1424 documents `read-of` with `name` + `uid`
+as how a client states "this post is about THIS book". An RSS import has no such
+channel, so association falls back to the ISBN link in the body — which is why
+the ISBN has to be right. If duplicates keep appearing despite matching ISBNs,
+posting via Micropub with `read-of` instead of the RSS import is the next lever.
 - **Fixtures:** `testsite/data/bookgoals.json` (two years, a coverless book, a
   book with no post_url, two editions of one work, and two same-title books by
   different authors) and four more sections in `testsite/content/reading.md`. Verified in the build: 3 covers render, all lazy

@@ -36,7 +36,7 @@
              to remove the duplicate edition from the year's goal in Micro.blog;
              this is a display-level safety net, the same role the Finished
              Reading de-dup plays in index.html. First occurrence wins. */}}
-        {{- $seen := slice -}}
+        {{- $seen := dict -}}
         <div class="bookgoals">
           {{- range . -}}
             {{/* Normalize before comparing. Verified against the live 2026 goal:
@@ -54,21 +54,32 @@
                  pair in the 2026 goal — still shows twice; fix that one in
                  Micro.blog.
 
-                 AUTHOR IS NOT IN THE KEY. It was, until the live data showed the
-                 two records of a work also disagree about metadata, so requiring
-                 a matching author stopped the merge from ever happening. The
-                 accepted cost is that two DIFFERENT books with the same
-                 normalized title would collapse. Titles differing by volume or
-                 subtitle still stay separate, which covers the realistic case. */}}
+                 AUTHOR IS A TIE-BREAKER, NOT PART OF THE KEY. help.micro.blog
+                 /t/bookshelves/515 documents `author` on every goal book, but a
+                 hard `title|author` key is what made the first version match
+                 nothing: it only takes ONE record with the field blank for the
+                 pair to miss. So: same normalized title merges UNLESS both
+                 records carry an author and the two disagree. Missing metadata
+                 no longer blocks a merge; conflicting metadata still prevents
+                 one, which is what keeps two different books that happen to
+                 share a title apart. */}}
             {{- $key := lower (printf "%v" (.title | default "")) -}}
             {{- $key = index (split $key ":") 0 -}}
             {{- $key = replaceRE `[^a-z0-9 ]` " " $key -}}
             {{- $key = replaceRE `^(the|a|an) ` "" $key -}}
             {{- $key = trim (replaceRE `[[:space:]]+` " " $key) " " -}}
-            {{- if in $seen $key -}}
-              {{/* already rendered this work under another edition's ISBN */}}
+            {{- $author := lower (trim (replaceRE `[[:space:]]+` " " (replaceRE `[^a-z0-9 ]` " " (lower (printf "%v" (.author | default ""))))) " ") -}}
+            {{- $dup := false -}}
+            {{- if isset $seen $key -}}
+              {{- $prev := index $seen $key -}}
+              {{- if or (eq $prev "") (eq $author "") (eq $prev $author) -}}
+                {{- $dup = true -}}
+              {{- end -}}
+            {{- end -}}
+            {{- if $dup -}}
+              {{/* already rendered this work under another edition's record */}}
             {{- else -}}
-            {{- $seen = $seen | append $key -}}
+            {{- $seen = merge $seen (dict $key $author) -}}
             {{- if .cover_url -}}
               {{- if .post_url -}}
                 <a class="bookgoals-link" href="{{ .post_url }}">
