@@ -896,7 +896,9 @@ every copy — the theme can only paper over this, not fix it.
 Absorbed `microdotblog/plugin-bookgoals` — the per-year finished-books grids on
 `/reading/`. `layouts/shortcodes/bookgoals.html`, same call signature
 (`{{< bookgoals 2026 >}}`, `{{< bookgoals progress >}}`), so content needs no
-edit; ours wins the lookup before the plugin is uninstalled (leftmost theme).
+edit. **The plugin MUST be uninstalled for ours to take effect** — see the
+correction under the bookshelf section below; an installed plugin's shortcode
+beats the theme's on micro.blog.
 
 **Only `bookgoals` was reproduced. `bookcalendar` was deliberately NOT** — it is
 unused here and pins versioned micro.blog assets (`calendar.css?v=20260710.5`,
@@ -964,10 +966,23 @@ why the homepage shows one more book than `/reading/` does.
 - **`layouts/shortcodes/bookshelf.html` — call signature is IDENTICAL**, so
   existing content needs no edit: positional `{{< bookshelf "shelf" >}}`, named
   `shelf=`, and `variant="list"|"grid"`, same `currentlyreading`/`list` defaults.
-- **Shortcode lookup follows the same leftmost-theme-wins rule as static files**
-  (verified empirically on 0.158 with a throwaway second theme, both orderings).
-  micro.blog loads this theme before plugins, so ours shadows the plugin's copy
-  *before* it is uninstalled — no transition window, no half-styled flash.
+- **CORRECTED 2026-08-05 — an installed PLUGIN's shortcode BEATS the theme's.**
+  The original claim here ("leftmost theme wins, so ours shadows the plugin
+  before it is uninstalled, no transition window") was extrapolated from a local
+  0.158 test with a throwaway second theme. Production disproves it: with the
+  bookshelf plugin uninstalled OUR bookshelf renders, while with plugin-bookgoals
+  still installed ITS shortcode renders (`class=cover` and `width="100"
+  height="120"` in the live HTML, no `bookgoals-cover`, no `loading="lazy"`) —
+  both shortcodes deployed on origin/main at the time. So micro.blog does not
+  order `--theme` the way the local repro assumed.
+  - **Consequence: absorbing a shortcode does nothing until the plugin is
+    uninstalled**, and there IS a transition window — during it the theme's CSS
+    no longer targets the plugin's class names (deliberately renamed to avoid
+    tie-losses), so the plugin's output renders unstyled by us. Uninstall
+    promptly rather than running both.
+  - The same caution applies to the static-file ordering test in the robots.txt
+    section: local `--theme` ordering results have now been wrong twice about
+    production. Treat them as suggestive, not decisive.
 - **Class names are `bookshelf-*` (single dash), NOT the plugin's `bookshelf__*`.**
   Deliberate: micro.blog loads plugin CSS AFTER `main.css`, so any rule sharing
   the plugin's selectors loses every specificity tie — that is exactly why this

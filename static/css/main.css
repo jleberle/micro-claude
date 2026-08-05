@@ -1089,6 +1089,38 @@ body > .site-header,
   border-top: 0;
 }
 
+/* Highlights in two columns once there is room. The section spans the full
+   --nav-width (67.5rem) while .post-entry-summary is capped at 60ch (~33rem)
+   for measure, so a single column left roughly half the width empty. The text
+   width was right; the container was twice what it needed. Two columns also
+   matches the Finished Reading | Movies block directly above, so the homepage
+   keeps one rhythm instead of gaining a third layout idea.
+
+   Split at 56.25em rather than the 45em .home-split-grid uses: this section is
+   at full nav-width, so it needs more room before two columns stop being
+   cramped.
+
+   Both border overrides are load-bearing, not tidying. Without the first, the
+   opening row gets a rule above the right item but none above the left (the
+   existing :first-child rule only clears one of the two). Without the second,
+   the closing rule underlines a single column. Same asymmetry handled on
+   .bookshelf--list. */
+@media (min-width: 56.25em) {
+  .home-feed .post-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(1.4rem, 3vw, 2.6rem);
+  }
+
+  .home-frontpage .home-feed .post-list > .post-entry:nth-child(-n+2) {
+    border-top: 0;
+  }
+
+  .home-feed .post-list .post-entry:last-child {
+    border-bottom: 0;
+  }
+}
+
 .post-entry-title {
   margin: 0 0 0.18rem;
   font-size: 1.18rem;
