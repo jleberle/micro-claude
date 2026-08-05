@@ -372,6 +372,24 @@ h6,
   border-bottom: 1px solid var(--border);
 }
 
+/* Two columns once there is room. Each row is cover + meta, so a single column
+   leaves a lot of empty measure to the right of the author line; pairing them
+   halves the vertical run of a 4-6 book shelf without shrinking the covers.
+   The closing rule is dropped here on purpose: with two columns the last item
+   is only ever half of the final row, so `:last-child` would underline one
+   column and not the other. Top rules alone still read as a ruled list. */
+@media (min-width: 45em) {
+  .bookshelf--list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 2rem;
+  }
+
+  .bookshelf--list .bookshelf-item:last-child {
+    border-bottom: 0;
+  }
+}
+
 .bookshelf-cover-link {
   display: block;
   grid-row: span 2;

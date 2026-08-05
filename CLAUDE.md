@@ -932,9 +932,21 @@ Other changes:
 - Books with no `cover_url` are skipped; a book with no `post_url` renders as a
   bare image rather than `<a href="">`. A bare `{{< bookgoals >}}` now defaults to
   the current year (upstream rendered nothing).
-- **Fixtures:** `testsite/data/bookgoals.json` (two years, plus a coverless book
-  and a book with no post_url) and four more sections in
-  `testsite/content/reading.md`. Verified in the build: 3 covers render, all lazy
+- **DE-DUPED by normalized title (+author when present), added 2026-08-05.**
+  Micro.blog's goal data lists the same WORK twice when two editions have been
+  recorded. Verified live: 6 repeated titles across 2025/2026, **every pair with
+  two different but adjacent ISBNs** (Ghosts of Crook County as 9780807012994 and
+  9780807007372; Train Dreams as 9781250007650 and 9781429995207; etc.) — so no
+  ISBN in either year actually repeats. **This is platform data, NOT residue from
+  the RSS-import duplicates**, which is why deleting those posts and running a
+  full rebuild changed nothing here. Title is the only usable key precisely
+  because the ISBNs differ; the accepted trade is that two genuinely different
+  books sharing a title AND author would collapse. The real fix is removing the
+  duplicate edition from the year's goal in Micro.blog — this is a display-level
+  safety net, the same role the Finished Reading de-dup plays in `index.html`.
+- **Fixtures:** `testsite/data/bookgoals.json` (two years, a coverless book, a
+  book with no post_url, two editions of one work, and two same-title books by
+  different authors) and four more sections in `testsite/content/reading.md`. Verified in the build: 3 covers render, all lazy
   + `decoding="async"`, no `width`/`height` attributes, coverless book skipped,
   unlinked book has no empty anchor, `progress` renders "12 of 30", an unknown
   year renders nothing. `/reading/` heading levels still have no skips.
@@ -977,6 +989,11 @@ why the homepage shows one more book than `/reading/` does.
   first is an LCP candidate); an unknown `variant` **warns and falls back** where
   the original called `errorf`, which is FATAL — a typo in a post would have
   failed the whole build.
+- **Two columns at >=45em (2026-08-05).** A row is cover + meta, so one column
+  left a lot of empty measure right of the author line; pairing them halves the
+  vertical run of a 4-6 book shelf without shrinking covers. The `:last-child`
+  closing rule is dropped in two-column mode on purpose — the last item is only
+  ever half of the final row, so it would underline one column and not the other.
 - **Regression fixtures:** `testsite/content/reading.md` exercises all three
   paths (default list, `variant="grid"`, invalid variant), and
   `testsite/data/bookshelves.json` gained a second `currentlyreading` entry with

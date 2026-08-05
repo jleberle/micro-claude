@@ -49,8 +49,29 @@
              and is never the LCP element — on /reading/ it sits below the
              Currently Reading shelf. Revisit only if a page ever opens with
              this shortcode as its first content. */}}
+        {{/* DE-DUP by normalized title (+author when the data carries one).
+             Micro.blog's goal data lists the same WORK twice when two editions
+             have been recorded — verified on the live page: 6 repeated titles
+             across 2025/2026, every pair with two different but adjacent ISBNs
+             (e.g. Ghosts of Crook County as 9780807012994 and 9780807007372),
+             so no ISBN in either year repeats. It is a platform-side data
+             duplicate, NOT a leftover from the RSS-import duplicates — which is
+             why deleting those posts and rebuilding changed nothing here.
+
+             Title is the only usable key precisely because the ISBNs differ.
+             Trade-off accepted: two genuinely different books sharing a title
+             (and author, where present) would collapse to one. The real fix is
+             to remove the duplicate edition from the year's goal in Micro.blog;
+             this is a display-level safety net, the same role the Finished
+             Reading de-dup plays in index.html. First occurrence wins. */}}
+        {{- $seen := slice -}}
         <div class="bookgoals">
           {{- range . -}}
+            {{- $key := lower (trim (replaceRE `[[:space:]]+` " " (printf "%v|%v" (.title | default "") (.author | default ""))) " .,;:") -}}
+            {{- if in $seen $key -}}
+              {{/* already rendered this work under another edition's ISBN */}}
+            {{- else -}}
+            {{- $seen = $seen | append $key -}}
             {{- if .cover_url -}}
               {{- if .post_url -}}
                 <a class="bookgoals-link" href="{{ .post_url }}">
@@ -66,6 +87,7 @@
                 <img class="bookgoals-cover" src="{{ .cover_url }}"
                      alt="{{ .title }}" loading="lazy" decoding="async">
               {{- end -}}
+            {{- end -}}
             {{- end -}}
           {{- end -}}
         </div>
