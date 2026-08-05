@@ -210,11 +210,13 @@ to handle both micro.blog's default structure and our custom partials.
 ## File structure
 ```
 static/
-  robots.txt               # self-served, replaces the AI-blocking plugin (see
-                           #   "robots.txt + security.txt now served from the theme")
   .well-known/
-    security.txt           # RFC 9116; unsigned copy of ~/git/website's, +eberle.blog Canonical
+    security.txt           # RFC 9116; unsigned copy of ~/git/website's, +eberle.blog
+                           #   Canonical. static/ works here because micro.blog has
+                           #   no default at this path — contrast robots.txt below
 layouts/
+  robots.txt               # MUST be layouts/, not static/ — micro.blog ships a
+                           #   default robots.txt and only a layout overrides it
   _default/
     baseof.html              # page skeleton (may be overridden by micro.blog)
     list.html                # category/section list pages
@@ -528,7 +530,7 @@ theme-blank
   `microdotblog-bookshelf-shortcode` (absorbed into
   `layouts/shortcodes/bookshelf.html`), `plugin-bookgoals` (absorbed into
   `layouts/shortcodes/bookgoals.html`, minus its unused `bookcalendar`) and the
-  AI-blocking robots.txt plugin (superseded by `static/robots.txt`). Drop each
+  AI-blocking robots.txt plugin (superseded by `layouts/robots.txt`). Drop each
   from this list and from the `--theme=` flag above once uninstalled — until then
   keep them in the repro so it still matches production. Remaining after that,
   and staying external: `wayback-link-preserver`, `mbplugin-youtube-nocookie`.
@@ -1080,18 +1082,37 @@ CC BY 4.0 default. All of that now lives here:
   user-visible in micro.blog's plugin listing.
 
 ## robots.txt + security.txt now served from the theme (2026-08-05)
-Both are plain files under `static/`, which micro.blog serves from the site root
-(same mechanism as `css/main.css` and `fonts/` — proven in production).
 
-### static/robots.txt — replaces the AI-blocking plugin
-**Precedence verified empirically on the pinned 0.158, not assumed:**
-- A theme's `static/robots.txt` **beats Hugo's generated one** (built with
-  `enableRobotsTXT = true`; the static file was what landed in `public/`).
+### PLATFORM RULE: static/ fills a gap, layouts/ overrides a default
+Learned the hard way on 2026-08-05 — `robots.txt` shipped in `static/` first and
+served **nothing** in production:
+- **micro.blog serves a theme/plugin `static/` file only where the platform has
+  NO default for that path.** `css/main.css`, `fonts/`, `humans.txt` and
+  `.well-known/security.txt` all work this way (security.txt confirmed 200 live,
+  which also settles that dot-paths are served).
+- **Where the platform DOES ship a default — `robots.txt` — a `static/` copy
+  never wins.** The default keeps being served. Only `layouts/robots.txt`
+  overrides it, because micro.blog has Hugo's robots.txt generation enabled and
+  that template is what renders the file. This is also why the AI-blocking
+  plugin worked where our static file didn't: it used `layouts/`.
+- **A local Hugo test is NOT sufficient evidence for this class of question.**
+  Locally, a theme's `static/robots.txt` DOES beat Hugo's generated one (verified
+  on pinned 0.158 with `enableRobotsTXT = true`) — the exact opposite of what the
+  platform does. The local result was real and still misleading. Treat
+  "which file wins at a path the platform also owns" as answerable only in
+  production.
+- `testsite/config.toml` now sets `enableRobotsTXT = true` so CI actually renders
+  `layouts/robots.txt`; without it the template silently produced nothing and a
+  move back to `static/` would have been invisible.
+- `layouts/robots.txt` is a Hugo TEMPLATE, so Go delimiters are live even inside
+  its `#` comment lines. Writing a literal pair of double braces there fails the
+  build with "missing value for command" (done, once, while documenting this).
+
+### layouts/robots.txt — replaces the AI-blocking plugin
 - Among themes, **the leftmost `--theme` entry wins** (tested both orderings with
   a throwaway second theme; the winner flipped with the order). micro.blog loads
   this theme first, then plugins, then theme-blank — so this file wins over a
-  plugin's copy whether that plugin ships a static file OR a `layouts/robots.txt`
-  template.
+  plugin's copy.
 - Content: the old plugin blocked only `GPTBot` + `ChatGPT-User`. The replacement
   keeps that intent and extends it to ~28 agents across OpenAI, Anthropic,
   Perplexity, Meta, Common Crawl, Amazon, ByteDance, Cohere, Diffbot, You.com and
@@ -1107,9 +1128,8 @@ Both are plain files under `static/`, which micro.blog serves from the site root
   (training). Unblock individual agents if that trade isn't wanted.
 - **Deploy order:** push the theme, confirm `/robots.txt` serves this content,
   THEN uninstall the AI-blocking plugin, then re-check. No unprotected window in
-  either outcome. Not verifiable before deploy — micro.blog could in principle
-  serve robots.txt outside Hugo, in which case neither file wins and the plugin
-  must stay.
+  either outcome. **Confirmed working in production from `layouts/` (2026-08-05)
+  after the static/ version served nothing.**
 - llms.txt is intentionally NOT added: the point of llms.txt is to help LLM
   crawlers, which this file blocks.
 

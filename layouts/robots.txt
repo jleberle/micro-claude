@@ -1,11 +1,24 @@
-# robots.txt for eberle.blog — served from this theme's static/ directory.
+# robots.txt for eberle.blog. Replaces the separate AI-blocking plugin.
 #
-# WHY IT LIVES HERE: verified with the pinned Hugo 0.158 that a theme's
-# static/robots.txt beats BOTH Hugo's generated robots.txt (enableRobotsTXT)
-# and another theme/plugin's static copy, and that among themes the leftmost
-# in the --theme list wins. micro.blog loads this theme first, so this file is
-# what gets served. It replaces the separate AI-blocking plugin; remove that
-# plugin so there is only one source of truth.
+# THIS FILE MUST LIVE IN layouts/, NOT static/ — do not move it back.
+# micro.blog ships its own default robots.txt, and a theme/plugin's static/
+# copy does NOT override a platform default: the default keeps winning and this
+# content never appears. Only a layouts/robots.txt does, because micro.blog has
+# Hugo's robots.txt generation enabled and that template renders it.
+#
+# static/ still works for paths the platform has no default for — humans.txt,
+# .well-known/security.txt, css/, fonts/ are all served from static/ today.
+# The rule is "static fills a gap, layouts overrides a default", and it was
+# learned the hard way: this file spent its first day in static/ and served
+# nothing. A local Hugo test is NOT sufficient evidence here — locally a
+# static/robots.txt DOES beat Hugo's generated one, which is the opposite of
+# what the platform does.
+#
+# As a template it is rendered by Hugo, so keep it plain text. Go template
+# delimiters are live even inside these comment lines — writing a literal pair
+# of double braces here is what broke the build the first time this note was
+# added ("missing value for command"), which is a fair demonstration of the
+# point. Describe them, don't type them.
 
 # ----------------------------------------------------------------------
 # Ordinary crawlers: welcome. Nothing here is disallowed.

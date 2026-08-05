@@ -18,6 +18,13 @@ theme = "micro-theme"
 themesDir = "themes"
 pluralizeListTitles = false
 
+# Mirrors production: micro.blog has robots.txt generation ON, which is what
+# makes layouts/robots.txt the ONLY way to override the platform's default
+# (see CLAUDE.md, "robots.txt must live in layouts/, not static/"). Without
+# this the theme's robots.txt silently renders to nothing here and in CI, so a
+# regression — or a well-meaning move back to static/ — would be invisible.
+enableRobotsTXT = true
+
 [markup.goldmark.renderer]
   unsafe = true
 
