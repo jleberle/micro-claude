@@ -1137,6 +1137,28 @@ why the homepage shows one more book than `/reading/` does.
   fails on fatal errors and leaked error text); the fixture carries a comment
   saying so.
 
+### `/reading/` Currently Reading: divergence from the homepage accepted, not fixed (2026-08-06)
+The homepage's Currently Reading merges started-reading POSTS with the
+Micro.blog shelf (see the "Currently Reading" homepage section above);
+`bookshelf.html` on `/reading/` only ever read the shelf. That gap surfaced
+when an RSS-imported `Started reading:` post (not on the backend shelf) showed
+on the homepage but not on `/reading/`. Porting the post-merge logic into
+`bookshelf.html` was offered and **declined** — assessed as an added breakage
+point not worth it for this page. Instead: **the `{{< bookshelf >}}` /
+`{{< readinggoals >}}` call is being removed from the `/reading/` post content
+in the Micro.blog backend** (not tracked in this repo), leaving that page as a
+static historical record.
+- **The `.bookshelf-*` CSS block in `main.css` was removed the same day**
+  (~130 lines, was at `main.css:366-497`) since `/reading/` was its only
+  caller anywhere in this repo (`testsite/content/reading.md` was the only
+  fixture invoking the shortcode). Recoverable from git history.
+- **`layouts/shortcodes/bookshelf.html` itself was deliberately NOT deleted**
+  — kept available for any future page that wants a shelf embed. If it's ever
+  called again, it will render unstyled until the CSS comes back.
+- **`testsite/content/reading.md`'s bookshelf-shortcode coverage was left
+  in place** (not part of this change) — it still exercises the shortcode
+  template directly, independent of whatever the live `/reading/` post says.
+
 ## plugin-search-page absorbed into the theme (2026-08-05)
 **The reason is the landmine, not the feature.** That plugin also shipped
 `layouts/list.archivejson.json` using `.Site.Author.avatar` (removed in Hugo

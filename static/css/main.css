@@ -321,10 +321,9 @@ h6,
 /* --- Plugins --------------------------------------------- */
 /* Styles OUR bookgoals shortcode. The image class is `bookgoals-cover`, not the
    plugin's `cover`, so plugin-bookgoals' stylesheet (loaded after main.css, and
-   therefore winner of any tie) cannot reach it while both are installed — the
-   same naming rule as .bookshelf-*. This also retires the `max-width: none`
-   workaround that existed purely to defeat its `.bookgoals .cover
-   { max-width: 100px }`. */
+   therefore winner of any tie) cannot reach it while both are installed. This
+   also retires the `max-width: none` workaround that existed purely to defeat
+   its `.bookgoals .cover { max-width: 100px }`. */
 .bookgoals {
   display: flex;
   flex-wrap: wrap;
@@ -340,7 +339,7 @@ h6,
   width: 6.25rem;
   /* Replaces the plugin's hardcoded width="100" height="120" (0.833). Real
      covers measure 0.657-0.737, so that box was wrong for every one of them and
-     reflowed on load. 2/3 + cover matches .media-cover and .bookshelf-cover. */
+     reflowed on load. 2/3 + cover matches .media-cover. */
   aspect-ratio: 2 / 3;
   object-fit: cover;
   border-radius: 4px;
@@ -353,146 +352,12 @@ h6,
    grid also has no link text for the badge to qualify, so it says nothing.
    Verified live: it flagged /books/9781639732159, which returns 200 — the
    plugin judges liveness with a no-cors fetch on an 8s timeout and caches the
-   verdict for a day, so a single slow response reads as dead.
-   Scoped to .bookgoals deliberately: in .bookshelf the badge lands inside the
-   <h3> beside real link text, where it is inline, useful and harmless.
-   0,2,0 beats the plugin's own 0,1,0, which matters because micro.blog loads
-   plugin CSS after main.css — see the note at the top of this section. */
+   verdict for a day, so a single slow response reads as dead. 0,2,0 beats the
+   plugin's own 0,1,0, which matters because micro.blog loads plugin CSS after
+   main.css — see the note at the top of this section. */
 .bookgoals .wlp-broken-badge,
 .bookgoals .wlp-indicator {
   display: none;
-}
-
-/* --- Bookshelf (layouts/shortcodes/bookshelf.html) -------- */
-/* Styles OUR shortcode's markup, absorbed from the bookshelf plugin. The class
-   names are deliberately `bookshelf-*`, not the plugin's `bookshelf__*`, so
-   while both are installed the plugin's stylesheet (which micro.blog loads
-   AFTER main.css and which would therefore win every specificity tie) cannot
-   touch these rules. That ordering is exactly why the theme's previous
-   `bookshelf__*` overrides never applied — don't reintroduce those names. */
-.bookshelf {
-  margin: 1.2rem 0;
-  padding: 0;
-  list-style: none;
-}
-
-.bookshelf-item {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.9rem;
-  align-items: start;
-  padding: 0.95rem 0;
-  border-top: 1px solid var(--border);
-}
-
-.bookshelf-item:last-child {
-  border-bottom: 1px solid var(--border);
-}
-
-/* Two columns once there is room. Each row is cover + meta, so a single column
-   leaves a lot of empty measure to the right of the author line; pairing them
-   halves the vertical run of a 4-6 book shelf without shrinking the covers.
-   The closing rule is dropped here on purpose: with two columns the last item
-   is only ever half of the final row, so `:last-child` would underline one
-   column and not the other. Top rules alone still read as a ruled list. */
-@media (min-width: 45em) {
-  .bookshelf--list {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 2rem;
-  }
-
-  .bookshelf--list .bookshelf-item:last-child {
-    border-bottom: 0;
-  }
-}
-
-.bookshelf-cover-link {
-  display: block;
-  grid-row: span 2;
-}
-
-.bookshelf-cover {
-  width: 4.5rem;
-  aspect-ratio: 2 / 3;
-  object-fit: cover;
-  border: 1px solid color-mix(in srgb, var(--border), var(--rule) 35%);
-  border-radius: 4px;
-  box-shadow: 0 6px 14px rgb(29 41 47 / 8%);
-}
-
-.bookshelf-meta {
-  min-width: 0;
-}
-
-/* The visible defect this replaced: these titles are h3, so `.post-content h2,
-   h3` gave every one of them a full-width bottom rule that ran out past the
-   text and collided with the covers. Reset the inherited heading treatment —
-   a book title is a row label, not a document section break. */
-.post-content .bookshelf-title {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  font-size: 1.05rem;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-}
-
-.bookshelf-title a {
-  color: var(--primary);
-  text-decoration: none;
-}
-
-.bookshelf-title a:hover,
-.bookshelf-title a:focus-visible {
-  color: var(--accent);
-  text-decoration: underline;
-}
-
-.bookshelf-author {
-  margin: 0.15rem 0 0;
-  color: var(--secondary);
-  font-family: var(--meta-font);
-  font-variant-caps: all-small-caps;
-  text-transform: lowercase;
-  letter-spacing: 0.03em;
-  font-size: 0.8rem;
-  line-height: 1.45;
-}
-
-/* variant="grid" — covers only, titles beneath. */
-.bookshelf--grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
-  gap: 1.2rem;
-}
-
-@media (min-width: 35em) {
-  .bookshelf--grid {
-    grid-template-columns: repeat(auto-fill, minmax(6rem, 8rem));
-  }
-}
-
-.bookshelf--grid .bookshelf-item {
-  display: block;
-  padding: 0;
-  border: 0;
-}
-
-.bookshelf--grid .bookshelf-item:last-child {
-  border: 0;
-}
-
-.bookshelf--grid .bookshelf-cover {
-  width: 100%;
-}
-
-.bookshelf--grid .bookshelf-meta {
-  margin-top: 0.4rem;
-}
-
-.post-content .bookshelf--grid .bookshelf-title {
-  font-size: 0.9rem;
 }
 
 /* --- Prose / markdown ------------------------------------ */
@@ -1120,8 +985,8 @@ body > .site-header,
    Both border overrides are load-bearing, not tidying. Without the first, the
    opening row gets a rule above the right item but none above the left (the
    existing :first-child rule only clears one of the two). Without the second,
-   the closing rule underlines a single column. Same asymmetry handled on
-   .bookshelf--list. */
+   the closing rule underlines a single column. Same two-column-ruled-list
+   asymmetry as the Finished Reading | Movies block above. */
 @media (min-width: 56.25em) {
   .home-feed .post-list {
     display: grid;
