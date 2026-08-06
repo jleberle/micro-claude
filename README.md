@@ -22,8 +22,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A custom Hugo theme for [eberle.blog](https://eberle.blog) that mirrors the style of
-[jaredeberle.org](https://jaredeberle.org): Solarized Light palette, clean sans-serif
-typography, and dark mode via `prefers-color-scheme`.
+[jaredeberle.org](https://jaredeberle.org): the "Northeaster" palette, self-hosted Charter
+(body) and Fraunces (headings), light-only (no dark mode).
 
 - **Repo:** `github.com/jleberle/micro-claude` — micro.blog pulls from the **`main`** branch.
 - **Hugo:** micro.blog runs **0.158** in production. Templates are kept compatible with
@@ -45,30 +45,50 @@ Hugo version is **0.158**.
 
 ```
 layouts/
+  robots.txt                 site robots.txt — MUST be layouts/, not static/, because
+                             micro.blog ships a default robots.txt that only a layout
+                             template overrides (see "Theme overrides" below)
+  list.archivehtml.html      /archive/ — ROOT level (not _default/), themed + month-grouped;
+                             home-node ArchiveHTML output, so it must live at root to win
+                             the template lookup ahead of micro.blog's theme-blank
+  list.photoshtml.html       /photos/ — ROOT level for the same reason; themed photo grid
+  list.archivejson.json      home-node ArchiveJSON — overrides plugin-search-page's
+                             broken copy and backs /search/'s full-text index
+  opengraph.html             OG card template (rendered by micro.blog's non-Hugo card renderer)
+  shortcodes/
+    readinggoals.html        preferred name for per-year finished-books grids in content —
+                             see "Installed plugins" below for why it isn't called `bookgoals`
+    bookgoals.html           fallback shortcode under the absorbed plugin's original name
+    bookshelf.html           bookshelf embed (Currently Reading list/grid on /reading/)
   _default/
     baseof.html              page skeleton (micro.blog may override with its own base)
     list.html                category / section list pages
-    list.archivehtml.html    archive page (fixes Hugo 0.158 Date.Format syntax)
-    list.archivejson.json    archive JSON output — overrides plugin-search-page's
-                             broken copy (see "Theme overrides" below)
     single.html              generic single page
   post/
     single.html              post pages (microformats + categories)
   section/
     replies.html             /replies/ page
   partials/
-    head.html                <head>: meta/OG/Twitter tags, CSS link, microblog_head call
+    head.html                <head>: meta/OG/Twitter tags, JSON-LD, CSS link, microblog_head call
     header.html              site header (avatar hidden on homepage via CSS)
     footer.html              custom footer: RSS · Micro.blog · Theme · Codeberg
     intro.html               homepage bio card: avatar + bio + social links
     custom_footer.html       intentionally blank override hook (used by plugins)
+    reading-goals.html       shared logic behind both goals shortcodes
   index.html                 homepage
-  opengraph.html             OG card template (rendered by micro.blog's card renderer)
+content/
+  search.md                  /search/ page + nav entry, absorbed from plugin-search-page
 static/
-  css/main.css               all styling — Solarized Light palette
-config.json                  Hugo config + local-dev params
-plugin.json                  micro.blog plugin metadata + editable settings fields
-theme.toml                   theme metadata
+  css/main.css                all styling — Northeaster palette (light-only)
+  js/search.js                /search/ page logic — the only JS this theme owns
+  fonts/                      self-hosted Charter (body) + Fraunces (headings) WOFF2 + licenses
+  .well-known/
+    security.txt              RFC 9116 contact info; static/ works here because micro.blog
+                              has no platform default at this path (contrast robots.txt above)
+testsite/                     fixture site used by the CI build check (see below)
+config.json                   Hugo config + local-dev params
+plugin.json                   micro.blog plugin metadata + editable settings fields
+theme.toml                    theme metadata
 ```
 
 ## Homepage sections
@@ -181,6 +201,23 @@ re-add them to `config.json` `params` as defaults.)
   this repo (and is `.gitignore`d as a local-dev stub). Do not commit a stub.
 - **CSS targets both `#site-header`/`.site-header`** (and footer/main equivalents) because
   micro.blog's base template uses id-based hooks while this theme's partials use classes.
+- **`layouts/robots.txt` vs. `static/`:** micro.blog serves a theme/plugin `static/` file only
+  at paths the platform has no default for (`css/`, `fonts/`, `.well-known/security.txt`). At
+  `robots.txt`, the platform *does* ship a default, so only a `layouts/robots.txt` **template**
+  overrides it — a `static/robots.txt` copy is silently ignored in production (this was tested
+  and got it backwards once; see `CLAUDE.md` for the full story).
+- **`content/search.md` + `static/js/search.js`** power `/search/`, absorbed from
+  `plugin-search-page`. `list.archivejson.json` above is load-bearing for it — search fetches
+  `/archive/index.json` for its full-text index, not just providing a landmine-safe fallback.
+- **`layouts/shortcodes/readinggoals.html` is the name to call in content**, not `bookgoals` —
+  micro.blog re-installs `plugin-bookgoals` automatically whenever any content calls the
+  `bookgoals` shortcode name, and an installed plugin's shortcode always wins over this theme's
+  own copy of the same name. `bookgoals.html` is kept only as a fallback for if the plugin is
+  ever fully retired.
+
+A CI build check (`.github/workflows/build-check.yml`) builds this theme standalone against the
+`testsite/` fixture on every push/PR to `main`, using the pinned production Hugo (0.158), and
+fails on any fatal template error or leaked error text in the rendered output.
 
 See `CLAUDE.md` for the full platform-behavior notes and the local 0.158 reproduction setup.
 
