@@ -32,8 +32,8 @@ License, Version 1.1 (`static/fonts/OFL.txt`).
 
 ## Absorbed micro.blog plugins
 
-Four plugins were reimplemented inside the theme and uninstalled on 2026-08-05,
-so their behavior survives without the plugin. What each contributed:
+Four plugins were reimplemented within the theme and uninstalled on 2026-08-05.
+Their functionality now originates in the following files:
 
 | Origin | Now lives in |
 |---|---|
@@ -83,21 +83,14 @@ All three carry the standard MIT terms:
 > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 > SOFTWARE.
 
-### microdotblog-bookshelf-shortcode — NO LICENSE
+### microdotblog-bookshelf-shortcode
 
-`kottkrig/microdotblog-bookshelf-shortcode` publishes **no license file and no
-license statement**, which under default copyright means all rights reserved —
-it grants no permission to copy, modify or redistribute, and crediting it here
-does not substitute for one.
+`kottkrig/microdotblog-bookshelf-shortcode` publishes no license file and no
+license statement. No rights in that work are claimed or relied upon here.
 
-`layouts/shortcodes/bookshelf.html` is an independent reimplementation, not a
-copy. What it shares with the original is interface rather than expression: the
-call signature (`shelf` / `variant`, defaulting to `currentlyreading` and
-`list`), deliberately preserved so existing content kept working, and the shape
-of the data it reads, which is defined by Micro.blog rather than by the plugin.
-The markup, class names, accessibility handling, lazy-loading, ISBN guarding and
-error behavior are all written here and differ throughout.
-
-Recorded plainly so the position is documented rather than assumed. If the
-upstream author would prefer this not exist, or adds a license we can rely on,
-that is worth honoring either way.
+`layouts/shortcodes/bookshelf.html` is an independent implementation. It shares
+with the plugin only its interface: the call signature (`shelf` and `variant`,
+defaulting to `currentlyreading` and `list`), retained for compatibility with
+existing content, and the structure of the `.Site.Data.bookshelves` data, which
+is defined by Micro.blog. Markup, class names, accessibility handling,
+lazy-loading, ISBN handling and error behavior are original to this theme.
