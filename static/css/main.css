@@ -346,6 +346,23 @@ h6,
   border-radius: 4px;
 }
 
+/* wayback-link-preserver inserts its badge as a SIBLING of the link it flags
+   (`link.parentNode.insertBefore(badge, link.nextSibling)`), which is harmless
+   in prose but makes it a FLEX ITEM here — ~16px plus the gap, shifting the
+   rest of that row out of column alignment with every row below it. A cover
+   grid also has no link text for the badge to qualify, so it says nothing.
+   Verified live: it flagged /books/9781639732159, which returns 200 — the
+   plugin judges liveness with a no-cors fetch on an 8s timeout and caches the
+   verdict for a day, so a single slow response reads as dead.
+   Scoped to .bookgoals deliberately: in .bookshelf the badge lands inside the
+   <h3> beside real link text, where it is inline, useful and harmless.
+   0,2,0 beats the plugin's own 0,1,0, which matters because micro.blog loads
+   plugin CSS after main.css — see the note at the top of this section. */
+.bookgoals .wlp-broken-badge,
+.bookgoals .wlp-indicator {
+  display: none;
+}
+
 /* --- Bookshelf (layouts/shortcodes/bookshelf.html) -------- */
 /* Styles OUR shortcode's markup, absorbed from the bookshelf plugin. The class
    names are deliberately `bookshelf-*`, not the plugin's `bookshelf__*`, so

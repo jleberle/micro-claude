@@ -521,23 +521,29 @@ This is what found the full-rebuild bug. Reproduces production far better than
   plugin, then theme-blank last:
 ```bash
 ~/.local/bin/hugo-0.158 -s <siteroot> --themesDir=<siteroot>/themes --gc \
-  --theme=micro-theme,plugin-cc,wayback-link-preserver,plugin-bookgoals,\
-microdotblog-bookshelf-shortcode,plugin-search-page,mbplugin-youtube-nocookie,\
-theme-blank
+  --theme=micro-theme,wayback-link-preserver,mbplugin-youtube-nocookie,theme-blank
 ```
-- Installed plugins (clone each into themes/): wayback-link-preserver,
-  plugin-bookgoals, kottkrig/microdotblog-bookshelf-shortcode, plugin-search-page,
-  flschr/mbplugin-youtube-nocookie. (plugin-archive-months and plugin-photos-months
-  were uninstalled 2026-06-10 — superseded by this theme's root-level templates.)
-  **Pending removal 2026-08-05:** `plugin-cc` (absorbed into `head.html`),
-  `plugin-search-page` (absorbed into `content/search.md` + `static/js/search.js`),
-  `microdotblog-bookshelf-shortcode` (absorbed into
-  `layouts/shortcodes/bookshelf.html`), `plugin-bookgoals` (absorbed into
-  `layouts/shortcodes/bookgoals.html`, minus its unused `bookcalendar`) and the
-  AI-blocking robots.txt plugin (superseded by `layouts/robots.txt`). Drop each
-  from this list and from the `--theme=` flag above once uninstalled — until then
-  keep them in the repro so it still matches production. Remaining after that,
-  and staying external: `wayback-link-preserver`, `mbplugin-youtube-nocookie`.
+- Installed plugins (clone each into themes/): **only two remain** —
+  wayback-link-preserver and flschr/mbplugin-youtube-nocookie. Both are real
+  software this theme has no intention of reproducing (see "plugin-search-page
+  absorbed" for the assessment of all five).
+- **Five plugins uninstalled 2026-08-05, all verified gone in production the
+  same day:** `plugin-cc` (absorbed into `head.html` — live head now carries
+  exactly one `rel=license`, not two), `plugin-search-page` (absorbed into
+  `content/search.md` + `static/js/search.js` — `/search/` is 200 with our
+  `<label>` and no "January 1, 0001"), `microdotblog-bookshelf-shortcode` and
+  `plugin-bookgoals` (absorbed into `layouts/shortcodes/` — `/reading/` renders
+  `bookshelf-*`/`bookgoals-cover` with 34 `loading=lazy` and no `width="100"`),
+  and the AI-blocking robots.txt plugin (superseded by `layouts/robots.txt`,
+  94 lines served live). `plugin-archive-months`/`plugin-photos-months` went
+  earlier, on 2026-06-10.
+  - **The June full-rebuild landmine is now genuinely gone, not merely
+    shadowed.** Uninstalling plugin-search-page removes its
+    `.Site.Author.avatar` `list.archivejson.json` from the build outright.
+    Live `/archive/index.json` confirms ours renders it: `feed_url` ends
+    `archive/index.json`, icon from `Params.author.avatar`, 152 items with
+    full `.Plain` bodies. **Keep `layouts/list.archivejson.json`** — `/search/`
+    depends on that full-text index.
 - The local `hugo` CLI aborts the WHOLE build on the first render error (so
   public/ ends up empty); micro.blog tolerates per-node failures and ships the
   rest — which is why prod showed only home+feed gone. Plugins inject head partials
@@ -1012,6 +1018,38 @@ posting via Micropub with `read-of` instead of the RSS import is the next lever.
   + `decoding="async"`, no `width`/`height` attributes, coverless book skipped,
   unlinked book has no empty anchor, `progress` renders "12 of 30", an unknown
   year renders nothing. `/reading/` heading levels still have no skips.
+
+## wayback-link-preserver breaks flex layouts (diagnosed 2026-08-06)
+The ragged first row of `/reading/`'s 2026 bookgoals grid was NOT a cover or a
+CSS problem — every cover returns 200 and renders at an identical
+`6.25rem × aspect-ratio 2/3` box. The plugin injects its badge as a **SIBLING**
+of the link it flags:
+```js
+link.parentNode.insertBefore(badge, link.nextSibling);   // <span class=wlp-broken-badge>
+```
+`.bookgoals` is `display: flex` and `.bookgoals-link` is a direct child, so the
+badge becomes **a flex item** — ~16px plus the 0.6rem gap — shifting the rest of
+that row off the 117px column pitch every other row uses. Fixed with
+`.bookgoals .wlp-broken-badge, .bookgoals .wlp-indicator { display: none }`
+(0,2,0 beats the plugin's 0,1,0, which is required because micro.blog loads
+plugin CSS after `main.css`). **Scoped to `.bookgoals` deliberately** — in
+`.bookshelf` the badge lands inside the `<h3>` beside real link text, where it
+is inline, useful and harmless.
+- **The flag was a false positive**, and this is the general risk: the plugin
+  judges liveness with a `mode: "no-cors"` fetch on an 8s timeout, so one slow
+  response reads as dead, and the verdict is cached in `localStorage` for a day
+  (`livenessCacheDays: 1`). It flagged `micro.blog/books/9781639732159`, which
+  returns 200.
+- **This class of bug is INVISIBLE to `curl`.** The badge is injected at
+  runtime, so fetched HTML looks perfect — the screenshot was the only evidence.
+  Same caveat already recorded for `.microblog_reply_form` in the dead-code
+  audit.
+- `contentSelector` is `.post-content, .e-content, article .content,
+  .h-entry .e-content`, so ANY shortcode output inside a post body is in scope.
+  Assume the same hazard for any future flex/grid container holding links.
+- `maxLinksPerPage: 30` explains why only 2026 was affected: `/reading/` has 35
+  links (31 bookgoals + 4 bookshelf), so the plugin stops partway through the
+  first grid and never examines 2025.
 
 ## bookshelf shortcode absorbed into the theme (2026-08-05)
 Absorbed `kottkrig/microdotblog-bookshelf-shortcode` so it can be uninstalled.
