@@ -186,16 +186,18 @@ See `CLAUDE.md` for the full platform-behavior notes and the local 0.158 reprodu
 
 ## Installed plugins
 
-These micro.blog plugins are installed alongside the theme:
+Two micro.blog plugins are installed alongside the theme:
 
 | Plugin | Role |
 |---|---|
-| [microdotblog-bookshelf-shortcode](https://github.com/kottkrig/microdotblog-bookshelf-shortcode) | Optional bookshelf shortcode plugin; no longer used by the homepage reading sections |
-| [plugin-bookgoals](https://github.com/microdotblog/plugin-bookgoals) | Reading-goals shortcode |
-| [plugin-search-page](https://github.com/microdotblog/plugin-search-page) | Search page (see the `list.archivejson.json` override above) |
-| [plugin-cc](https://github.com/microdotblog/plugin-cc) | Creative Commons license tag (injects via `custom_footer.html`) |
 | [wayback-link-preserver](https://github.com/gunnarr/wayback-link-preserver) | Wayback fallbacks for broken links |
 | [mbplugin-youtube-nocookie](https://github.com/flschr/mbplugin-youtube-nocookie) | Privacy-friendly YouTube embeds |
+
+Four others were **absorbed into the theme and uninstalled** on 2026-08-05 — the
+search page, the reading-goals and bookshelf shortcodes, and the Creative
+Commons license tag. See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for
+what each contributed and its license. A fifth, an AI-blocking robots.txt
+plugin, was replaced by this theme's own `layouts/robots.txt`.
 
 ## Hugo compatibility
 
@@ -220,13 +222,24 @@ Full details, root-cause history, and the pinned-`hugo-0.158` local reproduction
 
 ## Credits
 
-- **Color palette:** [Solarized](https://ethanschoonover.com/solarized/) by Ethan Schoonover,
-  used under the [MIT License](https://github.com/altercation/solarized/blob/master/LICENSE).
-  The Solarized hues are adapted here as CSS custom properties; no Solarized source files are bundled.
+- **Fonts (bundled):** [Charter](https://practicaltypography.com/charter.html) by Matthew
+  Carter, via Michael Sharpe's XCharter, under the Bitstream Charter license —
+  BITSTREAM CHARTER is a registered trademark of Bitstream Inc. And
+  [Fraunces](https://github.com/undercasetype/Fraunces) by the Fraunces Project Authors,
+  under the SIL Open Font License 1.1. Full texts ship beside the font files in
+  `static/fonts/`.
+- **Color palette:** "Northeaster," shared with [jaredeberle.org](https://jaredeberle.org)
+  and tuned against the Homer paintings it is named for. (This theme began on
+  [Solarized](https://ethanschoonover.com/solarized/) by Ethan Schoonover; no Solarized
+  values remain.)
+- **Absorbed plugins:** the search page, reading-goals and bookshelf shortcodes, and the
+  Creative Commons license tag began as micro.blog plugins — see
+  [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 - **Authorship:** Written by Claude (Anthropic's AI assistant) in collaboration with Jared Eberle.
 - Building micro.blog locally pulled from [Chasen's Web Blog](https://web.chasen.dev/2025/06/14/testing-microblog-theme-changes-locally.html)
 
 ## License
 
 This theme is released under the [MIT License](LICENSE) — see the disclaimer at the top
-regarding support and reuse.
+regarding support and reuse. Bundled fonts and absorbed plugin code carry their own
+licenses; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
