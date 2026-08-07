@@ -5,13 +5,25 @@
 	"home_page_url": "{{ .Site.BaseURL }}",
 	"feed_url": "{{ .Site.BaseURL }}archive/index.json",
 	"items": [
-		{{- $list := (where .Site.Pages "Type" "post") -}}
+		{{/* RegularPages, not Pages: the latter also yields section/taxonomy list
+		     nodes, which would emit an item with an empty content_text (verified
+		     in the CI fixture: 15 posts produced 16 items, the extra being the
+		     /post/ section page). Every other template here uses RegularPages. */}}
+		{{- $list := (where .Site.RegularPages "Type" "post") -}}
 		{{- $len := (len $list) -}}
 		{{ range $index, $value := $list }}
 			{
 				"id": "{{ .Permalink }}",
 				"title": {{ .Title | jsonify }},
-				"content_text": {{ .Plain | jsonify }},
+				{{/* htmlUnescape is load-bearing, not tidying. .Plain strips tags but
+				     KEEPS entities, and JSON has no HTML-decoding layer, so without this
+				     the index stores the literal characters "&rsquo;"/"&amp;". Measured
+				     on the live feed before the fix: 51 of 150 items. That breaks
+				     /search/ twice over — search.js renders snippets with textContent
+				     (which does not decode entities) and matches with indexOf, so a
+				     query for "didn't" could never match a stored "didn&rsquo;t". It is
+				     also what JSON Feed requires: content_text is plain text. */}}
+				"content_text": {{ .Plain | htmlUnescape | jsonify }},
 				"date_published": "{{ .Date.Format "2006-01-02T15:04:05-07:00" }}",
 				"url": "{{ .Permalink }}"
 			}

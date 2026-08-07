@@ -1,9 +1,9 @@
 name = "Micro Claude"
 license = "MIT"
 licenselink = "https://github.com/jleberle/micro-claude/blob/main/LICENSE"
-description = "A Solarized Light micro.blog theme mirroring jaredeberle.org"
+description = "An editorial micro.blog theme mirroring jaredeberle.org: Northeaster palette, self-hosted Charter and Fraunces, light-only."
 homepage = "https://github.com/jleberle/micro-claude"
-tags = ["solarized", "dark-mode", "clean"]
+tags = ["editorial", "minimal", "clean", "microblog"]
 
 [author]
   name = "Jared Eberle"

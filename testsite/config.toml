@@ -30,6 +30,15 @@ enableRobotsTXT = true
 
 [params]
   about_me = "A fixture bio, just long enough to exercise the intro card and its truncation in head.html's meta tags."
+  # Social links are backend-only in production (plugin.json fields, no
+  # config.json defaults — see CLAUDE.md), so without these the intro-social
+  # pills and the footer "Elsewhere" list never render in CI and their markup
+  # goes unchecked. Set here purely for coverage; they are not defaults.
+  social_website_url = "https://example.com/"
+  social_bluesky_url = "https://bsky.app/profile/example.com"
+  social_letterboxd_url = "https://letterboxd.com/example/"
+  social_librarything_url = "https://www.librarything.com/profile/example"
+  social_discogs_url = "https://www.discogs.com/user/example"
   [params.author]
     name = "Fixture Author"
     username = "fixtureuser"

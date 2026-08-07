@@ -1,4 +1,14 @@
 {{ $bio := .Site.Params.about_me }}
+{{/* One avatar URL for the whole theme. This partial used to hand-build
+     micro.blog/<username>/avatar.jpg while head.html's og:image/twitter:image,
+     the JSON-LD Person.image and list.archivejson.json's icon all used
+     .Site.Params.author.avatar — and in production those resolved to two
+     DIFFERENT files on the same page (micro.blog/eberle/avatar.jpg vs
+     avatars.micro.blog/avatars/…), so the LCP image was a second fetch of the
+     same picture and a changed avatar could update in one place and not the
+     other. The constructed URL stays as the fallback for a site where the
+     platform param is absent (e.g. a bare local `hugo server`). */}}
+{{ $avatar := .Site.Params.author.avatar | default (printf "https://micro.blog/%s/avatar.jpg" .Site.Params.author.username) }}
 {{ if $bio }}
 <article class="intro h-card">
   {{/* alt="" — decorative here, not unlabelled: the .intro-title h2 directly
@@ -9,7 +19,7 @@
        reader's text-size preference); fetchpriority marks it as the
        above-the-fold LCP candidate — it is the only image in the homepage's
        initial viewport, and the only one not lazy-loaded. */}}
-  <img class="intro-avatar u-photo" src="https://micro.blog/{{ .Site.Params.author.username }}/avatar.jpg" alt="" width="124" height="124" decoding="async" fetchpriority="high">
+  <img class="intro-avatar u-photo" src="{{ $avatar }}" alt="" width="124" height="124" decoding="async" fetchpriority="high">
   <div class="intro-body">
     <p class="intro-kicker">From the notebook of</p>
     <h2 class="intro-title p-name">{{ .Site.Params.author.name | default .Site.Title }}</h2>
@@ -17,35 +27,35 @@
     <nav class="intro-social" aria-label="Social links">
       {{/* Website */}}
       {{ with .Site.Params.social_website_url }}
-      <a href="{{ . }}" aria-label="Personal website" rel="me noopener" class="u-url">
+      <a href="{{ . }}" aria-label="Personal website" rel="me" class="u-url">
         <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         Website
       </a>
       {{ end }}
       {{/* Bluesky */}}
       {{ with .Site.Params.social_bluesky_url }}
-      <a href="{{ . }}" aria-label="Bluesky" rel="me noopener" class="u-url">
+      <a href="{{ . }}" aria-label="Bluesky" rel="me" class="u-url">
         <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.308 4.267-4.308 1.172-6.498-2.74-7.078a8.741 8.741 0 0 1-.415-.056c.14.017.279.036.415.056 2.67.297 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.204-.659-.299-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8z"/></svg>
         Bluesky
       </a>
       {{ end }}
       {{/* Letterboxd */}}
       {{ with .Site.Params.social_letterboxd_url }}
-      <a href="{{ . }}" aria-label="Letterboxd" rel="me noopener" class="u-url">
+      <a href="{{ . }}" aria-label="Letterboxd" rel="me" class="u-url">
         <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="8" cy="12" r="3"/><circle cx="16" cy="12" r="3"/></svg>
         Letterboxd
       </a>
       {{ end }}
       {{/* LibraryThing */}}
       {{ with .Site.Params.social_librarything_url }}
-      <a href="{{ . }}" aria-label="LibraryThing" rel="me noopener" class="u-url">
+      <a href="{{ . }}" aria-label="LibraryThing" rel="me" class="u-url">
         <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
         LibraryThing
       </a>
       {{ end }}
       {{/* Discogs */}}
       {{ with .Site.Params.social_discogs_url }}
-      <a href="{{ . }}" aria-label="Discogs" rel="me noopener" class="u-url">
+      <a href="{{ . }}" aria-label="Discogs" rel="me" class="u-url">
         <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
         Discogs
       </a>

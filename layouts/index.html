@@ -122,18 +122,14 @@
        real archive if the narrower category is still empty. */}}
   {{ if and (eq (len $finishedTaggedPosts) 0) (gt (len $bookFallbackPosts) 0) }}{{ $finishedReadingURL = $booksFallbackURL }}{{ end }}
 
-  {{/* Backend field values are always strings, and `int` is FATAL on a malformed one —
-       even "5 " with a trailing space — which would kill the whole home node (page +
-       feeds). Never cast raw input: accept digits-only values, otherwise keep the
-       fallback (mirrors the config.json defaults; covers blank/missing params too). */}}
-  {{ $readingCount := 8 }}
-  {{ with findRE `^(0|[1-9][0-9]*)$` (trim (printf "%v" .Site.Params.home_reading_count) " ") 1 }}{{ $readingCount = int (index . 0) }}{{ end }}
-  {{ $booksCount := 5 }}
-  {{ with findRE `^(0|[1-9][0-9]*)$` (trim (printf "%v" .Site.Params.home_books_count) " ") 1 }}{{ $booksCount = int (index . 0) }}{{ end }}
-  {{ $moviesCount := 6 }}
-  {{ with findRE `^(0|[1-9][0-9]*)$` (trim (printf "%v" .Site.Params.home_movies_count) " ") 1 }}{{ $moviesCount = int (index . 0) }}{{ end }}
-  {{ $highlightsCount := 10 }}
-  {{ with findRE `^(0|[1-9][0-9]*)$` (trim (printf "%v" .Site.Params.home_highlights_count) " ") 1 }}{{ $highlightsCount = int (index . 0) }}{{ end }}
+  {{/* Section counts come from micro.blog backend fields, which are free text and
+       therefore never safe to cast raw — see partials/int-param.html for why a bad
+       value here would take down the homepage AND both feeds. Fallbacks mirror the
+       config.json defaults. */}}
+  {{ $readingCount    := partial "int-param.html" (dict "raw" .Site.Params.home_reading_count    "fallback" 8) }}
+  {{ $booksCount      := partial "int-param.html" (dict "raw" .Site.Params.home_books_count      "fallback" 5) }}
+  {{ $moviesCount     := partial "int-param.html" (dict "raw" .Site.Params.home_movies_count     "fallback" 6) }}
+  {{ $highlightsCount := partial "int-param.html" (dict "raw" .Site.Params.home_highlights_count "fallback" 10) }}
 
   {{/* De-duplicate across sections so a post never appears twice on the homepage.
        Order Status → Books → Movies → Highlights; each excludes posts shown above
@@ -221,9 +217,14 @@
                no ISBN would otherwise wrap the image in a link with an empty href. */}}
           {{ $cover := "" }}
           {{ if $isbn }}{{ with .cover_url }}{{ $cover = printf "%v" . }}{{ end }}{{ end }}
+          {{/* No "date" key: a shelf book genuinely has none (the shelf data is
+               title/author/isbn/cover_url only), and the render loop reads $e.date
+               solely inside `if $e.dated`. It used to carry `now` as filler, which
+               was both never read and the one wall-clock dependency in this
+               template's data path. */}}
           {{ $reading = $reading | append (dict
               "label" $label "review" "" "cover" $cover "coverLink" $link
-              "link" $link "date" now "dated" false) }}
+              "link" $link "dated" false) }}
           {{ $readingKeys = $readingKeys | append $key }}
           {{ with $isbn }}{{ $readingISBNs = $readingISBNs | append . }}{{ end }}
         {{ end }}

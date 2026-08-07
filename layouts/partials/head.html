@@ -36,6 +36,35 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:; media-src 'self' https:; frame-src https:; connect-src 'self' https:; form-action 'self' https://micro.blog; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="strict-origin-when-cross-origin">
 
+  {{/* Plain-text derivations, computed once and reused by BOTH the meta tags and
+       the JSON-LD block far below — they were previously spelled out eleven times
+       across the two.
+
+       THE FILTER ORDER MATTERS. `plainify` strips tags but KEEPS entities, and it
+       returns template.HTML, so its output lands in an attribute verbatim and the
+       browser decodes it — which is why the meta tags looked correct while the
+       JSON-LD carried literal "&rsquo;"/"&amp;" text (nothing decodes entities
+       inside <script type="application/ld+json">). htmlUnescape must come AFTER
+       truncate: on a plain string, truncate re-escapes "&" to "&amp;", so
+       unescaping first fixes the curly quotes and leaves the ampersands broken.
+       Verified against rendered output on the pinned 0.158 build, both contexts.
+       chomp drops the trailing newline .Summary carries when it isn't truncated.
+
+       WHEN RE-VERIFYING, BUILD WITHOUT --minify. Hugo's HTML minifier rewrites
+       `&amp;` back to a bare `&` inside attribute values — legal, since an
+       ampersand not followed by a valid character reference parses as itself —
+       and production is minified too, so the live page shows no `&amp;` at all.
+       That is the minifier's doing, not this pipeline's; a minified build makes
+       correct and broken escaping look identical here. */}}
+  {{- $aboutText := "" -}}
+  {{- with .Site.Params.about_me }}{{ $aboutText = . | plainify }}{{ end -}}
+  {{- $summaryText := .Summary | plainify -}}
+  {{- $aboutShort := $aboutText | truncate 125 | htmlUnescape | chomp -}}
+  {{- $aboutLong := $aboutText | truncate 160 | htmlUnescape | chomp -}}
+  {{- $summaryTitle := $summaryText | truncate 70 | htmlUnescape | chomp -}}
+  {{- $summaryShort := $summaryText | truncate 125 | htmlUnescape | chomp -}}
+  {{- $summaryLong := $summaryText | truncate 160 | htmlUnescape | chomp -}}
+
   {{- $hasImage := false -}}
   {{- if .IsHome -}}
     {{- $hasImage = true -}}
@@ -50,11 +79,11 @@
   {{- if .IsHome -}}
     <meta name="twitter:title" content="{{ .Site.Title }}">
     <meta property="og:title" content="{{ .Site.Title }}">
-    {{/* about_me may contain HTML (intro.html renders it with safeHTML) — plainify
-         so tags don't leak into meta content. */}}
-    <meta name="twitter:description" content="{{ .Site.Params.about_me | plainify | truncate 125 }}">
-    <meta property="og:description" content="{{ .Site.Params.about_me | plainify | truncate 160 }}">
-    <meta name="description" content="{{ .Site.Params.about_me | plainify | truncate 160 }}">
+    {{/* about_me may contain HTML (intro.html renders it with safeHTML) — the
+         shared derivations above plainify it so tags don't leak into meta. */}}
+    <meta name="twitter:description" content="{{ $aboutShort }}">
+    <meta property="og:description" content="{{ $aboutLong }}">
+    <meta name="description" content="{{ $aboutLong }}">
     <meta name="twitter:image" content="{{ .Site.Params.author.avatar }}">
     <meta property="og:image" content="{{ .Site.Params.author.avatar }}">
   {{- else -}}
@@ -62,13 +91,12 @@
       <meta name="twitter:title" content="{{ .Title }}">
       <meta property="og:title" content="{{ .Title }}">
     {{- else -}}
-      {{- $fallbackTitle := .Summary | plainify | truncate 70 -}}
-      <meta name="twitter:title" content="{{ $fallbackTitle | default $.Site.Title }}">
-      <meta property="og:title" content="{{ $fallbackTitle | default $.Site.Title }}">
+      <meta name="twitter:title" content="{{ $summaryTitle | default $.Site.Title }}">
+      <meta property="og:title" content="{{ $summaryTitle | default $.Site.Title }}">
     {{- end -}}
-    <meta name="twitter:description" content="{{ .Summary | plainify | truncate 125 }}">
-    <meta property="og:description" content="{{ .Summary | plainify | truncate 160 }}">
-    <meta name="description" content="{{ .Summary | plainify | truncate 160 }}">
+    <meta name="twitter:description" content="{{ $summaryShort }}">
+    <meta property="og:description" content="{{ $summaryLong }}">
+    <meta name="description" content="{{ $summaryLong }}">
     {{- if .Params.photos -}}
       {{- range .Params.photos -}}
         <meta name="twitter:image" content="{{ . }}">
@@ -146,7 +174,7 @@
         "@id" $websiteID
         "url" .Site.BaseURL
         "name" .Site.Title
-        "description" (.Site.Params.about_me | plainify | truncate 160)
+        "description" $aboutLong
         "publisher" (dict "@id" $personID)
         "inLanguage" "en-US"
   -}}
@@ -165,11 +193,10 @@
   {{- if and .IsPage (eq .Type "post") }}
     {{- $articleImage := .Site.Params.author.avatar -}}
     {{- if .Params.photos }}{{ $articleImage = index .Params.photos 0 }}{{ end -}}
-    {{- $fallbackTitle := .Summary | plainify | truncate 70 -}}
     {{- $blogPosting := dict
           "@type" "BlogPosting"
           "@id" (printf "%s#article" .Permalink)
-          "headline" (.Title | default $fallbackTitle)
+          "headline" (.Title | default $summaryTitle)
           "url" .Permalink
           "mainEntityOfPage" (dict "@type" "WebPage" "@id" .Permalink)
           "datePublished" (.Date.Format "2006-01-02T15:04:05Z07:00")
@@ -178,7 +205,7 @@
           "publisher" (dict "@id" $personID)
           "isPartOf" (dict "@id" $websiteID)
           "image" $articleImage
-          "description" (.Summary | plainify | truncate 160)
+          "description" $summaryLong
           "inLanguage" "en-US"
     -}}
     {{- with .Site.Params.cc_license_url }}{{ $blogPosting = merge $blogPosting (dict "license" .) }}{{ end -}}

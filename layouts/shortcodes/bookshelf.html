@@ -10,15 +10,28 @@
     {{< bookshelf shelf="read2026" >}}       named shelf
     {{< bookshelf variant="grid" >}}         cover grid instead of rows
 
-  Shortcode lookup follows the same leftmost-theme-wins rule as static files
-  (verified empirically on 0.158), and micro.blog loads this theme before
-  plugins — so this file already shadows the plugin's copy even before it is
-  uninstalled. No transition window.
+  CURRENTLY UNSTYLED — the `.bookshelf-*` block was removed from main.css on
+  2026-08-06, when the only caller (the bookshelf call in the /reading/ post
+  body, which lives in the micro.blog backend, not this repo) was retired and
+  that page became a static historical record. This template was deliberately
+  kept for any future page that wants a shelf embed; restore the CSS from git
+  history before calling it again, or it renders as bare markup.
+
+  AN INSTALLED PLUGIN'S SHORTCODE BEATS THE THEME'S. An earlier version of this
+  comment claimed the opposite ("leftmost theme wins … no transition window"),
+  extrapolated from a local 0.158 test with a throwaway second theme. Production
+  disproved it: with plugin-bookgoals still installed, ITS shortcode rendered
+  (live HTML carried `class=cover` and `width="100"`, not our class names) while
+  both were deployed. So absorbing a shortcode does nothing until the plugin is
+  uninstalled, and there IS a transition window — during it our CSS no longer
+  targets the plugin's class names, so its output renders unstyled by us.
+  Uninstall promptly rather than running both. See also readinggoals.html: a
+  plugin whose shortcode name your content calls gets RE-INSTALLED automatically.
 
   Differences from the original, all deliberate:
   - Class names are `bookshelf-*` (single dash), NOT the plugin's `bookshelf__*`
     BEM names, so the plugin's own stylesheet cannot half-style our markup while
-    both are installed. Styling lives in main.css.
+    both are installed.
   - The plugin put `title="<title> by <author>"` on each row, which produces a
     browser tooltip duplicating the visible text (see the screenshot that
     prompted this). Dropped — `title` is not an accessibility feature.

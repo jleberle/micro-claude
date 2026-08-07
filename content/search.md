@@ -20,4 +20,9 @@ weight: 100
   <p>Search needs JavaScript. You can browse the <a href="/archive/">full archive</a> instead.</p>
 </noscript>
 
-<script src="/js/search.js" defer></script>
+<!-- Bump ?v= whenever static/js/search.js changes. micro.blog sends ETag and
+     Last-Modified but no Cache-Control (probed live), so revalidation is at the
+     browser's discretion and an edit can otherwise serve stale. main.css gets
+     the same treatment via ?{{ .Site.Params.theme_seconds }} in head.html; this
+     is a content file, not a template, so the bump is manual. -->
+<script src="/js/search.js?v=2" defer></script>

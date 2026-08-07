@@ -37,12 +37,16 @@
     <div class="footer-connect">
       <h2 class="footer-heading">Elsewhere</h2>
       <ul class="footer-link-list">
-        {{ with .Site.Params.social_website_url }}<li><a href="{{ . }}" rel="me noopener">Website</a></li>{{ end }}
-        {{ with .Site.Params.social_bluesky_url }}<li><a href="{{ . }}" rel="me noopener">Bluesky</a></li>{{ end }}
-        {{ with .Site.Params.social_letterboxd_url }}<li><a href="{{ . }}" rel="me noopener">Letterboxd</a></li>{{ end }}
-        {{ with .Site.Params.social_librarything_url }}<li><a href="{{ . }}" rel="me noopener">LibraryThing</a></li>{{ end }}
-        {{ with .Site.Params.social_discogs_url }}<li><a href="{{ . }}" rel="me noopener">Discogs</a></li>{{ end }}
-        <li><a href="https://micro.blog/{{ .Site.Params.author.username }}">Micro.blog</a></li>
+        {{/* rel="me" only — `noopener` does nothing without target="_blank", and
+             these all open in the same tab. */}}
+        {{ with .Site.Params.social_website_url }}<li><a href="{{ . }}" rel="me">Website</a></li>{{ end }}
+        {{ with .Site.Params.social_bluesky_url }}<li><a href="{{ . }}" rel="me">Bluesky</a></li>{{ end }}
+        {{ with .Site.Params.social_letterboxd_url }}<li><a href="{{ . }}" rel="me">Letterboxd</a></li>{{ end }}
+        {{ with .Site.Params.social_librarything_url }}<li><a href="{{ . }}" rel="me">LibraryThing</a></li>{{ end }}
+        {{ with .Site.Params.social_discogs_url }}<li><a href="{{ . }}" rel="me">Discogs</a></li>{{ end }}
+        {{/* Guarded like its neighbours: a blank username would otherwise link to
+             micro.blog's own front page rather than the author's profile. */}}
+        {{ with .Site.Params.author.username }}<li><a href="https://micro.blog/{{ . }}">Micro.blog</a></li>{{ end }}
         <li><a href="https://codeberg.org/jleberle">Codeberg</a></li>
         <li><a href="https://github.com/jleberle/micro-claude">Theme</a></li>
       </ul>

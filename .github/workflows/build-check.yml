@@ -30,6 +30,14 @@ jobs:
     runs-on: ubuntu-latest
     env:
       HUGO_VERSION: "0.158.0"
+      # SHA-256 of hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz, from the
+      # release's own hugo_${HUGO_VERSION}_checksums.txt. Hardcoded rather than
+      # fetched: a checksums file pulled from the same origin as the artifact
+      # only catches corruption, while a literal here also makes the version pin
+      # mean something — any change to the bytes we build with fails the job
+      # loudly instead of silently altering what CI tested. Update both this and
+      # HUGO_VERSION together when micro.blog moves its production Hugo.
+      HUGO_SHA256: "c2a724ac3c8e949fca56dd438b868b2128837754420c20a6e7ae345616c4e625"
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -39,6 +47,7 @@ jobs:
           set -euo pipefail
           curl -sSLo hugo.tar.gz \
             "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz"
+          echo "${HUGO_SHA256}  hugo.tar.gz" | sha256sum -c -
           tar -xzf hugo.tar.gz hugo
           sudo install -m 0755 hugo /usr/local/bin/hugo
           rm hugo hugo.tar.gz

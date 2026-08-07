@@ -59,7 +59,9 @@ layouts/
     readinggoals.html        preferred name for per-year finished-books grids in content —
                              see "Installed plugins" below for why it isn't called `bookgoals`
     bookgoals.html           fallback shortcode under the absorbed plugin's original name
-    bookshelf.html           bookshelf embed (Currently Reading list/grid on /reading/)
+    bookshelf.html           bookshelf embed — kept available but CURRENTLY UNCALLED and
+                             unstyled (its `.bookshelf-*` CSS was removed 2026-08-06 when
+                             /reading/ stopped calling it; restore from git history first)
   _default/
     baseof.html              page skeleton (micro.blog may override with its own base)
     list.html                category / section list pages
@@ -75,6 +77,8 @@ layouts/
     intro.html               homepage bio card: avatar + bio + social links
     custom_footer.html       intentionally blank override hook (used by plugins)
     reading-goals.html       shared logic behind both goals shortcodes
+    int-param.html           validated non-negative int from a backend field, with a
+                             fallback — never cast a settings-form value with `int`
   index.html                 homepage
 content/
   search.md                  /search/ page + nav entry, absorbed from plugin-search-page

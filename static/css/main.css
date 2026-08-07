@@ -736,16 +736,21 @@ body > .site-header,
 
 .home-section-header {
   display: block;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 0.95rem;
   margin-bottom: 0.85rem;
   padding-bottom: 0.45rem;
   border-bottom: 1px solid color-mix(in srgb, var(--border), var(--rule) 35%);
 }
 
+/* justify-content/align-items/gap live here, not in the base rule: they are
+   inert on `display: block` and only do anything once this becomes a flex
+   container. */
 @media (min-width: 45em) {
-  .home-section-header { display: flex; }
+  .home-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.95rem;
+  }
 }
 
 .home-section-kicker,
@@ -1383,8 +1388,8 @@ body > .site-header,
   text-decoration: underline;
 }
 
-.post-nav-next { margin-left: 0; }
-
+/* Pushes "next" to the far end once .post-nav is a row; in the stacked mobile
+   layout the initial `margin-left: 0` already applies, so no base rule. */
 @media (min-width: 45em) {
   .post-nav-next { margin-left: auto; }
 }
@@ -1511,7 +1516,8 @@ body > .site-header,
   width: auto;
   aspect-ratio: 1;
   height: 4.5rem;
-  flex-shrink: 0;
+  /* No flex-shrink here — .archive-entry is a grid, so it was always inert.
+     (.media-cover's flex-shrink IS live; .media-entry is a flex row.) */
   object-fit: cover;
   border: 1px solid color-mix(in srgb, var(--border), var(--rule) 35%);
   border-radius: 4px;
