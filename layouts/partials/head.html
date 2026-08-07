@@ -145,7 +145,28 @@
        extend_head.html preload list. */}}
   <link rel="preload" href="{{ "fonts/charter-400-latin.woff2" | relURL }}" as="font" type="font/woff2" crossorigin="anonymous">
   <link rel="preload" href="{{ "fonts/fraunces-600-latin.woff2" | relURL }}" as="font" type="font/woff2" crossorigin="anonymous">
-  <link rel="stylesheet" href="{{ "css/main.css" | relURL }}?{{ .Site.Params.theme_seconds }}">
+  {{/* Stylesheet via Hugo Pipes from assets/, NOT a raw static/ file (moved
+       2026-08-07). micro.blog copies static/ verbatim — it only minifies HTML —
+       so main.css shipped at its full authored size, and the platform sends no
+       compression at all, making that the whole cost on the wire. Minifying
+       takes it 43.5 KB -> 23.4 KB (46%), most of which is this repo's heavy
+       explanatory comments; fingerprinting content-addresses the URL and retires
+       the old `?{{ .Site.Params.theme_seconds }}` query-string cache-bust.
+
+       GUARDED DELIBERATELY. This partial runs on EVERY page, so an unguarded
+       nil here would be worse than a home-node fault — it would take the whole
+       site down, not just the homepage and feeds. `with` degrades to an
+       unstyled-but-serving page if resources.Get ever returns nothing on the
+       platform. No SRI: the integrity hash would be computed against our build,
+       and if micro.blog's CDN ever re-encoded the file the browser would block
+       the stylesheet outright — an all-or-nothing failure for no real gain on a
+       same-origin asset. */}}
+  {{- with resources.Get "css/main.css" }}
+    {{- $css := . | minify | fingerprint "sha256" }}
+  <link rel="stylesheet" href="{{ $css.RelPermalink }}">
+  {{- else }}
+  <link rel="stylesheet" href="{{ "css/main.css" | relURL }}?{{ $.Site.Params.theme_seconds }}">
+  {{- end }}
 
   {{- with .Site.Params.author.activitypub.username }}
   <meta name="fediverse:creator" content="{{ . }}">

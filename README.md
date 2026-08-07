@@ -82,8 +82,11 @@ layouts/
   index.html                 homepage
 content/
   search.md                  /search/ page + nav entry, absorbed from plugin-search-page
+assets/
+  css/main.css                all styling — Northeaster palette (light-only). In assets/,
+                              not static/: built via Hugo Pipes (minify + fingerprint),
+                              see "Colors" below
 static/
-  css/main.css                all styling — Northeaster palette (light-only)
   js/search.js                /search/ page logic — the only JS this theme owns
   fonts/                      self-hosted Charter (body) + Fraunces (headings) WOFF2 + licenses
   .well-known/
@@ -161,9 +164,17 @@ Micro.blog's own book posts into one list:
 
 ### Colors
 
-All colors are CSS custom properties at the top of `static/css/main.css`. Swap them to
-re-palette without touching layout code. (`main.css` lives in `static/`, not `assets/` — it
-is served directly and cache-busted with `?{{ .Site.Params.theme_seconds }}`, no Hugo Pipes.)
+All colors are CSS custom properties at the top of `assets/css/main.css`. Swap them to
+re-palette without touching layout code.
+
+`main.css` lives in `assets/` and is built through **Hugo Pipes** (`resources.Get | minify |
+fingerprint`), which micro.blog's Hugo runs at build time. It moved there from `static/` on
+2026-08-07: micro.blog copies `static/` verbatim and only minifies HTML, so the stylesheet
+was shipping at full authored size with no compression from the platform either. Minifying
+takes it 43.5 KB → 23.4 KB, and the content hash in the filename replaces the old
+`?{{ .Site.Params.theme_seconds }}` query-string cache-bust. The `<link>` is wrapped in
+`with` so a nil resource degrades to an unstyled page rather than failing the build — that
+call sits in `head.html`, which every page uses.
 
 ### Social links — edited in the micro.blog backend
 

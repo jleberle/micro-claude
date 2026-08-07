@@ -41,7 +41,7 @@ test — see "Verification discipline" for why local tests have lied here twice.
 ### static/ fills a gap; layouts/ overrides a default
 
 - micro.blog serves a theme/plugin `static/` file only at paths the platform has
-  **no default** for: `css/`, `fonts/`, `humans.txt`, `.well-known/security.txt`
+  **no default** for: `fonts/`, `js/`, `humans.txt`, `.well-known/security.txt`
   (all confirmed 200 live — dot-paths do get served).
 - Where the platform **does** ship a default — `robots.txt` — a `static/` copy
   never wins. Only `layouts/robots.txt` overrides it, because micro.blog has
@@ -52,6 +52,33 @@ test — see "Verification discipline" for why local tests have lied here twice.
 - `layouts/robots.txt` is a Hugo **template** — Go delimiters are live even inside
   its `#` comments. Writing a literal pair of double braces there breaks the
   build ("missing value for command"). Describe them, don't type them.
+
+### CSS goes through Hugo Pipes, from assets/ (moved 2026-08-07)
+
+`static/` is copied **verbatim** — micro.blog minifies HTML output but never
+touches static files, and the platform sends no compression, so a static
+stylesheet costs its full authored size on the wire. `main.css` therefore lives
+in `assets/css/` and `head.html` builds it with
+`resources.Get | minify | fingerprint "sha256"`: **43.5 KB → 23.4 KB (46%)**, with
+the content hash replacing the old `?theme_seconds` query-string cache-bust.
+Verified byte-for-byte feature parity after minification (every `@media`,
+`color-mix()`, `:has()`, `var()` and `@font-face` `unicode-range` preserved;
+tinycss2 reports 0 parse errors) and the hash is deterministic across rebuilds
+and across Hugo versions.
+
+**The `<link>` is wrapped in `with` on purpose.** `head.html` runs on EVERY page,
+so an unguarded nil there is worse than a home-node fault — it takes the entire
+site down rather than just the homepage and feeds. Guarded, a missing resource
+degrades to an unstyled but serving site (verified by deleting the asset and
+confirming the build still completes and renders every page).
+
+No SRI: an integrity hash is computed against our build, so if micro.blog ever
+re-encoded the file the browser would block the stylesheet outright — an
+all-or-nothing failure mode for no real gain on a same-origin asset.
+
+`static/js/search.js` is deliberately NOT piped: it is referenced from
+`content/search.md`, a content file rather than a template, so Pipes isn't
+reachable without moving that `<script>` into a shortcode. ~2 KB at stake.
 
 ### Home-node outputs must live at ROOT layouts/, not _default/
 
