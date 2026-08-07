@@ -53,32 +53,20 @@ test — see "Verification discipline" for why local tests have lied here twice.
   its `#` comments. Writing a literal pair of double braces there breaks the
   build ("missing value for command"). Describe them, don't type them.
 
-### CSS goes through Hugo Pipes, from assets/ (moved 2026-08-07)
+### Hugo-GENERATED assets are served, and served unaltered
 
-`static/` is copied **verbatim** — micro.blog minifies HTML output but never
-touches static files, and the platform sends no compression, so a static
-stylesheet costs its full authored size on the wire. `main.css` therefore lives
-in `assets/css/` and `head.html` builds it with
-`resources.Get | minify | fingerprint "sha256"`: **43.5 KB → 23.4 KB (46%)**, with
-the content hash replacing the old `?theme_seconds` query-string cache-bust.
-Verified byte-for-byte feature parity after minification (every `@media`,
-`color-mix()`, `:has()`, `var()` and `@font-face` `unicode-range` preserved;
-tinycss2 reports 0 parse errors) and the hash is deterministic across rebuilds
-and across Hugo versions.
+Proven live 2026-08-07, not inferred: `main.css` moved to `assets/` and is built
+with `resources.Get | minify | fingerprint`, and the fingerprinted file serves
+200 with a body whose SHA-256 **equals the hash in its own filename**. So
+micro.blog publishes Hugo's generated `public/` output alongside `static/`
+passthrough, and does not re-encode it in transit. No other micro.blog theme
+appears to use the asset pipeline; that is habit (they descend from
+`theme-blank`), not a platform limit — Pipes shipped in Hugo **0.32**. Rationale
+and the guard live in `head.html`'s comment.
 
-**The `<link>` is wrapped in `with` on purpose.** `head.html` runs on EVERY page,
-so an unguarded nil there is worse than a home-node fault — it takes the entire
-site down rather than just the homepage and feeds. Guarded, a missing resource
-degrades to an unstyled but serving site (verified by deleting the asset and
-confirming the build still completes and renders every page).
-
-No SRI: an integrity hash is computed against our build, so if micro.blog ever
-re-encoded the file the browser would block the stylesheet outright — an
-all-or-nothing failure mode for no real gain on a same-origin asset.
-
-`static/js/search.js` is deliberately NOT piped: it is referenced from
-`content/search.md`, a content file rather than a template, so Pipes isn't
-reachable without moving that `<script>` into a shortcode. ~2 KB at stake.
+**Blast-radius note that generalizes:** `head.html` runs on EVERY page, so a
+fatal error there is worse than a home-node fault — whole site, not just homepage
+plus feeds. Anything risky in that partial gets a `with`/`default` guard.
 
 ### Home-node outputs must live at ROOT layouts/, not _default/
 
@@ -188,40 +176,17 @@ June 2026.
   input") — a fatal build error. Use a variable.
 - `.Site.LanguageCode` returns the literal `-` on micro.blog's 0.158, which is
   why `og:locale` is hardcoded `en_US`.
-
-### Data access: use `hugo.Data`, not `.Site.Data` (resolved 2026-08-07)
-
-Formerly the repo's top landmine. `.Site.Data` is deprecated and sat in the home
-node, so its eventual removal would have taken the page and both feeds together;
-it was held only for 0.91, where `hugo.Data` is fatal. A version gate was **not**
-an escape — `ge hugo.Version "0.155.0"` returns **TRUE on 0.91.2** (verified), so
-the guarded branch runs anyway and still faults.
-
-With the floor dropped, all four call sites moved to `hugo.Data` (0.155+):
-`index.html`, `shortcodes/bookshelf.html`, `shortcodes/{readinggoals,bookgoals}
-.html`. Verified byte-identical homepage and `/reading/` output on pinned 0.158.
-**Do not "restore compatibility" by reverting these.**
-
-**As of 2026-08-07 this theme has ZERO deprecation warnings**, verified by
-building `testsite/` against Hugo 0.164 (six versions ahead of production) — see
-the sweep below. Earlier notes listed `.Site.LanguageCode` and the config keys
-`languageCode` / `paginate` as pending landmines *here*; that was misleading.
-None of the three appear anywhere in this repo's templates or `config.json`
-(which ships only `params`). `.Site.LanguageCode` went away when `og:locale` was
-hardcoded to `en_US`, and site-level config keys belong to micro.blog's export,
-not to us.
-
-### Deprecation sweep — run this on any micro.blog Hugo bump
-
-```bash
-hugo -s testsite --gc --logLevel warn 2>&1 | grep -i deprecat
-```
-
-Build with a **newer** Hugo than production; deprecations warn for several
-versions before removal, so this is the cheap early warning. **Validate the sweep
-before trusting a clean result** — temporarily reintroduce a known-deprecated
-call (e.g. `.Site.Data`) and confirm it is reported. Done 2026-08-07: the control
-fired correctly, so the clean result is real and not a blind test.
+- Bookshelf/bookgoals data uses **`hugo.Data`** (0.155+), not the deprecated
+  `.Site.Data`. Do not "restore compatibility" by reverting it — that was a 0.91
+  concession, and the floor is gone.
+- **Zero deprecation warnings as of 2026-08-07** (0.164 sweep — see Verification
+  discipline). Earlier notes listed `.Site.LanguageCode` and the config keys
+  `languageCode` / `paginate` as landmines *here*; none of the three appear
+  anywhere in this repo, and site-level config keys belong to micro.blog's
+  export, not to a theme.
+- If a version gate ever seems like the answer, it isn't:
+  `ge hugo.Version "0.155.0"` returns **TRUE on 0.91.2** (verified), so the
+  guarded branch runs anyway.
 
 ## Active landmines
 
@@ -386,6 +351,13 @@ assertion, not a problem.
 Habits that caught real errors here. Each of these produced a confidently wrong
 conclusion at least once.
 
+- **Sweep for deprecations on any micro.blog Hugo bump**, building against a
+  *newer* Hugo than production — they warn for several versions before removal,
+  so this is the cheap early warning:
+  `hugo -s testsite --gc --logLevel warn 2>&1 | grep -i deprecat`.
+  **Validate the sweep before trusting a clean result**: reintroduce a known
+  deprecated call (e.g. `.Site.Data`) and confirm it is reported. The 2026-08-07
+  control fired correctly, so that clean result was real and not a blind test.
 - **Build WITHOUT `--minify` when checking HTML escaping.** Hugo's minifier
   rewrites `&amp;` to a bare `&` in attribute values (legal), and production is
   minified too — so a minified build makes correct and broken escaping look
