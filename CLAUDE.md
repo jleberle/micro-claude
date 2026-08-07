@@ -288,7 +288,45 @@ commented inline. Only the non-obvious contracts are here.
 
 ## Local testing
 
-### Faithful 0.158 reproduction (matches a micro.blog full rebuild)
+### `scripts/repro.sh` — the faithful repro, automated and asserted
+
+```bash
+scripts/repro.sh            # build the real stack + assert; exit 0 = clean
+scripts/repro.sh --no-live  # skip the production parity comparison
+scripts/repro.sh --fresh    # re-clone everything
+```
+
+Assembles **187 real posts** (synthesized from the `jleberle/microblog` content
+backup by `scripts/feed-to-content.py`) against the real theme stack, then runs
+`scripts/assert-repro.py`. Clones are cached in `$WORK`
+(default `$TMPDIR/micro-theme-repro`); re-runs take seconds.
+
+It gates on the things CI structurally cannot see: all nine contested template
+paths resolving to us, no theme-blank markup leaking, permalink shape, an
+entity-free search index and JSON-LD, no template artifacts, the CSS pipeline,
+and parity with production for the content-driven homepage sections.
+
+**Two controls keep it from being vacuous** — this is the important part:
+
+- It hides our `list.archivehtml.html` and requires theme-blank's to take over.
+  Without that, every "our template won" assertion would also pass if
+  theme-blank simply never loaded. Its marker is theme-blank's own
+  `archive_categories` div — **not** `<meta name=generator>`, which is Hugo's
+  automatic injection and appears on every page including production's.
+- It reintroduces `.Site.Data` and requires the deprecation sweep to report it,
+  proving the sweep can see.
+
+The sweep gates on **our theme alone**. The full stack additionally reports
+`.Site.LanguageCode` from theme-blank's `index.xml` / `rss.xml` /
+`list.podcastxml.xml`; that is real and will break micro.blog's feeds when Hugo
+removes it, but it is theirs to fix, so it prints as a note.
+
+Known advisory notes, all expected: Currently Reading and Movies row counts
+differ from live (fixture `data/` and a backend-only field), and JSON-LD
+descriptions on untitled posts carry a leading space (micro.blog's injected
+cover `<img>` precedes the text — cosmetic).
+
+### Manual assembly (what the script automates)
 
 This is what found the full-rebuild bug. Far closer to production than
 `hugo server` because it includes the real platform theme and all plugins.

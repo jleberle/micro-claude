@@ -1,0 +1,229 @@
+#!/usr/bin/env bash
+#
+# Faithful local reproduction of eberle.blog, with assertions.
+#
+# WHAT THIS IS FOR. CI (.github/workflows/build-check.yml) builds this theme
+# standalone against the 13-post testsite/ fixture: no plugins, no theme-blank.
+# It therefore cannot see the failure class that actually took the site down in
+# June 2026 — another theme in the stack winning a template we believe is ours.
+# This script assembles the real stack against 187 real posts and asserts the
+# things only that arrangement can prove.
+#
+# WHAT THIS IS NOT. It is a test rig, not a restore path. It reconstructs a
+# site to render locally; it cannot push anything back to micro.blog. Recovery
+# is the backup repo plus micro.blog's own import.
+#
+# Inputs are all public: the micro.blog content backup and three GitHub repos.
+# Clones are cached in the work dir, so re-runs are fast; pass --fresh to redo.
+#
+# Usage:
+#   scripts/repro.sh                 # build + assert (fetches live for parity)
+#   scripts/repro.sh --no-live       # skip the production comparison
+#   scripts/repro.sh --fresh         # re-clone everything
+#   WORK=/some/dir scripts/repro.sh  # choose the work dir
+#
+set -euo pipefail
+
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+WORK="${WORK:-${TMPDIR:-/tmp}/micro-theme-repro}"
+BACKUP_REPO="https://github.com/jleberle/microblog.git"
+LIVE_URL="https://eberle.blog/"
+PLUGINS=(
+  "https://github.com/gunnarr/wayback-link-preserver.git"
+  "https://github.com/flschr/mbplugin-youtube-nocookie.git"
+  "https://github.com/microdotblog/theme-blank.git"
+)
+# theme-blank LAST: it is micro.blog's real fallback theme, and Hugo resolves
+# templates leftmost-wins, so this ordering is what makes the shadowing
+# assertions meaningful.
+THEMES="micro-theme,wayback-link-preserver,mbplugin-youtube-nocookie,theme-blank"
+
+FRESH=0; LIVE=1
+for a in "$@"; do
+  case "$a" in
+    --fresh) FRESH=1 ;;
+    --no-live) LIVE=0 ;;
+    -h|--help) sed -n '2,30p' "$0"; exit 0 ;;
+    *) echo "unknown option: $a" >&2; exit 2 ;;
+  esac
+done
+
+# Production Hugo. Keep in step with micro.blog; see CLAUDE.md.
+HUGO="${HUGO:-$HOME/.local/bin/hugo-0.158}"
+[ -x "$HUGO" ] || HUGO="$(command -v hugo || true)"
+[ -n "$HUGO" ] || { echo "no hugo binary found (set HUGO=...)" >&2; exit 1; }
+# A NEWER Hugo is what makes the deprecation sweep an early warning; fall back
+# to the pinned one, in which case the sweep only proves nothing regressed.
+SWEEP_HUGO="${SWEEP_HUGO:-$(command -v hugo || echo "$HUGO")}"
+
+say() { printf '\n\033[1m== %s\033[0m\n' "$*"; }
+
+[ "$FRESH" = 1 ] && rm -rf "$WORK"
+mkdir -p "$WORK"
+SITE="$WORK/site"
+
+say "sources"
+if [ -d "$WORK/backup/.git" ]; then
+  echo "  backup: cached ($(du -sh "$WORK/backup" | cut -f1))"
+else
+  echo "  cloning content backup..."
+  git clone -q --depth 1 "$BACKUP_REPO" "$WORK/backup"
+fi
+mkdir -p "$WORK/themes"
+for url in "${PLUGINS[@]}"; do
+  name="$(basename "$url" .git)"
+  if [ -d "$WORK/themes/$name/.git" ]; then
+    echo "  $name: cached"
+  else
+    echo "  cloning $name..."
+    git clone -q --depth 1 "$url" "$WORK/themes/$name"
+  fi
+done
+# always re-sync the theme under test from the working tree
+rm -rf "$WORK/themes/micro-theme"; mkdir -p "$WORK/themes/micro-theme"
+tar -c -C "$REPO" --exclude=.git --exclude=testsite --exclude=scripts . \
+  | tar -x -C "$WORK/themes/micro-theme"
+echo "  micro-theme: synced from working tree"
+# config's themesDir resolves relative to the site dir and beats --themesDir,
+# so link the shared theme cache in rather than passing a flag.
+mkdir -p "$SITE"; ln -sfn "$WORK/themes" "$SITE/themes"
+
+say "content"
+mkdir -p "$SITE/content" "$SITE/data" "$SITE/layouts/partials"
+python3 "$REPO/scripts/feed-to-content.py" "$WORK/backup/feed.json" "$SITE"
+# Not in the backup — micro.blog generates these at build time. Fixtures keep
+# the bookshelf merge and the goals grid exercised; see CLAUDE.md.
+cp "$REPO"/testsite/data/*.json "$SITE/data/"
+cp "$REPO"/testsite/layouts/partials/microblog_head.html "$SITE/layouts/partials/"
+cp "$REPO"/testsite/content/reading.md "$REPO"/testsite/content/about.md "$SITE/content/" 2>/dev/null || true
+cp "$REPO"/content/search.md "$SITE/content/" 2>/dev/null || true
+echo "  data/ + microblog_head stub + standing pages: fixtures"
+
+cat > "$SITE/config.toml" <<'EOF'
+# Reconstructed micro.blog site config. The outputFormats block mirrors the
+# path/baseName facts recorded in CLAUDE.md, not the platform's real export.
+baseURL = "https://eberle.blog/"
+locale = "en-us"
+title = "Jared Eberle"
+themesDir = "themes"
+pluralizeListTitles = false
+enableRobotsTXT = true
+
+# micro.blog serves posts as real .html files but sections as directories, so
+# uglyURLs is scoped to the post section only. Do NOT put .html in the
+# permalink as well — you get slug.html.html.
+[permalinks]
+  post = "/:year/:month/:day/:slug"
+[uglyURLs]
+  post = true
+
+[markup.goldmark.renderer]
+  unsafe = true
+
+[params]
+  about_me = "Notes, reviews, reading, and photographs."
+  [params.author]
+    name = "Jared Eberle"
+    username = "eberle"
+    avatar = "https://avatars.micro.blog/avatars/2026/04/84249.jpg"
+
+[outputFormats.ArchiveHTML]
+  mediaType = "text/html"
+  baseName = "index"
+  path = "archive"
+  isHTML = true
+[outputFormats.PhotosHTML]
+  mediaType = "text/html"
+  baseName = "index"
+  path = "photos"
+  isHTML = true
+[outputFormats.ArchiveJSON]
+  mediaType = "application/json"
+  baseName = "index"
+  path = "archive"
+  isPlainText = true
+
+[outputs]
+  home = ["HTML", "RSS", "JSON", "ArchiveHTML", "ArchiveJSON", "PhotosHTML"]
+EOF
+
+# Hugo does not clean the destination on its own, and stale output has already
+# caused one phantom bug hunt (a .html.html permalink that no longer existed).
+build() { rm -rf "$SITE/public" "$SITE/resources"; "$1" -s "$SITE" --gc --minify --theme "$THEMES" "${@:2}"; }
+
+say "build (full stack, pinned production Hugo)"
+"$HUGO" version | head -1 | sed 's/^/  /'
+build "$HUGO" 2>&1 | grep -viE 'unknown variant' | sed 's/^/  /'
+
+LIVE_FILE=""
+if [ "$LIVE" = 1 ]; then
+  say "fetching production homepage for parity"
+  if curl -sf --max-time 30 "$LIVE_URL" -o "$WORK/live.html"; then
+    LIVE_FILE="$WORK/live.html"; echo "  ok ($(wc -c < "$WORK/live.html") bytes)"
+  else
+    echo "  unavailable — parity checks will be skipped"
+  fi
+fi
+
+say "assertions"
+set +e
+python3 "$REPO/scripts/assert-repro.py" "$SITE/public" "$LIVE_FILE"
+RC=$?
+set -e
+
+# ---- control 1: is theme-blank genuinely in the chain? --------------------
+# Without this, every "our template won" assertion above could pass simply
+# because nothing was there to compete. Hide our archive template and confirm
+# theme-blank's takes over.
+say "control: theme-blank is really loaded (not vacuously 'winning')"
+# Marker is theme-blank's own `archive_categories` div. Do NOT use
+# <meta name=generator> — that is Hugo's automatic injection and appears on
+# every page including production's, so it proves nothing.
+mv "$WORK/themes/micro-theme/layouts/list.archivehtml.html" "$WORK/themes/micro-theme/layouts/_off.html"
+build "$HUGO" >/dev/null 2>&1 || true
+if grep -q 'archive-month' "$SITE/public/archive/index.html" 2>/dev/null; then
+  echo "  FAIL our markup still rendered with our template removed"; RC=$((RC+1))
+elif grep -q 'archive_categories' "$SITE/public/archive/index.html" 2>/dev/null; then
+  echo "  PASS theme-blank took over — shadowing is real"
+else
+  echo "  FAIL neither template rendered; stack may be misconfigured"; RC=$((RC+1))
+fi
+mv "$WORK/themes/micro-theme/layouts/_off.html" "$WORK/themes/micro-theme/layouts/list.archivehtml.html"
+
+# ---- control 2: deprecation sweep, and proof the sweep can see ------------
+# Scoped to OUR theme. The full stack also reports .Site.LanguageCode from
+# theme-blank's index.xml / rss.xml / podcast templates — real, and worth
+# knowing since it will break micro.blog's feeds when Hugo removes it, but it
+# is micro.blog's code to fix and must not fail our gate.
+say "deprecation sweep"
+echo "  sweep Hugo: $("$SWEEP_HUGO" version | head -1 | awk '{print $2}')"
+sweep() { # $1 = theme list
+  rm -rf "$SITE/public" "$SITE/resources"
+  "$SWEEP_HUGO" -s "$SITE" --gc --theme "$1" --logLevel warn 2>&1 | grep -i 'deprecated:' || true
+}
+OURS="$(sweep micro-theme)"
+if [ -n "$OURS" ]; then
+  echo "$OURS" | sed 's/^/  FAIL (this theme) /'; RC=$((RC+1))
+else
+  echo "  PASS zero deprecations in this theme"
+fi
+STACK="$(sweep "$THEMES")"
+if [ -n "$STACK" ]; then
+  echo "$STACK" | sed 's/^/  NOTE (from the plugin stack, not ours) /'
+fi
+# Reintroduce a known-deprecated call; if the sweep stays silent it is blind
+# and the clean result above means nothing.
+sed -i.bak 's/hugo\.Data\.bookshelves/.Site.Data.bookshelves/' "$WORK/themes/micro-theme/layouts/index.html"
+if sweep micro-theme | grep -qi 'deprecated: \.Site\.Data'; then
+  echo "  PASS control fired — the sweep can actually see deprecations"
+else
+  echo "  FAIL control did not fire; sweep is blind, clean result is meaningless"; RC=$((RC+1))
+fi
+mv "$WORK/themes/micro-theme/layouts/index.html.bak" "$WORK/themes/micro-theme/layouts/index.html"
+# leave the tree in the normal, all-checks state
+build "$HUGO" >/dev/null 2>&1 || true
+
+say "result"
+echo "  work dir: $WORK"
+if [ "$RC" -eq 0 ]; then echo "  ALL CHECKS PASSED"; else echo "  $RC CHECK(S) FAILED"; fi
+exit "$RC"

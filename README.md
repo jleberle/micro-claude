@@ -230,9 +230,20 @@ re-add them to `config.json` `params` as defaults.)
   own copy of the same name. `bookgoals.html` is kept only as a fallback for if the plugin is
   ever fully retired.
 
-A CI build check (`.github/workflows/build-check.yml`) builds this theme standalone against the
-`testsite/` fixture on every push/PR to `main`, using the pinned production Hugo (0.158), and
-fails on any fatal template error or leaked error text in the rendered output.
+## Testing
+
+Two layers:
+
+- **CI** (`.github/workflows/build-check.yml`) builds this theme standalone against the
+  `testsite/` fixture on every push/PR to `main`, using the checksum-pinned production Hugo
+  (0.158), and fails on any fatal template error or leaked error text. It is a smoke test —
+  no plugins, no theme-blank.
+- **`scripts/repro.sh`** is the faithful reproduction: 187 real posts (synthesized from the
+  micro.blog content backup) against the real theme stack — this theme, both installed
+  plugins, and micro.blog's `theme-blank` fallback. It asserts that all nine contested
+  template paths resolve to this theme, and includes controls proving theme-blank is
+  genuinely loaded and the deprecation sweep isn't blind. Run it before anything touching
+  `head.html`, `baseof.html` or a home-node output. See `CLAUDE.md`.
 
 See `CLAUDE.md` for the full platform-behavior notes and the local 0.158 reproduction setup.
 
