@@ -162,8 +162,37 @@ def main():
             size = os.path.getsize(f)
             check(size < 30000, "minified size %d < 30000" % size)
 
-    # ---- 8. comparison against production, when a live copy was fetched
-    print("\n[8] parity with production")
+    # ---- 8. the cross-repo contract with ~/git/website's reading.rss.xml
+    #
+    # Those two prefixes are generated THERE, not here, and micro.blog's
+    # autotagging keys off the same strings. A rewording upstream silently
+    # empties this homepage's reading sections with no error on either side —
+    # the failure mode is a blank section, not a crash, which is exactly the
+    # kind that survives unnoticed. That repo's scripts/checks/feed-lint.py
+    # asserts the prefixes from its end; until now nothing asserted them from
+    # ours. These run against 187 real imported posts, so they fail if the
+    # contract is broken upstream, not merely if a fixture drifts.
+    print("\n[8] cross-repo reading-feed contract")
+    texts = [(i.get("content_text") or "").strip() for i in idx["items"]]
+    fin = [t for t in texts if re.match(r"(?i)^finished reading:", t)]
+    sta = [t for t in texts if re.match(r"(?i)^(started|currently) reading:", t)]
+    check(fin, "'Finished reading:' prefix still present (%d posts)" % len(fin),
+          "no post matches — reading.rss.xml may have reworded it")
+    check(sta, "'Started/Currently reading:' prefix still present (%d posts)" % len(sta),
+          "no post matches — reading.rss.xml may have reworded it")
+    # The feed packs headline + notes into one paragraph and splits on this
+    # emoji; move it and the notes run into the title link.
+    delim = [t for t in fin + sta if "\U0001F4DA" in t]
+    check(delim, "book emoji delimiter present (%d reading posts)" % len(delim),
+          "no reading post carries it — the title/review split will mis-fire")
+    # The consequence, not just the signal: the section must actually render.
+    m = re.search(r"Finished Reading.*?</ul>", home, re.S)
+    rows = len(re.findall(r"media-entry-info", m.group(0))) if m else 0
+    check(rows > 0, "Finished Reading section renders %d rows" % rows,
+          "prefixes matched but the homepage section is empty")
+
+    # ---- 9. comparison against production, when a live copy was fetched
+    print("\n[9] parity with production")
     if not live:
         note("skipped", "no live homepage available (offline or --no-live)")
     else:

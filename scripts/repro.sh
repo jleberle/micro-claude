@@ -95,6 +95,26 @@ case "$WORK" in
 esac
 tar -c -C "$REPO" "${SYNC_EXCLUDES[@]}" . | tar -x -C "$WORK/themes/micro-theme"
 echo "  micro-theme: synced from working tree"
+
+# Record what was actually built against. The clones above deliberately track
+# their default branches rather than pinning: micro.blog runs theme-blank's
+# CURRENT state, so pinning would make this reproducible but less faithful — the
+# opposite of the point. The cost of floating inputs is that a past result
+# becomes unexplainable, and that cost is paid by recording, not by pinning.
+# Without this, an assertion could flip because theme-blank changed and nothing
+# would say so.
+SOURCES="$WORK/SOURCES.txt"
+{
+  echo "# resolved sources for the run at $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+  printf '%-28s %s\n' "micro-theme (worktree)" "$(git -C "$REPO" rev-parse --short HEAD 2>/dev/null || echo unknown)$(git -C "$REPO" diff --quiet 2>/dev/null || echo '-dirty')"
+  printf '%-28s %s\n' "backup" "$(git -C "$WORK/backup" rev-parse --short HEAD)"
+  for url in "${PLUGINS[@]}"; do
+    n="$(basename "$url" .git)"
+    printf '%-28s %s\n' "$n" "$(git -C "$WORK/themes/$n" rev-parse --short HEAD)"
+  done
+} > "$SOURCES"
+sed 's/^/  /' "$SOURCES"
+
 # config's themesDir resolves relative to the site dir and beats --themesDir,
 # so link the shared theme cache in rather than passing a flag.
 mkdir -p "$SITE"; ln -sfn "$WORK/themes" "$SITE/themes"
