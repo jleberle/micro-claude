@@ -284,8 +284,8 @@ for and the one production runs is a latent landmine that surfaces only on a **f
 Known current-version notes:
 - The bookshelf/bookgoals data merge uses **`hugo.Data`** (0.155+), not the deprecated
   `.Site.Data`. Don't revert it for compatibility — see `CLAUDE.md`.
-- `og:locale` is hardcoded to `en_US` because micro.blog's 0.158 returns the literal `-` for
-  the deprecated `.Site.LanguageCode`.
+- `og:locale` is hardcoded to `en_US` because that is the `language_TERRITORY` format Open
+  Graph expects and no Hugo variable supplies it.
 - **No deprecation warnings** as of 2026-08-07, verified by building the `testsite/` fixture
   against Hugo 0.164 (six versions ahead of production). `CLAUDE.md` has the one-line sweep
   command to re-run on any micro.blog Hugo bump.
