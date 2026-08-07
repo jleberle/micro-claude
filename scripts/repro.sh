@@ -20,12 +20,16 @@
 #   scripts/repro.sh                 # build + assert (fetches live for parity)
 #   scripts/repro.sh --no-live       # skip the production comparison
 #   scripts/repro.sh --fresh         # re-clone everything
-#   WORK=/some/dir scripts/repro.sh  # choose the work dir
+#   WORK=/some/dir scripts/repro.sh  # work dir (default: .repro/, gitignored)
 #
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-WORK="${WORK:-${TMPDIR:-/tmp}/micro-theme-repro}"
+# Default work dir is INSIDE the repo and gitignored, same convention as Hugo's
+# own public/ and resources/. It is inspectable when an assertion fails, it
+# survives reboots (macOS purges $TMPDIR, and losing the cache costs a 63 MB
+# re-clone), and `rm -rf .repro` is obvious cleanup. Override with WORK=.
+WORK="${WORK:-$REPO/.repro}"
 BACKUP_REPO="https://github.com/jleberle/microblog.git"
 LIVE_URL="https://eberle.blog/"
 PLUGINS=(
@@ -81,8 +85,15 @@ for url in "${PLUGINS[@]}"; do
 done
 # always re-sync the theme under test from the working tree
 rm -rf "$WORK/themes/micro-theme"; mkdir -p "$WORK/themes/micro-theme"
-tar -c -C "$REPO" --exclude=.git --exclude=testsite --exclude=scripts . \
-  | tar -x -C "$WORK/themes/micro-theme"
+# If the work dir lives inside the repo, it MUST be excluded from this sync or
+# the tar sweeps the work dir into the theme copy it is building — a recursive
+# self-inclusion that does not fail, it just silently grows the copy every run.
+# Derived rather than hardcoded so a custom in-repo WORK is handled too.
+SYNC_EXCLUDES=(--exclude=.git --exclude=testsite --exclude=scripts)
+case "$WORK" in
+  "$REPO"/*) SYNC_EXCLUDES+=(--exclude="./${WORK#"$REPO"/}") ;;
+esac
+tar -c -C "$REPO" "${SYNC_EXCLUDES[@]}" . | tar -x -C "$WORK/themes/micro-theme"
 echo "  micro-theme: synced from working tree"
 # config's themesDir resolves relative to the site dir and beats --themesDir,
 # so link the shared theme cache in rather than passing a flag.

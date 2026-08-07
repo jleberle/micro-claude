@@ -245,6 +245,11 @@ Two layers:
   genuinely loaded and the deprecation sweep isn't blind. Run it before anything touching
   `head.html`, `baseof.html` or a home-node output. See `CLAUDE.md`.
 
+  It builds into `.repro/` — inside the repo and gitignored, the same convention as Hugo's
+  `public/` and `resources/` — so the output is inspectable when an assertion fails and
+  `rm -rf .repro` is a full reset. Clones are cached there (~68 MB, mostly the content
+  backup); `--fresh` re-fetches. Override the location with `WORK=`.
+
 See `CLAUDE.md` for the full platform-behavior notes and the local 0.158 reproduction setup.
 
 ## Installed plugins
