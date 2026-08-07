@@ -16,7 +16,7 @@
   missing params).
 
   Leading zeros are rejected on purpose — Go parses "010" as OCTAL, so `int`
-  would return 8 (verified). Guard verified on 0.91.2, 0.158 and 0.163 with the
+  would return 8 (verified). Guard verified on 0.158 and 0.163 with the
   matrix "8"->8, 7->7, "5 "/""/"abc"/"010"/missing->fallback.
 */}}
 {{- $value := .fallback -}}

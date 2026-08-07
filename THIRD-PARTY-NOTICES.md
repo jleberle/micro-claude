@@ -91,6 +91,6 @@ license statement. No rights in that work are claimed or relied upon here.
 `layouts/shortcodes/bookshelf.html` is an independent implementation. It shares
 with the plugin only its interface: the call signature (`shelf` and `variant`,
 defaulting to `currentlyreading` and `list`), retained for compatibility with
-existing content, and the structure of the `.Site.Data.bookshelves` data, which
+existing content, and the structure of the `hugo.Data.bookshelves` data, which
 is defined by Micro.blog. Markup, class names, accessibility handling,
 lazy-loading, ISBN handling and error behavior are original to this theme.

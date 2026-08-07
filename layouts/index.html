@@ -183,18 +183,19 @@
     {{ end }}
   {{ end }}
 
-  {{/* Micro.blog exposes each bookshelf as .Site.Data.bookshelves.<shelf>, where
+  {{/* Micro.blog exposes each bookshelf as hugo.Data.bookshelves.<shelf>, where
        <shelf> is the shelf name lowercased with spaces removed, and each book has
        exactly title/author/isbn/cover_url (help.micro.blog/t/bookshelves/515).
-       NOTE ON THE ACCESSOR: `.Site.Data` is deprecated (WARN on 0.164, silent on
-       micro.blog's 0.158) but is the ONLY form that also works on the 0.91 floor —
-       `hugo.Data` is fatal there ("can't evaluate field Data"). A version gate is
-       NOT a workaround: `ge hugo.Version "0.155.0"` returns TRUE on 0.91.2
-       (verified), so the guarded branch still executes and still faults. When
-       micro.blog ships a Hugo that REMOVES .Site.Data, swap this one line to
-       hugo.Data — it kills the home node (page + feeds) otherwise. */}}
+       ACCESSOR: hugo.Data (0.155+), NOT the deprecated .Site.Data. This repo used
+       .Site.Data until 2026-08-07 solely to hold to the Hugo 0.91 floor micro.blog
+       recommends to theme authors; that floor was dropped deliberately (see
+       CLAUDE.md) — production runs 0.158, this is a single-site personal theme,
+       and 0.158 builds measurably faster, so there is no path back. The swap
+       removed a deprecated API from the home node, where a future removal would
+       take the page AND both feeds down together. Verified byte-identical output
+       on pinned 0.158 before and after. */}}
   {{ $shelfKey := .Site.Params.home_shelf_currently_reading | default "currentlyreading" }}
-  {{ with .Site.Data.bookshelves }}
+  {{ with hugo.Data.bookshelves }}
     {{ with index . $shelfKey }}
       {{ range . }}
         {{ $isbn := "" }}

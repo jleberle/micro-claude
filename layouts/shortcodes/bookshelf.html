@@ -58,10 +58,9 @@
   {{- $variant = "list" -}}
 {{- end -}}
 
-{{/* .Site.Data, NOT hugo.Data: the latter is fatal on the 0.91 compatibility
-     floor micro.blog asks authors to target. See "Future landmines" in
-     CLAUDE.md — this is the same accepted trade index.html already makes. */}}
-{{- with .Site.Data.bookshelves -}}
+{{/* hugo.Data (0.155+), not the deprecated .Site.Data — the 0.91 floor this repo
+     used to hold to was dropped 2026-08-07; see index.html's accessor note. */}}
+{{- with hugo.Data.bookshelves -}}
   {{- with index . $shelf -}}
     <ul class="bookshelf bookshelf--{{ $variant }}">
       {{- range $i, $book := . -}}

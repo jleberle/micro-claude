@@ -2,7 +2,7 @@
   Renders a year's finished books, or this year's progress string.
   Called by BOTH shortcodes/readinggoals.html and shortcodes/bookgoals.html so
   the logic lives once — see readinggoals.html for why two names exist.
-  Expects a dict: "param" (year, or "progress") and "data" (.Site.Data.bookgoals).
+  Expects a dict: "param" (year, or "progress") and "data" (hugo.Data.bookgoals).
 */}}
 {{- with $.data -}}
   {{- if eq $.param "progress" -}}

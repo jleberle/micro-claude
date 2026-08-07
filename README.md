@@ -26,8 +26,8 @@ A custom Hugo theme for [eberle.blog](https://eberle.blog) that mirrors the styl
 (body) and Fraunces (headings), light-only (no dark mode).
 
 - **Repo:** `github.com/jleberle/micro-claude` — micro.blog pulls from the **`main`** branch.
-- **Hugo:** micro.blog runs **0.158** in production. Templates are kept compatible with
-  micro.blog's recommended **0.91** floor as well (see [Hugo compatibility](#hugo-compatibility)).
+- **Hugo:** targets **0.158**, micro.blog's production version. Older versions are not
+  supported (see [Hugo compatibility](#hugo-compatibility)).
 
 ## Installing (as a plugin, not a theme)
 
@@ -103,7 +103,7 @@ theme.toml                    theme metadata
 2. **Status** — most recent post in the `Status` category.
 3. **Currently Reading** — two sources merged into one list: imported `Started reading:`
    posts with no matching finished entry (dated, newest first), followed by Micro.blog's
-   own **Currently Reading bookshelf** (`.Site.Data.bookshelves`, undated, in shelf order)
+   own **Currently Reading bookshelf** (`hugo.Data.bookshelves`, undated, in shelf order)
    so a book moved onto the shelf in the Micro.blog backend appears **without needing a
    post**. A book present in both is shown once — the post wins, since it carries a date,
    a permalink and notes — and anything already finished is dropped from the shelf side.
@@ -242,20 +242,26 @@ plugin, was replaced by this theme's own `layouts/robots.txt`.
 
 ## Hugo compatibility
 
-micro.blog recommends targeting **Hugo 0.91** for themes/plugins but runs **0.158** in
-production. APIs removed between those versions are latent landmines that only surface on a
-**full rebuild** (fast-publish serves cached output). Prefer APIs valid on **both** versions
-(e.g. `.Site.Params.author.avatar`, not the removed `.Site.Author.avatar`).
+**This theme targets Hugo 0.158 — micro.blog's production version — and nothing older.**
+micro.blog's docs suggest a 0.91 compatibility floor for distributable themes; this one is
+single-site and personal (see the disclaimer at the top), so that floor was **dropped on
+2026-08-07**. It was buying insurance against a downgrade that will never happen while
+costing a deprecated API in the home page's template, where a fault takes down the homepage
+and both feeds together. If you fork this, assume 0.158+.
+
+The real hazard is unchanged: an API **removed** between the version a template was written
+for and the one production runs is a latent landmine that surfaces only on a **full rebuild**
+(fast-publish serves cached output). `.Site.Author.*` was removed in 0.156 — use
+`.Site.Params.author.*`.
 
 Known current-version notes:
-- `.Site.Data` (the bookshelf merge in `index.html`) is **deprecated but deliberate**: it is
-  the only accessor valid on both 0.91 and 0.158, since `hugo.Data` is fatal on 0.91. Note
-  that gating it on `ge hugo.Version "0.155.0"` does **not** work — that comparison returns
-  true on 0.91.2. Swap to `hugo.Data` if micro.blog ever ships a Hugo that removes it.
+- The bookshelf/bookgoals data merge uses **`hugo.Data`** (0.155+), not the deprecated
+  `.Site.Data`. Don't revert it for compatibility — see `CLAUDE.md`.
 - `og:locale` is hardcoded to `en_US` because micro.blog's 0.158 returns the literal `-` for
   the deprecated `.Site.LanguageCode`.
-- Future landmines (deprecated on 0.158, not yet removed): `.Site.LanguageCode`, `.Site.Data`,
-  and the config keys `languageCode` / `paginate`.
+- **No deprecation warnings** as of 2026-08-07, verified by building the `testsite/` fixture
+  against Hugo 0.164 (six versions ahead of production). `CLAUDE.md` has the one-line sweep
+  command to re-run on any micro.blog Hugo bump.
 
 Full details, root-cause history, and the pinned-`hugo-0.158` local reproduction live in `CLAUDE.md`.
 

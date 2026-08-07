@@ -12,4 +12,4 @@
 {{- else -}}
   {{- $param = .Get 0 | default "" -}}
 {{- end -}}
-{{- partial "reading-goals.html" (dict "param" $param "data" .Site.Data.bookgoals) -}}
+{{- partial "reading-goals.html" (dict "param" $param "data" hugo.Data.bookgoals) -}}

@@ -12,7 +12,11 @@
 # before it ever reaches a push to main.
 
 baseURL = "https://example.com/"
-languageCode = "en-us"
+# `locale`, not the deprecated `languageCode` (deprecated in 0.158, still works
+# there; removal is coming). Kept current so a deprecation sweep against a newer
+# Hugo — the early-warning check described in CLAUDE.md — stays signal-only
+# instead of always printing this fixture's own warning.
+locale = "en-us"
 title = "CI Fixture Site"
 theme = "micro-theme"
 themesDir = "themes"
