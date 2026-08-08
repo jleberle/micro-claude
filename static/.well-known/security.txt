@@ -1,3 +1,6 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
 # Security policy for eberle.blog, mirroring the one served at
 # https://jaredeberle.org/.well-known/security.txt (RFC 9116).
 #
@@ -18,3 +21,11 @@ Preferred-Languages: en
 Canonical: https://eberle.blog/.well-known/security.txt
 Canonical: https://jaredeberle.org/.well-known/security.txt
 Expires: 2027-05-26T00:00:00.000Z
+-----BEGIN PGP SIGNATURE-----
+
+iJEEARYKADkWIQRzbk6xCDxRFxhLsx74rwelVbIRWgUCancvMBsUgAAAAAAEAA5t
+YW51MiwyLjUrMS4xMiwwLDMACgkQ+K8HpVWyEVr/JgEAnY4nGkn33mfPU1G5wx5P
+0RP1SWiiuhEBbtkQv/SbZN0BAIUuRN3aPhKru21CB32n9ANufUcgceZoBpcllQBf
+7cgI
+=G4J/
+-----END PGP SIGNATURE-----
