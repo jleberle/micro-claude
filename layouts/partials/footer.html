@@ -11,6 +11,9 @@
             Notes, reviews, reading, and photographs published on micro.blog.
           {{ end }}
         </p>
+        {{ with .Site.Params.cc_license_url }}
+        <p>Content licensed <a rel="license" href="{{ . }}">CC BY 4.0</a>.</p>
+        {{ end }}
       </div>
     </div>
 
