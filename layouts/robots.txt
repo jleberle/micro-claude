@@ -27,6 +27,7 @@ User-agent: *
 Disallow:
 
 Sitemap: https://eberle.blog/sitemap.xml
+License: https://eberle.blog/license.xml
 
 # ----------------------------------------------------------------------
 # AI crawlers: blocked. Two distinct categories, both blocked here to match
@@ -69,6 +70,7 @@ Disallow: /
 # Meta
 User-agent: meta-externalagent
 User-agent: Meta-ExternalAgent
+User-agent: Meta-ExternalFetcher
 User-agent: FacebookBot
 Disallow: /
 
@@ -76,7 +78,7 @@ Disallow: /
 User-agent: CCBot
 Disallow: /
 
-# Amazon, ByteDance, Cohere, DuckDuckGo AI, Diffbot, Omgili, You.com
+# Amazon, ByteDance, Cohere, DuckDuckGo AI, Diffbot, Omgili, You.com, Timpi, Webz.io
 User-agent: Amazonbot
 User-agent: Bytespider
 User-agent: cohere-ai
@@ -86,9 +88,12 @@ User-agent: Diffbot
 User-agent: omgili
 User-agent: omgilibot
 User-agent: YouBot
+User-agent: Timpibot
+User-agent: Webzio-Extended
 Disallow: /
 
 # Image scrapers used to build training sets
 User-agent: ImagesiftBot
 User-agent: AI2Bot
+User-agent: Ai2Bot-Dolma
 Disallow: /

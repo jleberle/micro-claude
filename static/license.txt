@@ -1,0 +1,17 @@
+License — eberle.blog
+
+All original content on this site is offered under a Creative Commons
+Attribution 4.0 International license (CC BY 4.0).
+
+https://creativecommons.org/licenses/by/4.0/
+
+Any use of the original content must be appropriately attributed.
+
+This license does not apply to commercial AI training or answers. As
+defined by this site's robots.txt and ai.txt, AI agents are not permitted
+to scrape, retrieve, or otherwise use content on this site. This is an
+express reservation of rights under Article 4 of EU Directive 2019/790.
+
+Machine-readable rights declaration: https://eberle.blog/license.xml
+
+Contact: jared@jaredeberle.org

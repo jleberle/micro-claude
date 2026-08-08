@@ -317,3 +317,11 @@ Full details, root-cause history, and the pinned-`hugo-0.158` local reproduction
 This theme is released under the [MIT License](LICENSE) — see the disclaimer at the top
 regarding support and reuse. Bundled fonts and absorbed plugin code carry their own
 licenses; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+That's the license for the theme's *code*. The blog's *content* is declared separately,
+for both bots and human visitors, via a `cc_license_url` param (default CC BY 4.0):
+a `rel="license"` tag and schema.org `license` field in every page's `<head>`, a footer
+credit, a human-readable `/license.txt`, a machine-readable RSL declaration at
+`/license.xml` (referenced from `robots.txt`'s `License:` line), and `/ai.txt`. AI
+crawlers are separately blocked in `layouts/robots.txt`, mirroring the policy on
+[jaredeberle.org](https://jaredeberle.org).
